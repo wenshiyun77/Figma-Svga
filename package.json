@@ -1,0 +1,15 @@
+{
+  "name": "figma-svga-editor-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone Figma plugin for importing selected Figma layers, applying basic animation, and exporting SVGA files.",
+  "scripts": {
+    "license:keygen": "node scripts/generate-license-keypair.mjs",
+    "license:code": "node scripts/generate-license-code.mjs",
+    "check": "node scripts/check.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

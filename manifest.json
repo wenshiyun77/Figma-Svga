@@ -1,0 +1,12 @@
+{
+  "name": "SVGA Editor",
+  "id": "1538785317367824971",
+  "api": "1.0.0",
+  "editorType": ["figma"],
+  "main": "src/main.js",
+  "ui": "src/ui.html",
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

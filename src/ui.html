@@ -1,0 +1,3462 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SVGA Editor</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: var(--figma-color-bg, #f7f7f8);
+        --panel: var(--figma-color-bg-secondary, #ffffff);
+        --text: var(--figma-color-text, #171717);
+        --muted: var(--figma-color-text-secondary, #686868);
+        --border: var(--figma-color-border, #dddddf);
+        --accent: var(--figma-color-bg-brand, #1677ff);
+        --accent-text: var(--figma-color-text-onbrand, #ffffff);
+        --ok: #079455;
+        --danger: #d92d20;
+        --warning-bg: #fff7e6;
+        --warning-border: #ffd591;
+        --shadow: rgba(0, 0, 0, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 360px;
+        color: var(--text);
+        background: var(--bg);
+        font: 12px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        height: 32px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        background: var(--panel);
+        padding: 0 10px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        border-color: var(--accent);
+      }
+
+      button.primary {
+        border-color: var(--accent);
+        color: var(--accent-text);
+        background: var(--accent);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      input,
+      select {
+        width: 100%;
+        height: 30px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        background: var(--panel);
+        padding: 0 8px;
+      }
+
+      input[type="range"] {
+        padding: 0;
+      }
+
+      .app {
+        display: flex;
+        min-height: 100vh;
+        flex-direction: column;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 14px 10px;
+        border-bottom: 1px solid var(--border);
+        background: var(--panel);
+      }
+
+      .title {
+        display: grid;
+        gap: 2px;
+      }
+
+      .title strong {
+        font-size: 14px;
+        line-height: 1.2;
+      }
+
+      .ready {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+
+      .content {
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .band {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 1px 2px var(--shadow);
+      }
+
+      .band-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 10px 6px;
+      }
+
+      .band-title {
+        font-weight: 650;
+      }
+
+      .band-body {
+        display: grid;
+        gap: 8px;
+        padding: 0 10px 10px;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .field {
+        display: grid;
+        gap: 4px;
+      }
+
+      .field label {
+        color: var(--muted);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .selection {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        color: var(--muted);
+      }
+
+      .license-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        color: var(--muted);
+      }
+
+      .metric {
+        min-width: 0;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px;
+        background: var(--bg);
+      }
+
+      .metric strong {
+        display: block;
+        color: var(--text);
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .layers {
+        max-height: 220px;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+      }
+
+      .layer-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 8px;
+        align-items: center;
+        min-height: 34px;
+        padding: 7px 8px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+      }
+
+      .layer-row.stale {
+        background: color-mix(in srgb, var(--warning-bg) 74%, transparent);
+      }
+
+      .layer-row:last-child {
+        border-bottom: 0;
+      }
+
+      .layer-row.selected {
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+      }
+
+      .layer-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .layer-meta {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .layer-update-btn {
+        display: inline-flex;
+        align-items: center;
+        height: 24px;
+        padding: 0 8px;
+      }
+
+      .layer-row.stale .layer-update-btn {
+        border-color: var(--accent);
+        color: var(--accent-text);
+        background: var(--accent);
+      }
+
+      .preview-viewport {
+        overflow: auto;
+        max-height: 320px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background:
+          linear-gradient(45deg, color-mix(in srgb, var(--border) 42%, transparent) 25%, transparent 25%),
+          linear-gradient(-45deg, color-mix(in srgb, var(--border) 42%, transparent) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, color-mix(in srgb, var(--border) 42%, transparent) 75%),
+          linear-gradient(-45deg, transparent 75%, color-mix(in srgb, var(--border) 42%, transparent) 75%);
+        background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+        background-size: 16px 16px;
+      }
+
+      .preview-canvas {
+        position: relative;
+        min-width: 1px;
+        min-height: 1px;
+        background: rgba(255, 255, 255, 0.72);
+        box-shadow: inset 0 0 0 1px var(--border);
+      }
+
+      .preview-layer {
+        position: absolute;
+        display: block;
+        object-fit: fill;
+        pointer-events: none;
+      }
+
+      .preview-layer.selected {
+        outline: 2px solid var(--accent);
+        outline-offset: 0;
+      }
+
+      .log {
+        max-height: 92px;
+        overflow: auto;
+        white-space: pre-wrap;
+        color: var(--muted);
+      }
+
+      .empty {
+        color: var(--muted);
+        padding: 10px;
+        text-align: center;
+      }
+
+      .contact-panel {
+        display: none;
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--warning-border);
+        border-radius: 8px;
+        padding: 8px;
+        color: #6b3d00;
+        background: var(--warning-bg);
+      }
+
+      .contact-panel.visible {
+        display: grid;
+      }
+
+      .contact-panel img {
+        width: 96px;
+        height: 96px;
+        object-fit: contain;
+        border-radius: 6px;
+        background: #fff;
+      }
+
+      .contact-copy {
+        display: grid;
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .contact-copy strong {
+        color: #4f2d00;
+      }
+
+      .code-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .install-id {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 8px;
+        color: var(--text);
+        background: var(--bg);
+        font-variant-numeric: tabular-nums;
+      }
+
+      textarea {
+        min-height: 74px;
+        resize: vertical;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        color: var(--text);
+        background: var(--panel);
+        padding: 8px;
+        font: inherit;
+      }
+
+      .danger-text {
+        color: var(--danger);
+      }
+
+      :root {
+        color-scheme: dark;
+        --bg: #030303;
+        --panel: rgba(8, 8, 9, 0.92);
+        --panel-2: rgba(16, 16, 18, 0.9);
+        --panel-3: rgba(24, 24, 27, 0.88);
+        --text: rgba(255, 255, 255, 0.94);
+        --muted: rgba(255, 255, 255, 0.52);
+        --soft: rgba(255, 255, 255, 0.32);
+        --border: rgba(255, 255, 255, 0.09);
+        --accent: #6366f1;
+        --accent-2: #8b5cf6;
+        --accent-text: #ffffff;
+        --ok: #22c55e;
+        --danger: #ef4444;
+        --warning-bg: rgba(245, 158, 11, 0.12);
+        --warning-border: rgba(245, 158, 11, 0.28);
+        --shadow: rgba(0, 0, 0, 0.46);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        min-width: 760px;
+        color: var(--text);
+        background: var(--bg);
+        font: 12px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button {
+        height: 32px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: rgba(255, 255, 255, 0.72);
+        background: rgba(255, 255, 255, 0.055);
+        transition:
+          background 140ms ease,
+          border-color 140ms ease,
+          color 140ms ease,
+          transform 140ms ease;
+      }
+
+      button:hover {
+        border-color: rgba(255, 255, 255, 0.16);
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.09);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      button.primary {
+        border-color: rgba(255, 255, 255, 0.9);
+        color: #050505;
+        background: #ffffff;
+        font-weight: 800;
+      }
+
+      input,
+      select,
+      textarea {
+        border-color: var(--border);
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      textarea {
+        resize: none;
+      }
+
+      .editor-shell {
+        position: relative;
+        height: 100vh;
+        min-height: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 18% 0%, rgba(99, 102, 241, 0.13), transparent 30%),
+          radial-gradient(circle at 88% 8%, rgba(139, 92, 246, 0.1), transparent 28%),
+          #030303;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        height: 72px;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.52);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 14px;
+        color: #ffffff;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        box-shadow: 0 0 24px rgba(99, 102, 241, 0.32);
+        font-weight: 950;
+        font-style: italic;
+      }
+
+      .brand-copy {
+        min-width: 0;
+      }
+
+      .brand-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 950;
+        font-style: italic;
+        letter-spacing: 0;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .brand-subtitle {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .topbar-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        flex: 0 0 auto;
+        min-width: 0;
+      }
+
+      .license-menu {
+        position: relative;
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 210px;
+        justify-content: flex-end;
+      }
+
+      .license-compact {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        width: min(300px, 100%);
+        height: 44px;
+        padding: 6px 10px;
+        border-radius: 14px;
+        text-align: left;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .license-compact span {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        color: rgba(255, 255, 255, 0.38);
+        font-size: 9px;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .license-compact strong {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.3;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .license-state-hidden {
+        display: none;
+      }
+
+      .license-popover {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        z-index: 20;
+        display: grid;
+        width: 380px;
+        max-width: calc(100vw - 36px);
+        gap: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 18px;
+        padding: 14px;
+        background: rgba(8, 8, 9, 0.98);
+        box-shadow: 0 26px 80px rgba(0, 0, 0, 0.52);
+      }
+
+      .license-popover[hidden] {
+        display: none;
+      }
+
+      .license-popover-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .license-popover-title strong {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .tool-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-width: 0;
+        height: 38px;
+        padding: 0 13px;
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .tool-button.icon-only {
+        width: 38px;
+        padding: 0;
+        font-size: 14px;
+        letter-spacing: 0;
+      }
+
+      .editor-layout {
+        display: grid;
+        grid-template-columns: 300px minmax(360px, 1fr) 300px;
+        height: calc(100vh - 72px);
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        display: flex;
+        min-width: 0;
+        min-height: 0;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.34);
+        backdrop-filter: blur(16px);
+      }
+
+      .left-sidebar {
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .right-sidebar {
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .sidebar-section {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .section-title-main {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        color: rgba(255, 255, 255, 0.46);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .section-title-main strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .section-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 20px;
+        border-radius: 999px;
+        color: rgba(255, 255, 255, 0.66);
+        background: rgba(255, 255, 255, 0.09);
+        font-size: 9px;
+        font-weight: 850;
+      }
+
+      .selection {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .metric {
+        border-color: rgba(255, 255, 255, 0.075);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .metric span {
+        display: block;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 10px;
+        font-weight: 750;
+      }
+
+      .metric strong {
+        margin-top: 3px;
+        color: #ffffff;
+      }
+
+      .layers {
+        flex: 1;
+        max-height: none;
+        min-height: 0;
+        overflow: auto;
+        border: 0;
+        border-radius: 0;
+        padding: 8px;
+        background: transparent;
+      }
+
+      .layer-row {
+        grid-template-columns: 26px minmax(0, 1fr) auto;
+        gap: 8px;
+        min-height: 50px;
+        margin-bottom: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .layer-row:last-child {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .layer-row:hover {
+        border-color: rgba(99, 102, 241, 0.28);
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .layer-row.selected {
+        border-color: rgba(99, 102, 241, 0.58);
+        background: rgba(99, 102, 241, 0.14);
+      }
+
+      .layer-row.stale {
+        border-color: rgba(245, 158, 11, 0.45);
+        background: rgba(245, 158, 11, 0.12);
+      }
+
+      .layer-thumb {
+        display: grid;
+        width: 26px;
+        height: 26px;
+        place-items: center;
+        border-radius: 8px;
+        color: rgba(129, 140, 248, 0.92);
+        background: rgba(99, 102, 241, 0.12);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .layer-copy {
+        display: grid;
+        min-width: 0;
+        gap: 4px;
+      }
+
+      .layer-name {
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .layer-meta {
+        color: rgba(255, 255, 255, 0.42);
+        font-size: 10px;
+      }
+
+      .layer-update-btn {
+        height: 26px;
+        border-radius: 8px;
+        color: rgba(255, 255, 255, 0.58);
+        background: rgba(255, 255, 255, 0.055);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .stage {
+        position: relative;
+        display: flex;
+        min-width: 0;
+        min-height: 0;
+        flex-direction: column;
+        overflow: hidden;
+        background: #09090b;
+      }
+
+      .stage-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        height: 46px;
+        padding: 0 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(0, 0, 0, 0.22);
+      }
+
+      .stage-meta {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .stage-meta strong {
+        overflow: hidden;
+        color: rgba(255, 255, 255, 0.78);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .stage-zoom {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex: 0 0 auto;
+      }
+
+      .zoom-value {
+        min-width: 48px;
+        color: rgba(255, 255, 255, 0.58);
+        font-size: 10px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .stage-viewport {
+        position: relative;
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        align-items: center;
+        justify-content: center;
+        overflow: auto;
+        padding: 30px;
+      }
+
+      .stage-viewport::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.04;
+        background-image: radial-gradient(#ffffff 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+
+      .canvas-frame {
+        position: relative;
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        max-width: none;
+        max-height: none;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        background: #030303;
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+      }
+
+      .canvas-frame.bg-white {
+        background: #ffffff;
+      }
+
+      .canvas-frame.bg-checkered {
+        background-color: #f0f0f0;
+        background-image:
+          linear-gradient(45deg, #d7d7d7 25%, transparent 25%),
+          linear-gradient(-45deg, #d7d7d7 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #d7d7d7 75%),
+          linear-gradient(-45deg, transparent 75%, #d7d7d7 75%);
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        background-size: 20px 20px;
+      }
+
+      .preview-canvas {
+        display: block;
+        min-width: 1px;
+        min-height: 1px;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .preview-empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.22);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        pointer-events: none;
+        text-transform: uppercase;
+      }
+
+      .canvas-interaction {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        touch-action: none;
+      }
+
+      .canvas-interaction[hidden] {
+        display: none;
+      }
+
+      .selection-box {
+        position: absolute;
+        pointer-events: none;
+        transform-origin: center center;
+      }
+
+      .selection-border {
+        position: absolute;
+        inset: 0;
+        border: 1.5px solid #3b82f6;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.42);
+        cursor: move;
+        pointer-events: auto;
+      }
+
+      .selection-handle {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border: 1.5px solid #3b82f6;
+        background: #ffffff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        pointer-events: auto;
+      }
+
+      .selection-handle.nw {
+        left: 0;
+        top: 0;
+        cursor: nwse-resize;
+        transform: translate(-50%, -50%);
+      }
+
+      .selection-handle.ne {
+        right: 0;
+        top: 0;
+        cursor: nesw-resize;
+        transform: translate(50%, -50%);
+      }
+
+      .selection-handle.se {
+        right: 0;
+        bottom: 0;
+        cursor: nwse-resize;
+        transform: translate(50%, 50%);
+      }
+
+      .selection-handle.sw {
+        left: 0;
+        bottom: 0;
+        cursor: nesw-resize;
+        transform: translate(-50%, 50%);
+      }
+
+      .rotation-stem {
+        position: absolute;
+        left: 50%;
+        top: -24px;
+        width: 1px;
+        height: 24px;
+        background: #3b82f6;
+        transform: translateX(-50%);
+      }
+
+      .rotation-handle {
+        position: absolute;
+        left: 50%;
+        top: -31px;
+        width: 12px;
+        height: 12px;
+        border: 1.5px solid #3b82f6;
+        border-radius: 999px;
+        background: #ffffff;
+        cursor: crosshair;
+        pointer-events: auto;
+        transform: translate(-50%, -50%);
+      }
+
+      .playbar {
+        position: absolute;
+        right: 0;
+        bottom: 22px;
+        left: 0;
+        z-index: 3;
+        display: flex;
+        justify-content: center;
+        pointer-events: none;
+      }
+
+      .playbar-inner {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        padding: 8px 10px;
+        background: rgba(0, 0, 0, 0.62);
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.36);
+        backdrop-filter: blur(18px);
+        pointer-events: auto;
+      }
+
+      .align-tools {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+        padding: 4px 6px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .align-tools[hidden] {
+        display: none;
+      }
+
+      .align-button {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        padding: 0;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .align-button:hover {
+        color: #ffffff;
+      }
+
+      .bg-switcher {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+        padding: 4px 6px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .swatch {
+        width: 22px;
+        height: 22px;
+        border-radius: 8px;
+        padding: 0;
+      }
+
+      .swatch.active {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.34);
+      }
+
+      .swatch.checkered {
+        background-color: #eeeeee;
+        background-image:
+          linear-gradient(45deg, #c8c8c8 25%, transparent 25%),
+          linear-gradient(-45deg, #c8c8c8 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #c8c8c8 75%),
+          linear-gradient(-45deg, transparent 75%, #c8c8c8 75%);
+        background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+        background-size: 10px 10px;
+      }
+
+      .swatch.black {
+        background: #030303;
+      }
+
+      .swatch.white {
+        background: #ffffff;
+      }
+
+      .play-button {
+        display: inline-flex;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border-color: rgba(255, 255, 255, 0.92);
+        color: #050505;
+        background: #ffffff;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .field {
+        gap: 6px;
+      }
+
+      .field label {
+        color: rgba(255, 255, 255, 0.42);
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .inspector-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+      }
+
+      .inspector-card {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .license-summary {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .motion-select {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .motion-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .motion-option {
+        height: 36px;
+        justify-content: flex-start;
+        border-color: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 0 12px;
+        color: rgba(255, 255, 255, 0.52);
+        background: rgba(255, 255, 255, 0.045);
+        font-weight: 850;
+        text-align: left;
+      }
+
+      .motion-option.active {
+        border-color: rgba(99, 102, 241, 0.58);
+        color: #ffffff;
+        background: rgba(99, 102, 241, 0.18);
+      }
+
+      .motion-option:disabled {
+        opacity: 0.42;
+      }
+
+      .motion-control-panel,
+      .sweep-controls {
+        display: grid;
+        gap: 12px;
+      }
+
+      .motion-control-panel[hidden],
+      .sweep-controls[hidden],
+      .field[hidden] {
+        display: none;
+      }
+
+      .inline-field {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .inspector-subtitle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-top: 2px;
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .reset-button {
+        height: 24px;
+        border: 0;
+        padding: 0;
+        color: rgba(129, 140, 248, 0.92);
+        background: transparent;
+        font-size: 9px;
+        font-weight: 900;
+      }
+
+      .transform-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .color-input {
+        width: 48px;
+        height: 32px;
+        padding: 2px;
+      }
+
+      .sweep-header-button {
+        height: 28px;
+        padding: 0 10px;
+        border-radius: 9px;
+        color: #050505;
+        background: #ffffff;
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .sweep-empty {
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 12px;
+        color: rgba(255, 255, 255, 0.34);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .sweep-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .contact-panel {
+        grid-template-columns: 82px minmax(0, 1fr);
+        border-color: rgba(245, 158, 11, 0.26);
+        color: rgba(255, 237, 213, 0.78);
+        background: rgba(245, 158, 11, 0.1);
+      }
+
+      .contact-panel img {
+        width: 82px;
+        height: 82px;
+      }
+
+      .contact-copy strong {
+        color: #fff7ed;
+      }
+
+      .install-id {
+        border-color: rgba(255, 255, 255, 0.075);
+        color: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .empty {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .resize-handle {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        width: 22px;
+        height: 22px;
+        cursor: nwse-resize;
+      }
+
+      .resize-handle::before {
+        content: "";
+        position: absolute;
+        right: 6px;
+        bottom: 6px;
+        width: 10px;
+        height: 10px;
+        border-right: 2px solid rgba(255, 255, 255, 0.35);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+      }
+
+      @media (max-width: 980px) {
+        .editor-layout {
+          grid-template-columns: 260px minmax(320px, 1fr) 280px;
+        }
+
+        .tool-button span.optional {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app editor-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">S</div>
+          <div class="brand-copy">
+            <h1 class="brand-title">SVGA 编辑器</h1>
+            <span class="brand-subtitle">Figma layers to motion</span>
+          </div>
+        </div>
+        <div class="license-menu">
+          <button id="licenseToggleBtn" class="license-compact" type="button" aria-expanded="false" aria-controls="licensePopover">
+            <span>
+              免费导出
+              <strong id="freeCount">10 / 10</strong>
+            </span>
+            <span>
+              授权状态
+              <strong id="activationState">未激活</strong>
+            </span>
+          </button>
+          <span id="licenseState" class="license-state-hidden">读取中</span>
+          <div id="licensePopover" class="license-popover" hidden>
+            <div class="license-popover-title">
+              <strong>授权信息</strong>
+              <button id="licenseCloseBtn" class="tool-button icon-only" type="button" title="收起授权">×</button>
+            </div>
+            <div id="contactPanel" class="contact-panel">
+              <img id="contactQr" alt="联系二维码" />
+              <div class="contact-copy">
+                <strong>免费次数已用完</strong>
+                <span>扫码联系我，发送下方识别码后获取授权码。</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="installationId">授权识别码</label>
+              <div class="code-row">
+                <div id="installationId" class="install-id">-</div>
+                <button id="copyInstallIdBtn" type="button">复制</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="licenseCode">授权码</label>
+              <textarea id="licenseCode" spellcheck="false" placeholder="SVGA1..."></textarea>
+            </div>
+            <button id="activateLicenseBtn" type="button">激活授权码</button>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button id="scanBtn" class="tool-button" type="button">刷新 Figma</button>
+          <button id="captureBtn" class="tool-button" type="button">重新同步</button>
+          <button id="downloadJsonBtn" class="tool-button" type="button" disabled>导出工程</button>
+          <button id="exportSvgaBtn" class="tool-button primary" type="button" disabled>导出 SVGA</button>
+          <button id="windowShrinkBtn" class="tool-button icon-only" type="button" title="缩小窗口">-</button>
+          <button id="windowGrowBtn" class="tool-button icon-only" type="button" title="放大窗口">+</button>
+        </div>
+      </header>
+
+      <section class="editor-layout">
+        <aside class="sidebar left-sidebar">
+          <div class="sidebar-section">
+            <div class="section-title">
+              <div class="section-title-main">
+                <span>LAYERS</span>
+                <strong>图层资产管理器</strong>
+              </div>
+              <span id="layerCountBadge" class="section-badge">0</span>
+            </div>
+            <div class="selection">
+              <div class="metric">
+                <span>图层</span>
+                <strong id="selectionCount">0</strong>
+              </div>
+              <div class="metric">
+                <span>宽</span>
+                <strong id="selectionWidth">-</strong>
+              </div>
+              <div class="metric">
+                <span>高</span>
+                <strong id="selectionHeight">-</strong>
+              </div>
+            </div>
+          </div>
+          <div id="layerList" class="layers">
+            <div class="empty">选中 Figma 画布后打开插件会自动同步图层</div>
+          </div>
+        </aside>
+
+        <section class="stage">
+          <div class="stage-toolbar">
+            <div class="stage-meta">
+              <strong id="canvasMeta">未导入</strong>
+              <span id="previewMeta" class="layer-meta">等待同步 Figma 画布</span>
+            </div>
+            <div class="stage-zoom">
+              <button id="canvasZoomOutBtn" class="tool-button icon-only" type="button" title="缩小画布">-</button>
+              <span id="canvasZoomValue" class="zoom-value">100%</span>
+              <button id="canvasZoomInBtn" class="tool-button icon-only" type="button" title="放大画布">+</button>
+              <button id="canvasZoomResetBtn" class="tool-button" type="button">1:1</button>
+            </div>
+          </div>
+
+          <div id="stageViewport" class="stage-viewport">
+            <div id="canvasFrame" class="canvas-frame bg-checkered">
+              <canvas id="previewCanvas" class="preview-canvas"></canvas>
+              <div id="canvasInteraction" class="canvas-interaction" hidden>
+                <div id="selectionBox" class="selection-box">
+                  <div class="selection-border" data-drag-mode="translate"></div>
+                  <div class="selection-handle nw" data-drag-mode="scale"></div>
+                  <div class="selection-handle ne" data-drag-mode="scale"></div>
+                  <div class="selection-handle se" data-drag-mode="scale"></div>
+                  <div class="selection-handle sw" data-drag-mode="scale"></div>
+                  <div class="rotation-stem"></div>
+                  <div class="rotation-handle" data-drag-mode="rotate"></div>
+                </div>
+              </div>
+              <div id="previewEmpty" class="preview-empty">Engine standby</div>
+            </div>
+          </div>
+
+          <div class="playbar">
+            <div class="playbar-inner">
+              <div class="bg-switcher" aria-label="预览背景">
+                <button class="swatch checkered active" data-bg="checkered" type="button" title="透明背景"></button>
+                <button class="swatch black" data-bg="black" type="button" title="黑色背景"></button>
+                <button class="swatch white" data-bg="white" type="button" title="白色背景"></button>
+              </div>
+              <div id="alignmentTools" class="align-tools" hidden aria-label="对齐工具">
+                <button class="align-button" data-align="left" type="button" title="左对齐">左</button>
+                <button class="align-button" data-align="center-h" type="button" title="水平居中">中</button>
+                <button class="align-button" data-align="right" type="button" title="右对齐">右</button>
+                <button class="align-button" data-align="top" type="button" title="顶部对齐">上</button>
+                <button class="align-button" data-align="center-v" type="button" title="垂直居中">中</button>
+                <button class="align-button" data-align="bottom" type="button" title="底部对齐">下</button>
+              </div>
+              <button id="playPreviewBtn" class="play-button" type="button" title="播放预览">▶</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="sidebar right-sidebar">
+          <div class="inspector-scroll">
+            <div class="inspector-card">
+              <div class="section-title">
+                <div class="section-title-main">
+                  <span>PROJECT</span>
+                  <strong>工程设置</strong>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label for="materialType">类型</label>
+                  <input id="materialType" value="figma_selection" />
+                </div>
+                <div class="field">
+                  <label for="exportScale">导出倍数</label>
+                  <select id="exportScale">
+                    <option value="1">1x</option>
+                    <option value="2">2x</option>
+                    <option value="3">3x</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label for="fps">FPS</label>
+                  <input id="fps" type="number" min="1" max="60" value="24" />
+                </div>
+                <div class="field">
+                  <label for="frames">帧数</label>
+                  <input id="frames" type="number" min="1" max="600" value="72" />
+                </div>
+              </div>
+            </div>
+
+            <div class="inspector-card">
+              <div class="section-title">
+                <div class="section-title-main">
+                  <span>MOTION</span>
+                  <strong>图层动效</strong>
+                </div>
+              </div>
+              <div class="inspector-subtitle">
+                <span>Transform & Animation</span>
+                <button id="resetTransformBtn" class="reset-button" type="button" disabled>RESET</button>
+              </div>
+              <div class="transform-grid">
+                <div class="field">
+                  <label for="transformX">位置 X <span id="transformXValue">0</span></label>
+                  <input id="transformX" type="range" min="-2000" max="4000" step="1" value="0" disabled />
+                </div>
+                <div class="field">
+                  <label for="transformY">位置 Y <span id="transformYValue">0</span></label>
+                  <input id="transformY" type="range" min="-2000" max="4000" step="1" value="0" disabled />
+                </div>
+                <div class="field">
+                  <label for="transformScale">缩放 <span id="transformScaleValue">1.00x</span></label>
+                  <input id="transformScale" type="range" min="0.05" max="5" step="0.01" value="1" disabled />
+                </div>
+                <div class="field">
+                  <label for="transformRotate">旋转 <span id="transformRotateValue">0°</span></label>
+                  <input id="transformRotate" type="range" min="-180" max="180" step="1" value="0" disabled />
+                </div>
+              </div>
+              <div class="inspector-subtitle">
+                <span>Animation Core</span>
+                <span class="section-badge">MOTION</span>
+              </div>
+              <select id="animationType" class="motion-select" disabled>
+                <option value="none">无动画</option>
+                <option value="float">上下浮动</option>
+                <option value="swing">左右摇摆</option>
+                <option value="pulse">呼吸缩放</option>
+                <option value="spin">旋转</option>
+              </select>
+              <div id="motionOptions" class="motion-options" aria-label="图层动效">
+                <button class="motion-option active" data-motion="none" type="button" disabled>无动画</button>
+                <button class="motion-option" data-motion="float" type="button" disabled>上下浮动</button>
+                <button class="motion-option" data-motion="swing" type="button" disabled>左右摇摆</button>
+                <button class="motion-option" data-motion="pulse" type="button" disabled>呼吸缩放</button>
+                <button class="motion-option" data-motion="spin" type="button" disabled>旋转</button>
+              </div>
+              <div id="motionControlPanel" class="motion-control-panel" hidden>
+                <div class="field">
+                  <label for="speed">速度 <span id="speedValue">1.0</span></label>
+                  <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1" disabled />
+                </div>
+                <div id="intensityField" class="field">
+                  <label for="intensity">强度 <span id="intensityValue">1.0</span></label>
+                  <input id="intensity" type="range" min="0.1" max="5" step="0.1" value="1" disabled />
+                </div>
+              </div>
+            </div>
+
+            <div class="inspector-card">
+              <div class="section-title">
+                <div class="section-title-main">
+                  <span>SWEEP</span>
+                  <strong>高级扫光特效</strong>
+                </div>
+                <button id="addSweepBtn" class="sweep-header-button" type="button" disabled>添加扫光</button>
+              </div>
+              <div id="sweepEmpty" class="sweep-empty">选择图层后可添加扫光。</div>
+              <div id="sweepControls" class="sweep-controls" hidden>
+                <div class="field">
+                  <label for="sweepShape">扫光形状</label>
+                  <select id="sweepShape">
+                    <option value="straight">直线扫光</option>
+                    <option value="curve">弧形扫光</option>
+                    <option value="centerLine">中心线扫光</option>
+                    <option value="centerCircle">中心圆扫光</option>
+                    <option value="centerFlow">中心流光</option>
+                  </select>
+                </div>
+                <div class="inline-field">
+                  <div class="field">
+                    <label for="sweepColor">扫光颜色</label>
+                    <input id="sweepColor" type="color" value="#ffffff" />
+                  </div>
+                  <input id="sweepColorPreview" class="color-input" type="color" value="#ffffff" aria-label="扫光颜色" />
+                </div>
+                <div class="field">
+                  <label for="sweepSpeed">循环速度 <span id="sweepSpeedValue">1</span></label>
+                  <input id="sweepSpeed" type="range" min="0.2" max="6" step="0.1" value="1" />
+                </div>
+                <div class="field">
+                  <label for="sweepWidth">扫光粗细 <span id="sweepWidthValue">100</span></label>
+                  <input id="sweepWidth" type="range" min="8" max="500" step="1" value="100" />
+                </div>
+                <div class="field">
+                  <label for="sweepFeather">扫光羽化 <span id="sweepFeatherValue">20</span></label>
+                  <input id="sweepFeather" type="range" min="0" max="160" step="1" value="20" />
+                </div>
+                <div class="field">
+                  <label for="sweepAngle">扫光角度 <span id="sweepAngleValue">30°</span></label>
+                  <input id="sweepAngle" type="range" min="-180" max="180" step="1" value="30" />
+                </div>
+                <div class="field">
+                  <label for="sweepOpacity">扫光透明度 <span id="sweepOpacityValue">1.00</span></label>
+                  <input id="sweepOpacity" type="range" min="0" max="1" step="0.01" value="1" />
+                </div>
+                <div class="sweep-actions">
+                  <button id="sweepBlendBtn" type="button">混合: 滤色</button>
+                  <button id="sweepFadeBtn" type="button">淡入淡出: 关</button>
+                </div>
+                <button id="removeSweepBtn" type="button">移除扫光</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+      <div id="resizeHandle" class="resize-handle" title="拖拽调整插件窗口"></div>
+    </main>
+
+    <script>
+      const LICENSE_PRODUCT_ID = "figma-svga-editor";
+      const CONTACT_QR_DATA_URL = "data:image/jpeg;base64,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";
+      const LICENSE_PUBLIC_KEY_JWK = /* LICENSE_PUBLIC_KEY_START */ {
+        "kty": "EC",
+        "x": "zTbZH3RJLIQUYUkYJ3mLzAw26SYPMZZYr1tSnAiNi8s",
+        "y": "5YHshbVkV682kHdiSmc5KautrD_-v8O5-gTP84GhAmQ",
+        "crv": "P-256"
+} /* LICENSE_PUBLIC_KEY_END */;
+
+      class ProtoWriter {
+        constructor() {
+          this.chunks = [];
+          this.scratch = [];
+          this.length = 0;
+        }
+
+        flush() {
+          if (this.scratch.length === 0) return;
+          const chunk = Uint8Array.from(this.scratch);
+          this.chunks.push(chunk);
+          this.scratch = [];
+        }
+
+        byte(value) {
+          this.scratch.push(value & 255);
+          this.length += 1;
+        }
+
+        bytes(value) {
+          this.flush();
+          this.chunks.push(value);
+          this.length += value.length;
+        }
+
+        varint(value) {
+          let next = Number(value) >>> 0;
+          while (next > 127) {
+            this.byte((next & 127) | 128);
+            next >>>= 7;
+          }
+          this.byte(next);
+        }
+
+        tag(field, wireType) {
+          this.varint((field << 3) | wireType);
+        }
+
+        uint32(field, value) {
+          this.tag(field, 0);
+          this.varint(value);
+        }
+
+        float32(field, value) {
+          const buffer = new ArrayBuffer(4);
+          new DataView(buffer).setFloat32(0, Number(value) || 0, true);
+          this.tag(field, 5);
+          this.bytes(new Uint8Array(buffer));
+        }
+
+        string(field, value) {
+          const encoded = new TextEncoder().encode(String(value || ""));
+          this.tag(field, 2);
+          this.varint(encoded.length);
+          this.bytes(encoded);
+        }
+
+        rawBytes(field, value) {
+          this.tag(field, 2);
+          this.varint(value.length);
+          this.bytes(value);
+        }
+
+        message(field, callback) {
+          const nested = new ProtoWriter();
+          callback(nested);
+          const encoded = nested.finish();
+          this.tag(field, 2);
+          this.varint(encoded.length);
+          this.bytes(encoded);
+        }
+
+        finish() {
+          this.flush();
+          const output = new Uint8Array(this.length);
+          let offset = 0;
+          for (const chunk of this.chunks) {
+            output.set(chunk, offset);
+            offset += chunk.length;
+          }
+          return output;
+        }
+      }
+
+      const state = {
+        selection: null,
+        package: null,
+        selectedKey: null,
+        layerStatuses: new Map(),
+        canvasStale: false,
+        autoCaptured: false,
+        updateTimer: null,
+        license: null,
+        busy: false,
+        pendingRequests: new Map(),
+        previewFrame: 0,
+        previewPlaying: false,
+        previewRaf: null,
+        previewStartedAt: 0,
+        previewDrawToken: 0,
+        previewImageCache: new Map(),
+        canvasZoom: 1,
+        canvasBg: "checkered",
+        windowSize: { width: 1120, height: 780 },
+        resizeDrag: null,
+        resizeRaf: null,
+        pendingResize: null,
+        canvasDrag: null,
+      };
+
+      const $ = (id) => document.getElementById(id);
+      const MOTION_LABELS = {
+        none: "无动画",
+        float: "上下浮动",
+        swing: "左右摇摆",
+        pulse: "呼吸缩放",
+        spin: "旋转",
+      };
+      const SWEEP_SHAPE_LABELS = {
+        straight: "直线扫光",
+        curve: "弧形扫光",
+        centerLine: "中心线扫光",
+        centerCircle: "中心圆扫光",
+        centerFlow: "中心流光",
+      };
+
+      const postPlugin = (type, payload = {}) => {
+        parent.postMessage({ pluginMessage: { type, ...payload } }, "*");
+      };
+
+      const requestPlugin = (type, payload = {}) =>
+        new Promise((resolve, reject) => {
+          const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          const timer = window.setTimeout(() => {
+            state.pendingRequests.delete(requestId);
+            reject(new Error("插件响应超时。"));
+          }, 15000);
+          state.pendingRequests.set(requestId, { resolve, reject, timer });
+          postPlugin(type, { ...payload, requestId });
+        });
+
+      const resolvePluginRequest = (message) => {
+        if (!message.requestId) return false;
+        const pending = state.pendingRequests.get(message.requestId);
+        if (!pending) return false;
+        window.clearTimeout(pending.timer);
+        state.pendingRequests.delete(message.requestId);
+        if (message.type === "plugin-error") {
+          pending.reject(new Error(message.message || "插件请求失败。"));
+        } else {
+          pending.resolve(message);
+        }
+        return true;
+      };
+
+      const log = (message) => {
+        const node = $("log");
+        if (!node) return;
+        const stamp = new Date().toLocaleTimeString("zh-CN", { hour12: false });
+        node.textContent = `${node.textContent || ""}\n[${stamp}] ${message}`.trim();
+        node.scrollTop = node.scrollHeight;
+      };
+
+      const setBusy = (busy) => {
+        state.busy = busy;
+        for (const id of ["scanBtn", "captureBtn", "downloadJsonBtn", "exportSvgaBtn", "activateLicenseBtn"]) {
+          const el = $(id);
+          if (el) {
+            el.disabled =
+              busy ||
+              ((id === "exportSvgaBtn" || id === "downloadJsonBtn") && !state.package);
+          }
+        }
+      };
+
+      const renderSelection = () => {
+        const payload = state.selection || { count: 0, bounds: null };
+        $("selectionCount").textContent = String(payload.count || 0);
+        $("selectionWidth").textContent = payload.bounds ? `${Math.round(payload.bounds.width)}px` : "-";
+        $("selectionHeight").textContent = payload.bounds ? `${Math.round(payload.bounds.height)}px` : "-";
+      };
+
+      const assetPayloadByKey = (key) =>
+        state.package?.assets?.find((asset) => asset.key === key) || null;
+
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+      const projectFrameCount = () =>
+        Math.max(1, Math.min(600, Math.round(Number(state.package?.project?.exportRules?.frames || $("frames").value || 72))));
+
+      const projectFps = () =>
+        Math.max(1, Math.min(60, Math.round(Number(state.package?.project?.exportRules?.fps || $("fps").value || 24))));
+
+      const updateCanvasBackground = () => {
+        const frame = $("canvasFrame");
+        frame.classList.toggle("bg-checkered", state.canvasBg === "checkered");
+        frame.classList.toggle("bg-white", state.canvasBg === "white");
+        for (const swatch of document.querySelectorAll(".swatch")) {
+          swatch.classList.toggle("active", swatch.dataset.bg === state.canvasBg);
+        }
+      };
+
+      const updatePreviewChrome = () => {
+        const canvas = $("previewCanvas");
+        const project = state.package?.project;
+        if (!project?.canvas) {
+          canvas.width = 320;
+          canvas.height = 320;
+          canvas.style.width = "320px";
+          canvas.style.height = "320px";
+          $("canvasFrame").style.width = "320px";
+          $("canvasFrame").style.height = "320px";
+          $("previewEmpty").style.display = "flex";
+          $("previewMeta").textContent = "等待同步 Figma 画布";
+          $("canvasZoomValue").textContent = `${Math.round(state.canvasZoom * 100)}%`;
+          updateCanvasBackground();
+          return;
+        }
+
+        const width = Math.max(1, Math.round(Number(project.canvas.width || 1)));
+        const height = Math.max(1, Math.round(Number(project.canvas.height || 1)));
+        const cssWidth = Math.max(1, Math.round(width * state.canvasZoom));
+        const cssHeight = Math.max(1, Math.round(height * state.canvasZoom));
+        if (canvas.width !== width) canvas.width = width;
+        if (canvas.height !== height) canvas.height = height;
+        canvas.style.width = `${cssWidth}px`;
+        canvas.style.height = `${cssHeight}px`;
+        $("canvasFrame").style.width = `${cssWidth}px`;
+        $("canvasFrame").style.height = `${cssHeight}px`;
+        $("previewEmpty").style.display = "none";
+        $("canvasZoomValue").textContent = `${Math.round(state.canvasZoom * 100)}%`;
+        updateCanvasBackground();
+        $("previewMeta").textContent = state.canvasStale
+          ? `${width}x${height} 画布已变化`
+          : `${width}x${height} / frame ${state.previewFrame + 1}/${projectFrameCount()}`;
+      };
+
+      const loadPreviewImage = (payload) => {
+        if (!payload?.dataUrl) return Promise.reject(new Error("缺少图片数据。"));
+        const cached = state.previewImageCache.get(payload.key);
+        if (cached && cached.src === payload.dataUrl) return cached.promise;
+        const promise = new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error("预览图片加载失败。"));
+          img.src = payload.dataUrl;
+        });
+        state.previewImageCache.set(payload.key, { src: payload.dataUrl, promise });
+        return promise;
+      };
+
+      const hexToRgb = (value) => {
+        const hex = String(value || "#ffffff").replace("#", "").trim();
+        const full = hex.length === 3
+          ? hex.split("").map((part) => part + part).join("")
+          : hex.padEnd(6, "f").slice(0, 6);
+        const parsed = Number.parseInt(full, 16);
+        if (!Number.isFinite(parsed)) return { r: 255, g: 255, b: 255 };
+        return {
+          r: (parsed >> 16) & 255,
+          g: (parsed >> 8) & 255,
+          b: parsed & 255,
+        };
+      };
+
+      const rgbaFromHex = (hex, alpha) => {
+        const color = hexToRgb(hex);
+        return `rgba(${color.r}, ${color.g}, ${color.b}, ${clamp(alpha, 0, 1)})`;
+      };
+
+      const activeSweepEffects = (project) =>
+        (project?.effects || []).filter((effect) => effect.type === "sweep" && effect.enabled !== false);
+
+      const sweepProgress = (effect, frameIndex, totalFrames) =>
+        ((frameIndex / Math.max(1, totalFrames)) * Math.max(0.01, Number(effect.sweepSpeed || 1))) % 1;
+
+      const drawLinearSweep = (ctx, effect, progress, diagonal) => {
+        const width = Math.max(4, Number(effect.sweepWidth || 100));
+        const feather = Math.max(0, Number(effect.sweepFeather || 20));
+        const totalWidth = Math.max(4, width + feather * 2);
+        const travel = diagonal * 2 + totalWidth;
+        const sweepX = -travel / 2 + progress * travel;
+        const gradient = ctx.createLinearGradient(
+          sweepX - totalWidth / 2,
+          0,
+          sweepX + totalWidth / 2,
+          0,
+        );
+        gradient.addColorStop(0, rgbaFromHex(effect.sweepColor, 0));
+        gradient.addColorStop(0.5, rgbaFromHex(effect.sweepColor, 1));
+        gradient.addColorStop(1, rgbaFromHex(effect.sweepColor, 0));
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-diagonal * 1.2, -diagonal, diagonal * 2.4, diagonal * 2);
+      };
+
+      const drawCircleSweep = (ctx, effect, progress, diagonal) => {
+        const width = Math.max(4, Number(effect.sweepWidth || 100));
+        const feather = Math.max(0, Number(effect.sweepFeather || 20));
+        const radius = progress * diagonal;
+        const inner = Math.max(0, radius - width / 2 - feather);
+        const middleA = Math.max(inner + 0.1, radius - width / 2);
+        const middleB = Math.max(middleA + 0.1, radius + width / 2);
+        const outer = Math.max(middleB + 0.1, radius + width / 2 + feather);
+        const gradient = ctx.createRadialGradient(0, 0, inner, 0, 0, outer);
+        gradient.addColorStop(0, rgbaFromHex(effect.sweepColor, 0));
+        gradient.addColorStop(clamp((middleA - inner) / (outer - inner), 0, 1), rgbaFromHex(effect.sweepColor, 0.9));
+        gradient.addColorStop(clamp((middleB - inner) / (outer - inner), 0, 1), rgbaFromHex(effect.sweepColor, 0.9));
+        gradient.addColorStop(1, rgbaFromHex(effect.sweepColor, 0));
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-diagonal, -diagonal, diagonal * 2, diagonal * 2);
+      };
+
+      const drawSweepShape = (ctx, effect, progress, diagonal) => {
+        if (effect.sweepShape === "centerCircle") {
+          drawCircleSweep(ctx, effect, progress, diagonal);
+          return;
+        }
+        drawLinearSweep(ctx, effect, progress, diagonal);
+        if (effect.sweepShape === "centerFlow") {
+          drawLinearSweep(ctx, effect, (progress + 0.5) % 1, diagonal);
+        }
+      };
+
+      const makeSweepMaskCanvas = ({ image, effect, progress, width, height }) => {
+        const maskWidth = Math.max(1, Math.round(width));
+        const maskHeight = Math.max(1, Math.round(height));
+        const diagonal = Math.sqrt(maskWidth * maskWidth + maskHeight * maskHeight);
+        const canvas = document.createElement("canvas");
+        canvas.width = maskWidth;
+        canvas.height = maskHeight;
+        const maskCtx = canvas.getContext("2d");
+        if (!maskCtx) return canvas;
+
+        maskCtx.save();
+        maskCtx.translate(maskWidth / 2, maskHeight / 2);
+        maskCtx.rotate(((Number(effect.sweepAngle || 0) || 0) * Math.PI) / 180);
+        drawSweepShape(maskCtx, effect, progress, diagonal);
+        maskCtx.restore();
+
+        maskCtx.globalCompositeOperation = "destination-in";
+        maskCtx.drawImage(image, 0, 0, maskWidth, maskHeight);
+        maskCtx.globalCompositeOperation = "source-over";
+        return canvas;
+      };
+
+      const drawSweepEffects = (ctx, project, items, frameIndex, totalFrames, fps) => {
+        const itemByKey = new Map(items.map((item) => [item.asset.key, item]));
+        for (const effect of activeSweepEffects(project)) {
+          const item = itemByKey.get(effect.sweepTarget);
+          if (!item) continue;
+          const width = Math.max(1, item.displayWidth);
+          const height = Math.max(1, item.displayHeight);
+          const progress = sweepProgress(effect, frameIndex, totalFrames);
+          const fade = effect.sweepFadeEnabled ? Math.sin(progress * Math.PI) : 1;
+          const opacity = clamp(Number(effect.sweepOpacity == null ? 1 : effect.sweepOpacity) * fade, 0, 1);
+          if (opacity <= 0) continue;
+
+          const motion = frameMotion(item.asset, frameIndex, totalFrames, fps);
+          const maskedSweep = makeSweepMaskCanvas({
+            image: item.img,
+            effect,
+            progress,
+            width,
+            height,
+          });
+          const centerX = item.x + width / 2 + motion.animX;
+          const centerY = item.y + height / 2 + motion.animY;
+
+          ctx.save();
+          ctx.globalAlpha = opacity;
+          ctx.globalCompositeOperation = effect.sweepBlendMode === "normal" ? "source-over" : "screen";
+          ctx.translate(centerX, centerY);
+          ctx.rotate(motion.rotation);
+          ctx.scale(motion.extraScale, motion.extraScale);
+          ctx.drawImage(maskedSweep, -width / 2, -height / 2, width, height);
+          ctx.restore();
+        }
+      };
+
+      const drawSelectionOutlines = (ctx, items, frameIndex, totalFrames, fps) => {
+        for (const item of items) {
+          if (item.asset.key !== state.selectedKey) continue;
+          const motion = frameMotion(item.asset, frameIndex, totalFrames, fps);
+          const centerX = item.x + item.displayWidth / 2 + motion.animX;
+          const centerY = item.y + item.displayHeight / 2 + motion.animY;
+          ctx.save();
+          ctx.translate(centerX, centerY);
+          ctx.rotate(motion.rotation);
+          ctx.scale(motion.extraScale, motion.extraScale);
+          ctx.lineWidth = 2 / Math.max(0.2, motion.extraScale);
+          ctx.strokeStyle = "#6366f1";
+          ctx.strokeRect(
+            -item.displayWidth / 2,
+            -item.displayHeight / 2,
+            item.displayWidth,
+            item.displayHeight,
+          );
+          ctx.restore();
+        }
+      };
+
+      const drawPreviewFrame = async (frameIndex = state.previewFrame) => {
+        const token = ++state.previewDrawToken;
+        const canvas = $("previewCanvas");
+        const ctx = canvas.getContext("2d");
+        const project = state.package?.project;
+        if (!ctx || !project?.canvas) {
+          if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+
+        const fps = projectFps();
+        const totalFrames = projectFrameCount();
+        const items = [];
+        for (const asset of project.assets || []) {
+          if (asset.visible === false) continue;
+          const payload = assetPayloadByKey(asset.key);
+          if (!payload?.dataUrl) continue;
+          try {
+            const img = await loadPreviewImage(payload);
+            const geometry = assetRenderGeometry(asset);
+            items.push({
+              asset,
+              img,
+              x: geometry.x,
+              y: geometry.y,
+              displayWidth: geometry.displayWidth,
+              displayHeight: geometry.displayHeight,
+            });
+          } catch (_error) {
+            // A missing image should not block the rest of the Figma layer preview.
+          }
+        }
+        if (token !== state.previewDrawToken) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const item of items) {
+          const motion = frameMotion(item.asset, frameIndex, totalFrames, fps);
+          const centerX = item.x + item.displayWidth / 2 + motion.animX;
+          const centerY = item.y + item.displayHeight / 2 + motion.animY;
+          ctx.save();
+          ctx.translate(centerX, centerY);
+          ctx.rotate(motion.rotation);
+          ctx.scale(motion.extraScale, motion.extraScale);
+          ctx.drawImage(
+            item.img,
+            -item.displayWidth / 2,
+            -item.displayHeight / 2,
+            item.displayWidth,
+            item.displayHeight,
+          );
+          ctx.restore();
+        }
+        drawSweepEffects(ctx, project, items, frameIndex, totalFrames, fps);
+        drawSelectionOutlines(ctx, items, frameIndex, totalFrames, fps);
+      };
+
+      const renderPreview = (frameIndex = state.previewFrame) => {
+        state.previewFrame = frameIndex;
+        updatePreviewChrome();
+        updateSelectionOverlay();
+        void drawPreviewFrame(frameIndex);
+      };
+
+      const updatePlayButton = () => {
+        const button = $("playPreviewBtn");
+        button.textContent = state.previewPlaying ? "II" : "▶";
+        button.title = state.previewPlaying ? "暂停预览" : "播放预览";
+      };
+
+      const stopPreviewPlayback = () => {
+        state.previewPlaying = false;
+        if (state.previewRaf) window.cancelAnimationFrame(state.previewRaf);
+        state.previewRaf = null;
+        updatePlayButton();
+      };
+
+      const startPreviewPlayback = () => {
+        if (!state.package?.project) return;
+        if (state.previewPlaying) return;
+        state.previewPlaying = true;
+        state.previewStartedAt = performance.now() - (state.previewFrame / projectFps()) * 1000;
+        updatePlayButton();
+        const tick = (now) => {
+          if (!state.previewPlaying) return;
+          const fps = projectFps();
+          const totalFrames = projectFrameCount();
+          const elapsed = Math.max(0, (now - state.previewStartedAt) / 1000);
+          const frame = Math.floor(elapsed * fps) % totalFrames;
+          state.previewFrame = frame;
+          renderPreview(frame);
+          state.previewRaf = window.requestAnimationFrame(tick);
+        };
+        state.previewRaf = window.requestAnimationFrame(tick);
+      };
+
+      const togglePreviewPlayback = () => {
+        if (state.previewPlaying) {
+          stopPreviewPlayback();
+          renderPreview(state.previewFrame);
+          return;
+        }
+        startPreviewPlayback();
+      };
+
+      const setCanvasZoom = (value) => {
+        state.canvasZoom = clamp(Number(value) || 1, 0.1, 4);
+        renderPreview(state.previewFrame);
+      };
+
+      const selectedProjectAsset = () => {
+        if (!state.package || !state.selectedKey) return null;
+        return state.package.project.assets.find((asset) => asset.key === state.selectedKey) || null;
+      };
+
+      const normalizeAssetTransform = (asset) => {
+        asset.transform = {
+          x: Number(asset.transform?.x || 0),
+          y: Number(asset.transform?.y || 0),
+          scale: Math.max(0.01, Number(asset.transform?.scale || 1)),
+          rotate: Number(asset.transform?.rotate || 0),
+        };
+        return asset.transform;
+      };
+
+      const assetRenderGeometry = (asset) => {
+        const payload = assetPayloadByKey(asset.key);
+        const imageWidth = Math.max(1, Math.round(Number(payload?.width || asset.source?.absoluteBoundingBox?.width || asset.width || 1)));
+        const imageHeight = Math.max(1, Math.round(Number(payload?.height || asset.source?.absoluteBoundingBox?.height || asset.height || 1)));
+        const baseWidth = Math.max(1, Number(asset.source?.absoluteBoundingBox?.width || asset.width || imageWidth));
+        const baseHeight = Math.max(1, Number(asset.source?.absoluteBoundingBox?.height || asset.height || imageHeight));
+        const transform = normalizeAssetTransform(asset);
+        const scale = Math.max(0.01, Number(transform.scale || 1));
+        return {
+          imageWidth,
+          imageHeight,
+          baseWidth,
+          baseHeight,
+          displayWidth: baseWidth * scale,
+          displayHeight: baseHeight * scale,
+          x: Number(transform.x || 0),
+          y: Number(transform.y || 0),
+          scale,
+          rotate: Number(transform.rotate || 0),
+        };
+      };
+
+      const updateSelectionOverlay = () => {
+        const interaction = $("canvasInteraction");
+        const box = $("selectionBox");
+        const asset = selectedProjectAsset();
+        const project = state.package?.project;
+        if (!interaction || !box || !asset || !project?.canvas) {
+          if (interaction) interaction.hidden = true;
+          $("alignmentTools").hidden = true;
+          return;
+        }
+
+        const geometry = assetRenderGeometry(asset);
+        const zoom = state.canvasZoom;
+        interaction.hidden = false;
+        $("alignmentTools").hidden = false;
+        box.style.left = `${geometry.x * zoom}px`;
+        box.style.top = `${geometry.y * zoom}px`;
+        box.style.width = `${geometry.displayWidth * zoom}px`;
+        box.style.height = `${geometry.displayHeight * zoom}px`;
+        box.style.transform = `rotate(${geometry.rotate}deg)`;
+      };
+
+      const syncTransformControlLimits = () => {
+        const project = state.package?.project;
+        const width = Math.max(100, Math.round(Number(project?.canvas?.width || 750)));
+        const height = Math.max(100, Math.round(Number(project?.canvas?.height || 750)));
+        $("transformX").min = String(-width);
+        $("transformX").max = String(width * 2);
+        $("transformY").min = String(-height);
+        $("transformY").max = String(height * 2);
+      };
+
+      const syncTransformControls = () => {
+        const asset = selectedProjectAsset();
+        const disabled = !asset;
+        for (const id of ["transformX", "transformY", "transformScale", "transformRotate", "resetTransformBtn"]) {
+          $(id).disabled = disabled;
+        }
+        syncTransformControlLimits();
+        if (!asset) {
+          $("transformXValue").textContent = "0";
+          $("transformYValue").textContent = "0";
+          $("transformScaleValue").textContent = "1.00x";
+          $("transformRotateValue").textContent = "0°";
+          updateSelectionOverlay();
+          return;
+        }
+        const transform = normalizeAssetTransform(asset);
+        $("transformX").value = String(Math.round(transform.x));
+        $("transformY").value = String(Math.round(transform.y));
+        $("transformScale").value = String(round(transform.scale, 2));
+        $("transformRotate").value = String(Math.round(transform.rotate));
+        $("transformXValue").textContent = String(Math.round(transform.x));
+        $("transformYValue").textContent = String(Math.round(transform.y));
+        $("transformScaleValue").textContent = `${Number(transform.scale).toFixed(2)}x`;
+        $("transformRotateValue").textContent = `${Math.round(transform.rotate)}°`;
+        updateSelectionOverlay();
+      };
+
+      const updateSelectedAssetTransform = (patch, renderMode = "full") => {
+        const asset = selectedProjectAsset();
+        if (!asset) return;
+        const transform = normalizeAssetTransform(asset);
+        asset.transform = {
+          ...transform,
+          ...patch,
+          scale: Math.max(0.01, Number(patch.scale ?? transform.scale ?? 1)),
+        };
+        syncTransformControls();
+        if (renderMode === "full") {
+          renderLayers();
+        } else {
+          renderPreview(state.previewFrame);
+        }
+      };
+
+      const resetSelectedTransform = () => {
+        updateSelectedAssetTransform({ scale: 1, rotate: 0 }, "preview");
+      };
+
+      const canvasPointFromEvent = (event) => {
+        const project = state.package?.project;
+        const frame = $("canvasFrame");
+        if (!project?.canvas || !frame) return null;
+        const rect = frame.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return null;
+        return {
+          x: ((event.clientX - rect.left) / rect.width) * Number(project.canvas.width || 1),
+          y: ((event.clientY - rect.top) / rect.height) * Number(project.canvas.height || 1),
+        };
+      };
+
+      const pointInAsset = (point, asset) => {
+        const geometry = assetRenderGeometry(asset);
+        const cx = geometry.x + geometry.displayWidth / 2;
+        const cy = geometry.y + geometry.displayHeight / 2;
+        const radians = (-geometry.rotate * Math.PI) / 180;
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        const dx = point.x - cx;
+        const dy = point.y - cy;
+        const localX = dx * cos - dy * sin + geometry.displayWidth / 2;
+        const localY = dx * sin + dy * cos + geometry.displayHeight / 2;
+        return localX >= 0 && localX <= geometry.displayWidth && localY >= 0 && localY <= geometry.displayHeight;
+      };
+
+      const hitTestAsset = (point) => {
+        const assets = state.package?.project?.assets || [];
+        for (let index = assets.length - 1; index >= 0; index -= 1) {
+          const asset = assets[index];
+          if (asset.visible === false) continue;
+          if (pointInAsset(point, asset)) return asset;
+        }
+        return null;
+      };
+
+      const beginCanvasDrag = (event, mode = "translate") => {
+        const asset = selectedProjectAsset();
+        const point = canvasPointFromEvent(event);
+        if (!asset || !point) return;
+        const geometry = assetRenderGeometry(asset);
+        state.canvasDrag = {
+          mode,
+          pointerId: event.pointerId,
+          startPoint: point,
+          startX: geometry.x,
+          startY: geometry.y,
+          startScale: geometry.scale,
+          startRotate: geometry.rotate,
+          centerX: geometry.x + geometry.displayWidth / 2,
+          centerY: geometry.y + geometry.displayHeight / 2,
+        };
+        try {
+          event.target.setPointerCapture(event.pointerId);
+        } catch (_error) {}
+        event.preventDefault();
+        event.stopPropagation();
+      };
+
+      const moveCanvasDrag = (event) => {
+        const drag = state.canvasDrag;
+        if (!drag) return;
+        const point = canvasPointFromEvent(event);
+        if (!point) return;
+
+        if (drag.mode === "translate") {
+          updateSelectedAssetTransform({
+            x: drag.startX + point.x - drag.startPoint.x,
+            y: drag.startY + point.y - drag.startPoint.y,
+          }, "preview");
+        } else if (drag.mode === "scale") {
+          const startDistance = Math.max(1, Math.hypot(drag.startPoint.x - drag.centerX, drag.startPoint.y - drag.centerY));
+          const currentDistance = Math.max(1, Math.hypot(point.x - drag.centerX, point.y - drag.centerY));
+          updateSelectedAssetTransform({
+            scale: clamp(drag.startScale * (currentDistance / startDistance), 0.05, 5),
+          }, "preview");
+        } else if (drag.mode === "rotate") {
+          const startRadians = Math.atan2(drag.startPoint.y - drag.centerY, drag.startPoint.x - drag.centerX);
+          const currentRadians = Math.atan2(point.y - drag.centerY, point.x - drag.centerX);
+          updateSelectedAssetTransform({
+            rotate: drag.startRotate + ((currentRadians - startRadians) * 180) / Math.PI,
+          }, "preview");
+        }
+      };
+
+      const endCanvasDrag = (event) => {
+        if (!state.canvasDrag) return;
+        try {
+          event.target.releasePointerCapture(state.canvasDrag.pointerId);
+        } catch (_error) {}
+        state.canvasDrag = null;
+        syncTransformControls();
+        renderLayers();
+      };
+
+      const alignSelectedAsset = (type) => {
+        const asset = selectedProjectAsset();
+        const project = state.package?.project;
+        if (!asset || !project?.canvas) return;
+        const geometry = assetRenderGeometry(asset);
+        const canvasWidth = Number(project.canvas.width || 1);
+        const canvasHeight = Number(project.canvas.height || 1);
+        const next = {};
+        if (type === "left") next.x = 0;
+        if (type === "center-h") next.x = (canvasWidth - geometry.displayWidth) / 2;
+        if (type === "right") next.x = canvasWidth - geometry.displayWidth;
+        if (type === "top") next.y = 0;
+        if (type === "center-v") next.y = (canvasHeight - geometry.displayHeight) / 2;
+        if (type === "bottom") next.y = canvasHeight - geometry.displayHeight;
+        updateSelectedAssetTransform(next, "full");
+      };
+
+      const renderLayers = () => {
+        const list = $("layerList");
+        const project = state.package?.project;
+        if (!project?.assets?.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "选中 Figma 画布后打开插件会自动同步图层";
+          list.replaceChildren(empty);
+          $("canvasMeta").textContent = "未导入";
+          $("layerCountBadge").textContent = "0";
+          $("downloadJsonBtn").disabled = true;
+          $("exportSvgaBtn").disabled = true;
+          state.selectedKey = null;
+          syncControlsFromSelected();
+          renderPreview();
+          return;
+        }
+
+        $("canvasMeta").textContent = `${project.canvas.width}x${project.canvas.height} / ${project.assets.length} 层`;
+        $("layerCountBadge").textContent = String(project.assets.length);
+        $("downloadJsonBtn").disabled = false;
+        $("exportSvgaBtn").disabled = state.busy;
+
+        list.replaceChildren();
+        for (const asset of project.assets) {
+          const status = state.layerStatuses.get(asset.key);
+          const isStale = status?.changed === true;
+          const row = document.createElement("div");
+          row.className = `layer-row${asset.key === state.selectedKey ? " selected" : ""}${isStale ? " stale" : ""}`;
+          row.dataset.key = asset.key;
+          const thumb = document.createElement("span");
+          thumb.className = "layer-thumb";
+          thumb.textContent = "L";
+
+          const copy = document.createElement("span");
+          copy.className = "layer-copy";
+
+          const name = document.createElement("span");
+          name.className = "layer-name";
+          name.title = asset.label || asset.key;
+          name.textContent = asset.label || asset.key;
+
+          const meta = document.createElement("span");
+          meta.className = "layer-meta";
+          meta.textContent = isStale ? "已变化" : MOTION_LABELS[asset.animation?.type || "none"] || "无动画";
+
+          const updateBtn = document.createElement("button");
+          updateBtn.className = "layer-update-btn";
+          updateBtn.type = "button";
+          updateBtn.textContent = "更新";
+
+          row.addEventListener("click", () => {
+            state.selectedKey = asset.key;
+            syncControlsFromSelected();
+            renderLayers();
+          });
+          updateBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            void updateLayer(asset.key);
+          });
+          copy.append(name, meta);
+          row.append(thumb, copy, updateBtn);
+          list.appendChild(row);
+        }
+        syncControlsFromSelected();
+        renderPreview();
+      };
+
+      const renderMotionOptions = () => {
+        const selectedType = $("animationType").value || "none";
+        const disabled = $("animationType").disabled;
+        for (const button of document.querySelectorAll("[data-motion]")) {
+          const isActive = button.dataset.motion === selectedType;
+          button.classList.toggle("active", isActive);
+          button.disabled = disabled;
+        }
+        $("motionControlPanel").hidden = disabled || selectedType === "none";
+        $("intensityField").hidden = selectedType === "spin";
+      };
+
+      const ensureProjectEffects = () => {
+        if (!state.package?.project) return [];
+        if (!Array.isArray(state.package.project.effects)) {
+          state.package.project.effects = [];
+        }
+        return state.package.project.effects;
+      };
+
+      const selectedSweepEffect = () => {
+        const asset = selectedProjectAsset();
+        if (!asset) return null;
+        return ensureProjectEffects().find(
+          (effect) => effect.type === "sweep" && effect.sweepTarget === asset.key,
+        ) || null;
+      };
+
+      const makeDefaultSweepEffect = (assetKey) => ({
+        id: `sweep_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        type: "sweep",
+        enabled: true,
+        sweepTarget: assetKey,
+        sweepShape: "straight",
+        sweepSpeed: 1,
+        sweepColor: "#ffffff",
+        sweepWidth: 100,
+        sweepFeather: 20,
+        sweepAngle: 30,
+        sweepOpacity: 1,
+        sweepBlendMode: "screen",
+        sweepFadeEnabled: false,
+      });
+
+      const updateSweepValueLabels = () => {
+        $("sweepSpeedValue").textContent = `${Number($("sweepSpeed").value || 1).toFixed(1)}x`;
+        $("sweepWidthValue").textContent = String(Math.round(Number($("sweepWidth").value || 100)));
+        $("sweepFeatherValue").textContent = String(Math.round(Number($("sweepFeather").value || 20)));
+        $("sweepAngleValue").textContent = `${Math.round(Number($("sweepAngle").value || 0))}°`;
+        $("sweepOpacityValue").textContent = Number($("sweepOpacity").value || 1).toFixed(2);
+      };
+
+      const syncSweepControlsFromSelected = () => {
+        const asset = selectedProjectAsset();
+        const effect = selectedSweepEffect();
+        $("addSweepBtn").disabled = !asset || Boolean(effect);
+        $("sweepEmpty").hidden = Boolean(effect);
+        $("sweepControls").hidden = !effect;
+        if (!asset) {
+          $("sweepEmpty").textContent = "选择图层后可添加扫光。";
+          return;
+        }
+        if (!effect) {
+          $("sweepEmpty").textContent = "当前图层未添加扫光。";
+          return;
+        }
+        $("sweepShape").value = effect.sweepShape || "straight";
+        $("sweepColor").value = effect.sweepColor || "#ffffff";
+        $("sweepColorPreview").value = effect.sweepColor || "#ffffff";
+        $("sweepSpeed").value = String(effect.sweepSpeed || 1);
+        $("sweepWidth").value = String(effect.sweepWidth || 100);
+        $("sweepFeather").value = String(effect.sweepFeather ?? 20);
+        $("sweepAngle").value = String(effect.sweepAngle || 0);
+        $("sweepOpacity").value = String(effect.sweepOpacity == null ? 1 : effect.sweepOpacity);
+        $("sweepBlendBtn").textContent = `混合: ${effect.sweepBlendMode === "normal" ? "普通" : "滤色"}`;
+        $("sweepFadeBtn").textContent = `淡入淡出: ${effect.sweepFadeEnabled ? "开" : "关"}`;
+        updateSweepValueLabels();
+      };
+
+      const syncSweepFromControls = () => {
+        const effect = selectedSweepEffect();
+        if (!effect) return;
+        effect.sweepShape = $("sweepShape").value;
+        effect.sweepColor = $("sweepColor").value || "#ffffff";
+        effect.sweepSpeed = Number($("sweepSpeed").value || 1);
+        effect.sweepWidth = Number($("sweepWidth").value || 100);
+        effect.sweepFeather = Number($("sweepFeather").value || 20);
+        effect.sweepAngle = Number($("sweepAngle").value || 0);
+        effect.sweepOpacity = Number($("sweepOpacity").value || 1);
+        updateSweepValueLabels();
+        renderPreview(state.previewFrame);
+      };
+
+      const addSweepToSelected = () => {
+        const asset = selectedProjectAsset();
+        if (!asset || selectedSweepEffect()) return;
+        ensureProjectEffects().push(makeDefaultSweepEffect(asset.key));
+        syncSweepControlsFromSelected();
+        renderPreview(state.previewFrame);
+      };
+
+      const removeSweepFromSelected = () => {
+        const asset = selectedProjectAsset();
+        if (!asset || !state.package?.project) return;
+        state.package.project.effects = ensureProjectEffects().filter(
+          (effect) => !(effect.type === "sweep" && effect.sweepTarget === asset.key),
+        );
+        syncSweepControlsFromSelected();
+        renderPreview(state.previewFrame);
+      };
+
+      const syncControlsFromSelected = () => {
+        const asset = selectedProjectAsset();
+        const disabled = !asset;
+        for (const id of ["animationType", "speed", "intensity"]) $(id).disabled = disabled;
+        syncTransformControls();
+        if (!asset) {
+          $("animationType").value = "none";
+          $("speed").value = "1";
+          $("intensity").value = "1";
+          $("speedValue").textContent = "1.0";
+          $("intensityValue").textContent = "1.0";
+          renderMotionOptions();
+          syncSweepControlsFromSelected();
+          return;
+        }
+        const animation = asset.animation || { type: "none", speed: 1, intensity: 1 };
+        $("animationType").value = animation.type || "none";
+        $("speed").value = String(animation.speed || 1);
+        $("intensity").value = String(animation.intensity || 1);
+        $("speedValue").textContent = Number($("speed").value).toFixed(1);
+        $("intensityValue").textContent = Number($("intensity").value).toFixed(1);
+        renderMotionOptions();
+        syncSweepControlsFromSelected();
+      };
+
+      const syncSelectedFromControls = () => {
+        const asset = selectedProjectAsset();
+        if (!asset) return;
+        asset.animation = {
+          type: $("animationType").value,
+          speed: Number($("speed").value),
+          intensity: Number($("intensity").value),
+        };
+        if (state.package?.project) {
+          state.package.project.exportRules = {
+            fps: Number($("fps").value || 24),
+            frames: Number($("frames").value || 72),
+          };
+        }
+        renderMotionOptions();
+        renderLayers();
+      };
+
+      const currentCaptureOptions = () => ({
+        materialType: $("materialType").value || "figma_selection",
+        exportScale: Number($("exportScale").value || 1),
+        fps: Number($("fps").value || 24),
+        frames: Number($("frames").value || 72),
+        defaultAnimation: { type: "none", speed: 1, intensity: 1 },
+      });
+
+      const startUpdatePolling = () => {
+        if (state.updateTimer) window.clearInterval(state.updateTimer);
+        state.updateTimer = window.setInterval(() => {
+          void checkLayerUpdates(false);
+        }, 2200);
+      };
+
+      const captureSelection = (reason = "manual") => {
+        setBusy(true);
+        state.layerStatuses.clear();
+        state.canvasStale = false;
+        state.previewImageCache.clear();
+        state.previewFrame = 0;
+        log(reason === "auto" ? "正在自动同步 Figma 选区..." : "正在从 Figma 选区导出 PNG 图层...");
+        postPlugin("capture-selection", { options: currentCaptureOptions() });
+      };
+
+      const applyLayerUpdateStatus = (payload) => {
+        if (!payload) return;
+        state.canvasStale = Boolean(payload.canvas?.changed);
+        state.layerStatuses = new Map(
+          (payload.layers || []).map((layer) => [layer.key, layer]),
+        );
+        renderLayers();
+      };
+
+      const checkLayerUpdates = async (logErrors = true) => {
+        if (!state.package?.project || state.busy) return;
+        try {
+          const response = await requestPlugin("check-layer-updates", {
+            project: state.package.project,
+          });
+          applyLayerUpdateStatus(response.payload);
+        } catch (error) {
+          if (logErrors) log(`检查图层更新失败: ${error.message}`);
+        }
+      };
+
+      const updateLayer = async (key) => {
+        const asset = state.package?.project?.assets?.find((item) => item.key === key);
+        if (!asset) return;
+        try {
+          setBusy(true);
+          const response = await requestPlugin("update-layer", {
+            project: state.package.project,
+            asset,
+            exportScale: Number($("exportScale").value || asset.source?.exportScale || 1),
+          });
+          const updated = response.payload;
+          state.package.project.canvas = {
+            width: updated.canvas.width,
+            height: updated.canvas.height,
+          };
+          state.package.project.metadata = {
+            ...(state.package.project.metadata || {}),
+            sourceCanvasName:
+              updated.canvas.sourceCanvasName ||
+              state.package.project.metadata?.sourceCanvasName ||
+              null,
+            sourceCanvasAbsoluteBoundingBox: updated.canvas.absoluteBoundingBox,
+            updatedAt: new Date().toISOString(),
+          };
+          state.package.project.assets = state.package.project.assets.map((item) =>
+            item.key === key ? updated.asset : item,
+          );
+          state.package.assets = state.package.assets.map((item) =>
+            item.key === key ? updated.payload : item,
+          );
+          state.layerStatuses.delete(key);
+          state.canvasStale = false;
+          state.selectedKey = key;
+          renderLayers();
+          log(`已更新图层: ${updated.asset.label || key}`);
+          void checkLayerUpdates(false);
+        } catch (error) {
+          log(`更新图层失败: ${error.message}`);
+        } finally {
+          setBusy(false);
+        }
+      };
+
+      const base64ToBytes = (base64) => {
+        const clean = String(base64 || "").replace(/\s/g, "");
+        const binary = atob(clean);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+      };
+
+      const bytesToBase64 = (bytes) => {
+        let binary = "";
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+        }
+        return btoa(binary);
+      };
+
+      const parseDataUrlBytes = (dataUrl) => {
+        const match = String(dataUrl || "").match(/^data:([^;,]+);base64,(.+)$/);
+        if (!match) throw new Error("图片数据格式无效。");
+        return {
+          mimeType: match[1],
+          bytes: base64ToBytes(match[2]),
+        };
+      };
+
+      const base64UrlToBytes = (value) => {
+        const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+        const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+        return base64ToBytes(padded);
+      };
+
+      const bytesToText = (bytes) => new TextDecoder().decode(bytes);
+
+      const parseLicenseCode = (code) => {
+        const compact = String(code || "").trim().replace(/\s+/g, "");
+        const parts = compact.split(".");
+        if (parts.length !== 3 || parts[0] !== "SVGA1") {
+          throw new Error("授权码格式不正确。");
+        }
+        const payload = JSON.parse(bytesToText(base64UrlToBytes(parts[1])));
+        return {
+          signedText: `${parts[0]}.${parts[1]}`,
+          payload,
+          signature: base64UrlToBytes(parts[2]),
+        };
+      };
+
+      const verifyLicenseCode = async (code) => {
+        if (!crypto?.subtle) {
+          throw new Error("当前 Figma 环境不支持授权验签。");
+        }
+        if (!LICENSE_PUBLIC_KEY_JWK.x || !LICENSE_PUBLIC_KEY_JWK.y) {
+          throw new Error("插件尚未配置授权公钥。");
+        }
+
+        const parsed = parseLicenseCode(code);
+        const key = await crypto.subtle.importKey(
+          "jwk",
+          LICENSE_PUBLIC_KEY_JWK,
+          { name: "ECDSA", namedCurve: "P-256" },
+          false,
+          ["verify"],
+        );
+        const ok = await crypto.subtle.verify(
+          { name: "ECDSA", hash: "SHA-256" },
+          key,
+          parsed.signature,
+          new TextEncoder().encode(parsed.signedText),
+        );
+        if (!ok) throw new Error("授权码签名无效。");
+        if (parsed.payload.product !== LICENSE_PRODUCT_ID) {
+          throw new Error("授权码不适用于当前插件。");
+        }
+        if (
+          parsed.payload.installationId &&
+          state.license?.installationId &&
+          parsed.payload.installationId !== state.license.installationId
+        ) {
+          throw new Error("授权码与当前授权识别码不匹配。");
+        }
+        if (parsed.payload.expiresAt && Date.parse(parsed.payload.expiresAt) <= Date.now()) {
+          throw new Error("授权码已过期。");
+        }
+        return parsed.payload;
+      };
+
+      const renderLicenseState = (payload) => {
+        state.license = payload || state.license;
+        if (!state.license) return;
+        const freeRemaining = Number(state.license.freeExportsRemaining || 0);
+        const freeLimit = Number(state.license.freeExportLimit || 10);
+        const storageSuffix = state.license.storageMode === "memory" ? "（临时）" : "";
+        $("freeCount").textContent = `${freeRemaining} / ${freeLimit}`;
+        $("installationId").textContent = state.license.installationId || "-";
+        if (state.license.activated) {
+          const label = state.license.license?.expiresAt
+            ? `已激活 ${new Date(state.license.license.expiresAt).toLocaleDateString("zh-CN")}`
+            : "已激活";
+          $("activationState").textContent = label;
+          $("licenseState").textContent = `可导出${storageSuffix}`;
+        } else {
+          $("activationState").textContent = "未激活";
+          $("licenseState").textContent = `${freeRemaining > 0 ? "试用中" : "需授权"}${storageSuffix}`;
+        }
+        $("contactPanel").classList.toggle(
+          "visible",
+          !state.license.activated && freeRemaining <= 0,
+        );
+      };
+
+      const refreshLicenseState = async () => {
+        const response = await requestPlugin("license-get-state");
+        renderLicenseState(response.payload);
+      };
+
+      const activateLicense = async () => {
+        const code = $("licenseCode").value;
+        const license = await verifyLicenseCode(code);
+        const response = await requestPlugin("license-save", { license });
+        if (!response.allowed) {
+          throw new Error(response.message || "授权保存失败。");
+        }
+        renderLicenseState(response.payload);
+        $("licenseCode").value = "";
+        log("授权码已激活。");
+      };
+
+      const round = (value, digits = 4) => {
+        const factor = 10 ** digits;
+        return Math.round((Number(value) || 0) * factor) / factor;
+      };
+
+      const makeTransform = ({ x, y, imageWidth, imageHeight, displayWidth, displayHeight, rotation, extraScale, animX, animY }) => {
+        const sx = (displayWidth / Math.max(1, imageWidth)) * extraScale;
+        const sy = (displayHeight / Math.max(1, imageHeight)) * extraScale;
+        const radians = rotation || 0;
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        const a = cos * sx;
+        const b = sin * sx;
+        const c = -sin * sy;
+        const d = cos * sy;
+        const cx = imageWidth / 2;
+        const cy = imageHeight / 2;
+        const centerX = x + displayWidth / 2 + animX;
+        const centerY = y + displayHeight / 2 + animY;
+        return {
+          a: round(a, 6),
+          b: round(b, 6),
+          c: round(c, 6),
+          d: round(d, 6),
+          tx: round(centerX - a * cx - c * cy, 2),
+          ty: round(centerY - b * cx - d * cy, 2),
+        };
+      };
+
+      const frameMotion = (asset, frameIndex, totalFrames, fps) => {
+        const animation = asset.animation || {};
+        const type = animation.type || "none";
+        const speed = Number(animation.speed || 1);
+        const intensity = Number(animation.intensity || 1);
+        const progress = (frameIndex / Math.max(1, totalFrames)) * speed;
+        const wave = Math.sin(progress * Math.PI * 2);
+        let animX = 0;
+        let animY = 0;
+        let extraScale = 1;
+        let rotation = ((Number(asset.transform?.rotate || 0) || 0) * Math.PI) / 180;
+
+        if (type === "float") animY = wave * 20 * intensity;
+        if (type === "swing") rotation += wave * ((15 * intensity * Math.PI) / 180);
+        if (type === "pulse") extraScale = 1 + wave * 0.1 * intensity;
+        if (type === "spin") rotation += progress * Math.PI * 2;
+
+        return { animX, animY, extraScale, rotation, fps };
+      };
+
+      const encodeLayout = (writer, layout) => {
+        writer.float32(1, layout.x);
+        writer.float32(2, layout.y);
+        writer.float32(3, layout.width);
+        writer.float32(4, layout.height);
+      };
+
+      const encodeTransform = (writer, transform) => {
+        writer.float32(1, transform.a);
+        writer.float32(2, transform.b);
+        writer.float32(3, transform.c);
+        writer.float32(4, transform.d);
+        writer.float32(5, transform.tx);
+        writer.float32(6, transform.ty);
+      };
+
+      const encodeFrame = (writer, frame) => {
+        writer.float32(1, frame.alpha);
+        writer.message(2, (layoutWriter) => encodeLayout(layoutWriter, frame.layout));
+        writer.message(3, (transformWriter) => encodeTransform(transformWriter, frame.transform));
+      };
+
+      const encodeSprite = (writer, sprite) => {
+        writer.string(1, sprite.imageKey);
+        for (const frame of sprite.frames) {
+          writer.message(2, (frameWriter) => encodeFrame(frameWriter, frame));
+        }
+      };
+
+      const makeSweepMaskedPayload = ({ effect, image, targetGeometry, frameIndex, frameCount }) => {
+        const width = Math.max(1, Math.round(targetGeometry.displayWidth));
+        const height = Math.max(1, Math.round(targetGeometry.displayHeight));
+        const progress = sweepProgress(effect, frameIndex, frameCount);
+        const canvas = makeSweepMaskCanvas({
+          image,
+          effect,
+          progress,
+          width,
+          height,
+        });
+        return {
+          key: `${effect.id || effect.sweepTarget}_masked_${String(frameIndex).padStart(4, "0")}`,
+          dataUrl: canvas.toDataURL("image/png"),
+          width,
+          height,
+        };
+      };
+
+      const buildSweepMaskedPayloads = async (project, payloadByKey, frameCount) => {
+        const sweeps = [];
+        for (const effect of activeSweepEffects(project)) {
+          const target = (project.assets || []).find((asset) => asset.key === effect.sweepTarget);
+          const targetPayload = target ? payloadByKey.get(target.key) : null;
+          if (!target || !targetPayload?.dataUrl) continue;
+          try {
+            const targetImage = await loadPreviewImage(targetPayload);
+            const targetGeometry = assetRenderGeometry(target);
+            for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+              sweeps.push({
+                effect,
+                target,
+                targetGeometry,
+                frameIndex,
+                payload: makeSweepMaskedPayload({
+                  effect,
+                  image: targetImage,
+                  targetGeometry,
+                  frameIndex,
+                  frameCount,
+                }),
+              });
+            }
+          } catch (_error) {
+            // If the target image cannot be decoded, skip the sweep instead of corrupting the export.
+          }
+        }
+        return sweeps;
+      };
+
+      const encodeMovie = async (project, assetPayloads) => {
+        const fps = Math.max(1, Math.min(60, Math.round(Number(project.exportRules?.fps || 24))));
+        const frameCount = Math.max(1, Math.min(600, Math.round(Number(project.exportRules?.frames || 72))));
+        const canvasWidth = Math.max(1, Math.round(Number(project.canvas?.width || 300)));
+        const canvasHeight = Math.max(1, Math.round(Number(project.canvas?.height || 300)));
+        const payloadByKey = new Map(assetPayloads.map((asset) => [String(asset.key), asset]));
+        const sweepPayloads = await buildSweepMaskedPayloads(project, payloadByKey, frameCount);
+        const writer = new ProtoWriter();
+
+        writer.string(1, "2.0");
+        writer.message(2, (params) => {
+          params.float32(1, canvasWidth);
+          params.float32(2, canvasHeight);
+          params.uint32(3, fps);
+          params.uint32(4, frameCount);
+        });
+
+        for (const projectAsset of project.assets || []) {
+          const payload = payloadByKey.get(projectAsset.key);
+          if (!payload?.dataUrl) continue;
+          const image = parseDataUrlBytes(payload.dataUrl);
+          writer.message(3, (entry) => {
+            entry.string(1, projectAsset.key);
+            entry.rawBytes(2, image.bytes);
+          });
+        }
+
+        for (const sweep of sweepPayloads) {
+          const image = parseDataUrlBytes(sweep.payload.dataUrl);
+          writer.message(3, (entry) => {
+            entry.string(1, sweep.payload.key);
+            entry.rawBytes(2, image.bytes);
+          });
+        }
+
+        for (const projectAsset of project.assets || []) {
+          const payload = payloadByKey.get(projectAsset.key);
+          if (!payload?.dataUrl) continue;
+          const geometry = assetRenderGeometry(projectAsset);
+          const imageWidth = geometry.imageWidth;
+          const imageHeight = geometry.imageHeight;
+          const displayWidth = geometry.displayWidth;
+          const displayHeight = geometry.displayHeight;
+          const x = geometry.x;
+          const y = geometry.y;
+          const frames = [];
+
+          for (let index = 0; index < frameCount; index += 1) {
+            const motion = frameMotion(projectAsset, index, frameCount, fps);
+            frames.push({
+              alpha: projectAsset.visible === false ? 0 : 1,
+              layout: { x: 0, y: 0, width: imageWidth, height: imageHeight },
+              transform: makeTransform({
+                x,
+                y,
+                imageWidth,
+                imageHeight,
+                displayWidth,
+                displayHeight,
+                rotation: motion.rotation,
+                extraScale: motion.extraScale,
+                animX: motion.animX,
+                animY: motion.animY,
+              }),
+            });
+          }
+
+          writer.message(4, (spriteWriter) =>
+            encodeSprite(spriteWriter, {
+              imageKey: projectAsset.key,
+              frames,
+            }),
+          );
+        }
+
+        for (const sweep of sweepPayloads) {
+          const frames = [];
+          for (let index = 0; index < frameCount; index += 1) {
+            const progress = sweepProgress(sweep.effect, sweep.frameIndex, frameCount);
+            const fade = sweep.effect.sweepFadeEnabled ? Math.sin(progress * Math.PI) : 1;
+            const opacity = index === sweep.frameIndex
+              ? clamp(Number(sweep.effect.sweepOpacity == null ? 1 : sweep.effect.sweepOpacity) * fade, 0, 1)
+              : 0;
+            const motion = frameMotion(sweep.target, index, frameCount, fps);
+            frames.push({
+              alpha: sweep.target.visible === false ? 0 : opacity,
+              layout: { x: 0, y: 0, width: sweep.payload.width, height: sweep.payload.height },
+              transform: makeTransform({
+                x: sweep.targetGeometry.x,
+                y: sweep.targetGeometry.y,
+                imageWidth: sweep.payload.width,
+                imageHeight: sweep.payload.height,
+                displayWidth: sweep.targetGeometry.displayWidth,
+                displayHeight: sweep.targetGeometry.displayHeight,
+                rotation: motion.rotation,
+                extraScale: motion.extraScale,
+                animX: motion.animX,
+                animY: motion.animY,
+              }),
+            });
+          }
+          writer.message(4, (spriteWriter) =>
+            encodeSprite(spriteWriter, {
+              imageKey: sweep.payload.key,
+              frames,
+            }),
+          );
+        }
+
+        return writer.finish();
+      };
+
+      const adler32 = (bytes) => {
+        const mod = 65521;
+        let a = 1;
+        let b = 0;
+        for (const byte of bytes) {
+          a = (a + byte) % mod;
+          b = (b + a) % mod;
+        }
+        return ((b << 16) | a) >>> 0;
+      };
+
+      const zlibStore = (bytes) => {
+        const blockCount = Math.max(1, Math.ceil(bytes.length / 65535));
+        const output = new Uint8Array(2 + bytes.length + blockCount * 5 + 4);
+        let offset = 0;
+        output[offset++] = 0x78;
+        output[offset++] = 0x01;
+
+        for (let start = 0; start < bytes.length || (bytes.length === 0 && start === 0); start += 65535) {
+          const end = Math.min(bytes.length, start + 65535);
+          const length = end - start;
+          const finalBlock = end >= bytes.length;
+          output[offset++] = finalBlock ? 0x01 : 0x00;
+          output[offset++] = length & 255;
+          output[offset++] = (length >> 8) & 255;
+          const nlen = (~length) & 65535;
+          output[offset++] = nlen & 255;
+          output[offset++] = (nlen >> 8) & 255;
+          output.set(bytes.subarray(start, end), offset);
+          offset += length;
+          if (bytes.length === 0) break;
+        }
+
+        const checksum = adler32(bytes);
+        output[offset++] = (checksum >>> 24) & 255;
+        output[offset++] = (checksum >>> 16) & 255;
+        output[offset++] = (checksum >>> 8) & 255;
+        output[offset++] = checksum & 255;
+        return output.subarray(0, offset);
+      };
+
+      const downloadBytes = (filename, mimeType, bytes) => {
+        const blob = new Blob([bytes], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const downloadText = (filename, text, type = "application/json") => {
+        downloadBytes(filename, type, new TextEncoder().encode(text));
+      };
+
+      const safeFilename = (value) =>
+        String(value || "figma-selection")
+          .trim()
+          .replace(/[\\/:*?"<>|]+/g, "_")
+          .replace(/\s+/g, "_")
+          .slice(0, 80) || "figma-selection";
+
+      const exportSvga = async () => {
+        if (!state.package) throw new Error("请先导入 Figma 选区。");
+        state.package.project.materialType = $("materialType").value || "figma_selection";
+        state.package.project.exportRules = {
+          fps: Number($("fps").value || 24),
+          frames: Number($("frames").value || 72),
+        };
+        const movieBytes = await encodeMovie(state.package.project, state.package.assets);
+        const svgaBytes = zlibStore(movieBytes);
+        const filename = `${safeFilename(state.package.project.materialType)}.svga`;
+        downloadBytes(filename, "application/octet-stream", svgaBytes);
+        return { filename, bytes: svgaBytes.length, movieBytes: movieBytes.length };
+      };
+
+      const requestWindowResize = (width, height) => {
+        const next = {
+          width: Math.max(760, Math.min(1600, Math.round(width))),
+          height: Math.max(560, Math.min(1100, Math.round(height))),
+        };
+        state.windowSize = next;
+        state.pendingResize = next;
+        if (state.resizeRaf) return;
+        state.resizeRaf = window.requestAnimationFrame(() => {
+          state.resizeRaf = null;
+          if (!state.pendingResize) return;
+          postPlugin("resize", state.pendingResize);
+          state.pendingResize = null;
+        });
+      };
+
+      window.addEventListener("resize", () => {
+        state.windowSize = {
+          width: window.innerWidth || state.windowSize.width,
+          height: window.innerHeight || state.windowSize.height,
+        };
+      });
+
+      $("resizeHandle").addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        state.resizeDrag = {
+          startX: event.clientX,
+          startY: event.clientY,
+          width: window.innerWidth || state.windowSize.width,
+          height: window.innerHeight || state.windowSize.height,
+        };
+      });
+
+      window.addEventListener("pointermove", (event) => {
+        if (!state.resizeDrag) return;
+        const nextWidth = state.resizeDrag.width + event.clientX - state.resizeDrag.startX;
+        const nextHeight = state.resizeDrag.height + event.clientY - state.resizeDrag.startY;
+        requestWindowResize(nextWidth, nextHeight);
+      });
+
+      window.addEventListener("pointerup", () => {
+        state.resizeDrag = null;
+      });
+
+      $("windowShrinkBtn").addEventListener("click", () => {
+        requestWindowResize((window.innerWidth || state.windowSize.width) - 120, (window.innerHeight || state.windowSize.height) - 80);
+      });
+
+      $("windowGrowBtn").addEventListener("click", () => {
+        requestWindowResize((window.innerWidth || state.windowSize.width) + 120, (window.innerHeight || state.windowSize.height) + 80);
+      });
+
+      $("canvasZoomOutBtn").addEventListener("click", () => {
+        setCanvasZoom(state.canvasZoom - 0.1);
+      });
+
+      $("canvasZoomInBtn").addEventListener("click", () => {
+        setCanvasZoom(state.canvasZoom + 0.1);
+      });
+
+      $("canvasZoomResetBtn").addEventListener("click", () => {
+        setCanvasZoom(1);
+      });
+
+      for (const swatch of document.querySelectorAll(".swatch")) {
+        swatch.addEventListener("click", () => {
+          state.canvasBg = swatch.dataset.bg || "checkered";
+          updateCanvasBackground();
+        });
+      }
+
+      $("playPreviewBtn").addEventListener("click", togglePreviewPlayback);
+
+      const setLicensePopoverOpen = (open) => {
+        $("licensePopover").hidden = !open;
+        $("licenseToggleBtn").setAttribute("aria-expanded", open ? "true" : "false");
+      };
+
+      $("licenseToggleBtn").addEventListener("click", (event) => {
+        event.stopPropagation();
+        setLicensePopoverOpen($("licensePopover").hidden);
+      });
+
+      $("licenseCloseBtn").addEventListener("click", (event) => {
+        event.stopPropagation();
+        setLicensePopoverOpen(false);
+      });
+
+      document.addEventListener("click", (event) => {
+        if (event.target.closest(".license-menu")) return;
+        setLicensePopoverOpen(false);
+      });
+
+      $("canvasFrame").addEventListener("pointerdown", (event) => {
+        if (!state.package?.project) return;
+        if (event.target.closest("[data-drag-mode]")) return;
+        const point = canvasPointFromEvent(event);
+        if (!point) return;
+        const asset = hitTestAsset(point);
+        if (!asset) {
+          state.selectedKey = null;
+          syncControlsFromSelected();
+          renderLayers();
+          return;
+        }
+        state.selectedKey = asset.key;
+        syncControlsFromSelected();
+        renderLayers();
+        beginCanvasDrag(event, "translate");
+      });
+
+      for (const handle of document.querySelectorAll("[data-drag-mode]")) {
+        handle.addEventListener("pointerdown", (event) => {
+          beginCanvasDrag(event, handle.dataset.dragMode || "translate");
+        });
+      }
+
+      window.addEventListener("pointermove", moveCanvasDrag);
+      window.addEventListener("pointerup", endCanvasDrag);
+      window.addEventListener("pointercancel", endCanvasDrag);
+
+      for (const button of document.querySelectorAll("[data-align]")) {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          alignSelectedAsset(button.dataset.align);
+        });
+      }
+
+      $("scanBtn").addEventListener("click", () => {
+        postPlugin("scan-selection");
+        void checkLayerUpdates(true);
+      });
+      $("captureBtn").addEventListener("click", () => {
+        captureSelection("manual");
+      });
+      $("downloadJsonBtn").addEventListener("click", () => {
+        if (!state.package) return;
+        state.package.project.materialType = $("materialType").value || "figma_selection";
+        state.package.project.exportRules = {
+          fps: Number($("fps").value || 24),
+          frames: Number($("frames").value || 72),
+        };
+        downloadText("figma-svga-project.json", JSON.stringify(state.package, null, 2));
+      });
+      $("exportSvgaBtn").addEventListener("click", () => {
+        void (async () => {
+          try {
+            setBusy(true);
+            const access = await requestPlugin("license-request-export");
+            renderLicenseState(access.payload);
+            if (!access.allowed) {
+              log("免费导出次数已用完，请扫码联系获取授权码。");
+              return;
+            }
+            const result = await exportSvga();
+            const remaining = access.payload?.activated
+              ? "授权导出"
+              : `剩余免费 ${access.payload?.freeExportsRemaining ?? 0} 次`;
+            log(`已导出 ${result.filename} (${Math.round(result.bytes / 1024)} KB)，${remaining}。`);
+          } catch (error) {
+            log(`导出失败: ${error.message}`);
+          } finally {
+            setBusy(false);
+          }
+        })();
+      });
+      $("activateLicenseBtn").addEventListener("click", () => {
+        void (async () => {
+          try {
+            setBusy(true);
+            await activateLicense();
+          } catch (error) {
+            log(`激活失败: ${error.message}`);
+          } finally {
+            setBusy(false);
+          }
+        })();
+      });
+      $("copyInstallIdBtn").addEventListener("click", () => {
+        const value = $("installationId").textContent.trim();
+        if (!value || value === "-") return;
+        void navigator.clipboard?.writeText(value).then(
+          () => log("授权识别码已复制。"),
+          () => log("复制失败，请手动复制授权识别码。"),
+        );
+      });
+
+      $("resetTransformBtn").addEventListener("click", () => {
+        resetSelectedTransform();
+      });
+
+      const transformInputMap = {
+        transformX: "x",
+        transformY: "y",
+        transformScale: "scale",
+        transformRotate: "rotate",
+      };
+      for (const id of Object.keys(transformInputMap)) {
+        $(id).addEventListener("input", () => {
+          const key = transformInputMap[id];
+          updateSelectedAssetTransform({ [key]: Number($(id).value) }, "preview");
+        });
+      }
+
+      for (const button of document.querySelectorAll("[data-motion]")) {
+        button.addEventListener("click", () => {
+          if (button.disabled) return;
+          $("animationType").value = button.dataset.motion || "none";
+          syncSelectedFromControls();
+        });
+      }
+
+      for (const id of ["animationType", "speed", "intensity"]) {
+        $(id).addEventListener("input", syncSelectedFromControls);
+      }
+      for (const id of ["fps", "frames"]) {
+        $(id).addEventListener("input", () => {
+          if (state.package?.project) {
+            state.package.project.exportRules = {
+              fps: Number($("fps").value || 24),
+              frames: Number($("frames").value || 72),
+            };
+            state.previewFrame = Math.min(state.previewFrame, projectFrameCount() - 1);
+            renderPreview(state.previewFrame);
+          }
+        });
+      }
+      $("speed").addEventListener("input", () => {
+        $("speedValue").textContent = Number($("speed").value).toFixed(1);
+      });
+      $("intensity").addEventListener("input", () => {
+        $("intensityValue").textContent = Number($("intensity").value).toFixed(1);
+      });
+
+      $("addSweepBtn").addEventListener("click", addSweepToSelected);
+      $("removeSweepBtn").addEventListener("click", removeSweepFromSelected);
+      for (const id of ["sweepShape", "sweepSpeed", "sweepWidth", "sweepFeather", "sweepAngle", "sweepOpacity"]) {
+        $(id).addEventListener("input", syncSweepFromControls);
+      }
+      $("sweepColor").addEventListener("input", () => {
+        $("sweepColorPreview").value = $("sweepColor").value;
+        syncSweepFromControls();
+      });
+      $("sweepColorPreview").addEventListener("input", () => {
+        $("sweepColor").value = $("sweepColorPreview").value;
+        syncSweepFromControls();
+      });
+      $("sweepBlendBtn").addEventListener("click", () => {
+        const effect = selectedSweepEffect();
+        if (!effect) return;
+        effect.sweepBlendMode = effect.sweepBlendMode === "screen" ? "normal" : "screen";
+        syncSweepControlsFromSelected();
+        renderPreview(state.previewFrame);
+      });
+      $("sweepFadeBtn").addEventListener("click", () => {
+        const effect = selectedSweepEffect();
+        if (!effect) return;
+        effect.sweepFadeEnabled = !effect.sweepFadeEnabled;
+        syncSweepControlsFromSelected();
+        renderPreview(state.previewFrame);
+      });
+
+      window.onmessage = (event) => {
+        const message = event.data.pluginMessage;
+        if (!message) return;
+
+        if (resolvePluginRequest(message)) return;
+
+        if (message.type === "license-state") {
+          renderLicenseState(message.payload);
+        }
+
+        if (message.type === "figma-document-changed") {
+          const changedIds = new Set(message.nodeIds || []);
+          let touched = false;
+          for (const asset of state.package?.project?.assets || []) {
+            if (changedIds.has(asset.source?.figmaNodeId)) {
+              state.layerStatuses.set(asset.key, {
+                key: asset.key,
+                changed: true,
+                status: "changed",
+                message: "Figma 图层已调整",
+              });
+              touched = true;
+            }
+          }
+          if (touched) renderLayers();
+        }
+
+        if (message.type === "selection-summary") {
+          state.selection = message.payload;
+          renderSelection();
+          if (!state.autoCaptured && !state.package && Number(message.payload?.count || 0) > 0) {
+            state.autoCaptured = true;
+            window.setTimeout(() => captureSelection("auto"), 80);
+          }
+        }
+
+        if (message.type === "capture-started") {
+          setBusy(true);
+        }
+
+        if (message.type === "capture-complete") {
+          stopPreviewPlayback();
+          state.package = message.payload;
+          ensureProjectEffects();
+          state.selectedKey = state.package.project.assets[0]?.key || null;
+          state.layerStatuses.clear();
+          state.canvasStale = false;
+          state.previewImageCache.clear();
+          state.previewFrame = 0;
+          $("fps").value = String(state.package.project.exportRules.fps || 24);
+          $("frames").value = String(state.package.project.exportRules.frames || 72);
+          renderLayers();
+          setBusy(false);
+          startUpdatePolling();
+          log(`已同步 ${state.package.summary.layerCount} 个图层。`);
+        }
+
+        if (message.type === "plugin-error") {
+          setBusy(false);
+          log(`插件错误: ${message.message}`);
+        }
+      };
+
+      if (CONTACT_QR_DATA_URL.startsWith("data:image/")) {
+        $("contactQr").src = CONTACT_QR_DATA_URL;
+      }
+      void refreshLicenseState().catch((error) => {
+        log(`授权状态读取失败: ${error.message}`);
+      });
+      postPlugin("scan-selection");
+    </script>
+  </body>
+</html>
