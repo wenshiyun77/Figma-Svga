@@ -1189,13 +1189,15 @@
       }
 
       .motion-control-panel,
-      .sweep-controls {
+      .sweep-controls,
+      .particle-controls {
         display: grid;
         gap: 12px;
       }
 
       .motion-control-panel[hidden],
       .sweep-controls[hidden],
+      .particle-controls[hidden],
       .field[hidden] {
         display: none;
       }
@@ -1261,7 +1263,8 @@
         text-align: center;
       }
 
-      .sweep-actions {
+      .sweep-actions,
+      .particle-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
@@ -1613,6 +1616,112 @@
                 <button id="removeSweepBtn" type="button">移除扫光</button>
               </div>
             </div>
+
+            <div class="inspector-card">
+              <div class="section-title">
+                <div class="section-title-main">
+                  <span>PARTICLE</span>
+                  <strong>粒子特效</strong>
+                </div>
+                <button id="addParticleBtn" class="sweep-header-button" type="button" disabled>添加粒子</button>
+              </div>
+              <div id="particleEmpty" class="sweep-empty">导入 Figma 画布后可添加粒子层。</div>
+              <div id="particleControls" class="particle-controls" hidden>
+                <div class="field">
+                  <label for="particleSystemType">粒子动态形式</label>
+                  <select id="particleSystemType">
+                    <option value="falling">飘落</option>
+                    <option value="emission">发射</option>
+                    <option value="flame">火焰升腾</option>
+                    <option value="wave">波浪游动</option>
+                    <option value="vortex">漩涡聚合</option>
+                    <option value="sparkle">闪烁星星</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="particleShape">粒子样式</label>
+                  <select id="particleShape">
+                    <option value="snow">雪花</option>
+                    <option value="star">星星</option>
+                    <option value="flash">闪光</option>
+                    <option value="circle">圆点</option>
+                  </select>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="particleCount">粒子数量 <span id="particleCountValue">30</span></label>
+                    <input id="particleCount" type="range" min="4" max="180" step="1" value="30" />
+                  </div>
+                  <div class="field">
+                    <label for="particleSize">粒子大小 <span id="particleSizeValue">15</span></label>
+                    <input id="particleSize" type="range" min="4" max="120" step="1" value="15" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="particleSpeed">速度 <span id="particleSpeedValue">1.0</span></label>
+                    <input id="particleSpeed" type="range" min="0.1" max="10" step="0.1" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="particleRandomness">随机 <span id="particleRandomnessValue">0.5</span></label>
+                    <input id="particleRandomness" type="range" min="0" max="1" step="0.05" value="0.5" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="particleLifeSpan">生命周期 <span id="particleLifeSpanValue">1.00</span></label>
+                    <input id="particleLifeSpan" type="range" min="0.1" max="1" step="0.05" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="particleDecay">衰减 <span id="particleDecayValue">0.20</span></label>
+                    <input id="particleDecay" type="range" min="0" max="1" step="0.05" value="0.2" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="particleColorMode">颜色模式</label>
+                  <select id="particleColorMode">
+                    <option value="solid">纯色</option>
+                    <option value="linearGradient">线性渐变</option>
+                    <option value="quadrantGradient">径向渐变</option>
+                  </select>
+                </div>
+                <div class="inline-field">
+                  <div class="field">
+                    <label for="particleColor">主颜色</label>
+                    <input id="particleColor" type="color" value="#ffffff" />
+                  </div>
+                  <input id="particleColorPreview" class="color-input" type="color" value="#ffffff" aria-label="粒子主颜色" />
+                </div>
+                <div id="particleSecondaryColorField" class="inline-field" hidden>
+                  <div class="field">
+                    <label for="particleSecondaryColor">渐变辅色</label>
+                    <input id="particleSecondaryColor" type="color" value="#000000" />
+                  </div>
+                  <input id="particleSecondaryColorPreview" class="color-input" type="color" value="#000000" aria-label="粒子渐变辅色" />
+                </div>
+                <div id="particleSystemPanel" class="grid-2" hidden>
+                  <div class="field">
+                    <label for="emissionOriginX">X 起点 <span id="emissionOriginXValue">50%</span></label>
+                    <input id="emissionOriginX" type="range" min="0" max="1" step="0.01" value="0.5" />
+                  </div>
+                  <div class="field">
+                    <label for="emissionOriginY">Y 起点 <span id="emissionOriginYValue">50%</span></label>
+                    <input id="emissionOriginY" type="range" min="0" max="1" step="0.01" value="0.5" />
+                  </div>
+                  <div class="field">
+                    <label for="emissionAngle">发射角度 <span id="emissionAngleValue">270°</span></label>
+                    <input id="emissionAngle" type="range" min="0" max="360" step="1" value="270" />
+                  </div>
+                  <div class="field">
+                    <label for="emissionSpread">扩散角 <span id="emissionSpreadValue">45°</span></label>
+                    <input id="emissionSpread" type="range" min="0" max="360" step="1" value="45" />
+                  </div>
+                </div>
+                <div class="particle-actions">
+                  <button id="removeParticleBtn" type="button">删除粒子层</button>
+                </div>
+              </div>
+            </div>
           </div>
         </aside>
       </section>
@@ -1754,6 +1863,27 @@
         centerCircle: "中心圆扫光",
         centerFlow: "中心流光",
       };
+      const PARTICLE_SYSTEM_LABELS = {
+        falling: "飘落",
+        emission: "发射",
+        flame: "火焰升腾",
+        wave: "波浪游动",
+        vortex: "漩涡聚合",
+        sparkle: "闪烁星星",
+      };
+      const PARTICLE_SHAPE_LABELS = {
+        snow: "雪花",
+        star: "星星",
+        flash: "闪光",
+        circle: "圆点",
+      };
+      const SVGA_IMAGE_SCALE = 0.72;
+      const SVGA_IMAGE_MAX_EDGE = 720;
+      const SVGA_JPEG_QUALITY = 0.72;
+      const SVGA_ALPHA_THRESHOLD = 250;
+      const SVGA_SWEEP_TEXTURE_SCALE = 0.45;
+      const SVGA_SWEEP_TEXTURE_MAX_EDGE = 360;
+      const SVGA_SWEEP_TEXTURE_STEPS = 24;
 
       const postPlugin = (type, payload = {}) => {
         parent.postMessage({ pluginMessage: { type, ...payload } }, "*");
@@ -1974,6 +2104,239 @@
         return canvas;
       };
 
+      const hashSeed = (value) => {
+        let hash = 2166136261;
+        const text = String(value || "particle");
+        for (let index = 0; index < text.length; index += 1) {
+          hash ^= text.charCodeAt(index);
+          hash = Math.imul(hash, 16777619);
+        }
+        return hash >>> 0;
+      };
+
+      const seededRandom = (seed) => {
+        let stateValue = seed >>> 0;
+        return () => {
+          stateValue += 0x6d2b79f5;
+          let next = stateValue;
+          next = Math.imul(next ^ (next >>> 15), next | 1);
+          next ^= next + Math.imul(next ^ (next >>> 7), next | 61);
+          return ((next ^ (next >>> 14)) >>> 0) / 4294967296;
+        };
+      };
+
+      const particleCanvasSize = (effect) =>
+        effect.particleSystemType === "flame"
+          ? 100
+          : Math.max(20, Math.round(Number(effect.particleSize || 15)));
+
+      const drawStarPath = (ctx, cx, cy, outerRadius, points = 5, innerRatio = 0.5) => {
+        const step = Math.PI / Math.max(3, points);
+        const start = Math.PI * 1.5;
+        const innerRadius = outerRadius * innerRatio;
+        ctx.beginPath();
+        for (let index = 0; index < points; index += 1) {
+          ctx.lineTo(cx + Math.cos(start + step * index * 2) * outerRadius, cy + Math.sin(start + step * index * 2) * outerRadius);
+          ctx.lineTo(cx + Math.cos(start + step * (index * 2 + 1)) * innerRadius, cy + Math.sin(start + step * (index * 2 + 1)) * innerRadius);
+        }
+        ctx.closePath();
+      };
+
+      const makeParticleTextureCanvas = (effect) => {
+        const size = particleCanvasSize(effect);
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return canvas;
+        const cx = size / 2;
+        const cy = size / 2;
+        const baseSize = Math.min(size, Math.max(4, Number(effect.particleSize || 15))) * 0.82;
+        const color = effect.particleColor || "#ffffff";
+        const secondary = effect.particleGradientColors?.[1] || "#000000";
+        if (effect.particleSystemType === "flame") {
+          const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, size / 2);
+          gradient.addColorStop(0, "rgba(255, 244, 170, 0.95)");
+          gradient.addColorStop(0.32, "rgba(255, 138, 24, 0.72)");
+          gradient.addColorStop(0.72, "rgba(180, 20, 0, 0.22)");
+          gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+          ctx.fill();
+          return canvas;
+        }
+        if (effect.particleColorMode === "linearGradient") {
+          const gradient = ctx.createLinearGradient(0, 0, size, size);
+          gradient.addColorStop(0, color);
+          gradient.addColorStop(1, secondary);
+          ctx.fillStyle = gradient;
+        } else if (effect.particleColorMode === "quadrantGradient") {
+          const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseSize / 2);
+          gradient.addColorStop(0, color);
+          gradient.addColorStop(1, secondary);
+          ctx.fillStyle = gradient;
+        } else {
+          ctx.fillStyle = color;
+        }
+        if (effect.particleShape === "star") {
+          const intensity = Number(effect.sparkleIntensity || 0);
+          if (intensity > 0) {
+            const rgb = hexToRgb(color);
+            const glow = ctx.createRadialGradient(cx, cy, baseSize * 0.1, cx, cy, baseSize * (0.72 + intensity * 0.4));
+            glow.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.72)`);
+            glow.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(cx, cy, baseSize * (0.72 + intensity * 0.4), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = color;
+          }
+          drawStarPath(ctx, cx, cy, baseSize / 2, Math.round(effect.starPoints || 5), Number(effect.starInnerRadius || 0.5));
+          ctx.fill();
+        } else if (effect.particleShape === "flash") {
+          const rgb = hexToRgb(color);
+          const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseSize / 2);
+          glow.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)`);
+          glow.addColorStop(0.34, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.58)`);
+          glow.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(cx, cy, baseSize / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#ffffff";
+          drawStarPath(ctx, cx, cy, baseSize / 2, 4, 0.12);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.arc(cx, cy, baseSize / 2, 0, Math.PI * 2);
+          ctx.fill();
+          if (effect.particleShape !== "snow") {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+            ctx.beginPath();
+            ctx.arc(cx - baseSize / 6, cy - baseSize / 6, baseSize / 7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        return canvas;
+      };
+
+      const particleCountForEffect = (effect) => {
+        const base = Math.max(1, Math.round(Number(effect.particleCount || 30) * Number(effect.particleDensity || 1)));
+        const multiplier = effect.particleSystemType === "flame" ? 5 : 1;
+        return Math.min(260, base * multiplier);
+      };
+
+      const sampleParticle = (asset, particleIndex, frameIndex, totalFrames) => {
+        const effect = asset.effectConfig || {};
+        const geometry = assetRenderGeometry(asset);
+        const tWidth = Math.max(1, geometry.displayWidth);
+        const tHeight = Math.max(1, geometry.displayHeight);
+        const sizeFactor = Math.max(0.2, Math.min(tWidth, tHeight) / 750);
+        const rng = seededRandom(hashSeed(`${effect.id || asset.key}:${particleIndex}`));
+        const randomness = Number(effect.particleRandomness == null ? 0.5 : effect.particleRandomness);
+        const baseSize = Number(effect.particleSize || 15);
+        const globalSpeed = Number(effect.particleSpeed || 1) * 5 * sizeFactor;
+        const phase = rng() * Math.PI * 2;
+        const rotationSpeed = (rng() - 0.5) * 0.12;
+        const baseAlpha = 0.3 + rng() * 0.7;
+        let particleScale = (0.5 + rng() * Math.max(0.05, randomness)) * sizeFactor;
+        let localX = rng() * tWidth;
+        let localY = rng() * tHeight;
+        let alpha = baseAlpha;
+        const systemType = effect.particleSystemType || "falling";
+        const lifeSpan = Number(effect.particleLifeSpan || 1);
+        const decay = Math.max(0.001, Number(effect.particleDecay == null ? 0.2 : effect.particleDecay));
+        const flutterSpeed = 0.05 + rng() * 0.1;
+        const flutter = baseSize * rng() * 2 * sizeFactor;
+        const startFrameOffset = Math.floor(rng() * totalFrames);
+        const maxLifeFrames = Math.max(1, Math.floor(totalFrames * lifeSpan * (0.5 + rng() * 0.5)));
+        const originX = Number(effect.emissionOriginX == null ? 0.5 : effect.emissionOriginX) * tWidth;
+        const originY = Number(effect.emissionOriginY == null ? 0.5 : effect.emissionOriginY) * tHeight;
+        const emissionAngle = ((Number(effect.emissionAngle == null ? 270 : effect.emissionAngle)) * Math.PI) / 180;
+        const spread = ((Number(effect.emissionSpread == null ? 45 : effect.emissionSpread)) * Math.PI) / 180;
+        const finalAngle = emissionAngle + (rng() - 0.5) * spread;
+        const speed = globalSpeed * (0.5 + rng() * Math.max(0.05, randomness));
+        const velocityX = Math.cos(finalAngle) * speed * 2;
+        const velocityY = Math.sin(finalAngle) * speed * 2;
+        const age = (frameIndex - startFrameOffset + totalFrames) % Math.max(totalFrames, maxLifeFrames);
+
+        if (systemType === "falling") {
+          localY = (localY + frameIndex * speed) % tHeight;
+          localX += Math.sin(phase + frameIndex * flutterSpeed) * flutter;
+          const edgeFade = Math.min(30, tHeight * 0.12);
+          if (localY < edgeFade) alpha *= localY / edgeFade;
+          if (localY > tHeight - edgeFade) alpha *= (tHeight - localY) / edgeFade;
+        } else if (systemType === "sparkle") {
+          const pulse = (Math.sin((frameIndex / totalFrames) * Math.PI * 2 * Math.ceil(Number(effect.particleSpeed || 1) * 3 * (0.5 + rng())) + phase) + 1) / 2;
+          const sparklePulse = Math.pow(pulse, 4);
+          alpha *= sparklePulse;
+          particleScale *= sparklePulse;
+        } else if (systemType === "flame") {
+          const flameDecay = (rng() * 0.02 + 0.015) * Math.max(0.1, 2 - lifeSpan);
+          const flameLife = 1 - age * flameDecay;
+          const radius = Math.pow(rng(), 2);
+          const angle = rng() * Math.PI * 2;
+          localX = originX + Math.cos(angle) * radius * 18 * sizeFactor + (rng() - 0.5) * globalSpeed * age;
+          localY = originY + Math.sin(angle) * radius * 10 * sizeFactor - (rng() * 3 + 2) * globalSpeed * age * 0.5;
+          particleScale *= Math.max(0, 1 - age * 0.018);
+          alpha = Math.max(0, flameLife) * baseAlpha * 1.5;
+        } else {
+          if (age > maxLifeFrames) {
+            alpha = 0;
+          } else {
+            const lifeRatio = age / maxLifeFrames;
+            localX = originX + velocityX * age;
+            localY = originY + velocityY * age;
+            if (systemType === "wave") {
+              const perpAngle = finalAngle + Math.PI / 2;
+              const wave = Math.sin(phase + age * flutterSpeed * 2) * flutter * 2;
+              localX += Math.cos(perpAngle) * wave;
+              localY += Math.sin(perpAngle) * wave;
+            }
+            if (systemType === "vortex") {
+              const radius = flutter * 2 + speed * age * 0.5;
+              const vortexAngle = finalAngle + age * rotationSpeed * 2;
+              localX = originX + Math.cos(vortexAngle) * radius;
+              localY = originY + Math.sin(vortexAngle) * radius;
+            }
+            if (lifeRatio > 1 - decay) alpha *= 1 - (lifeRatio - (1 - decay)) / decay;
+            if (lifeRatio < 0.1) alpha *= lifeRatio / 0.1;
+          }
+        }
+
+        const rotation = ((Number(geometry.rotate || 0) || 0) * Math.PI) / 180;
+        const cos = Math.cos(rotation);
+        const sin = Math.sin(rotation);
+        const offsetX = localX - tWidth / 2;
+        const offsetY = localY - tHeight / 2;
+        return {
+          alpha: clamp(alpha, 0, 1),
+          x: geometry.x + tWidth / 2 + cos * offsetX - sin * offsetY,
+          y: geometry.y + tHeight / 2 + sin * offsetX + cos * offsetY,
+          scale: Math.max(0, particleScale),
+          rotation: rotation + phase + frameIndex * rotationSpeed,
+        };
+      };
+
+      const drawParticleEffects = (ctx, project, frameIndex, totalFrames) => {
+        for (const asset of activeParticleAssets(project)) {
+          const texture = makeParticleTextureCanvas(asset.effectConfig);
+          const count = particleCountForEffect(asset.effectConfig);
+          for (let index = 0; index < count; index += 1) {
+            const sample = sampleParticle(asset, index, frameIndex, totalFrames);
+            if (sample.alpha <= 0 || sample.scale <= 0) continue;
+            ctx.save();
+            ctx.globalAlpha = sample.alpha;
+            ctx.translate(sample.x, sample.y);
+            ctx.rotate(sample.rotation);
+            ctx.scale(sample.scale, sample.scale);
+            ctx.drawImage(texture, -texture.width / 2, -texture.height / 2);
+            ctx.restore();
+          }
+        }
+      };
+
       const drawSweepEffects = (ctx, project, items, frameIndex, totalFrames, fps) => {
         const itemByKey = new Map(items.map((item) => [item.asset.key, item]));
         for (const effect of activeSweepEffects(project)) {
@@ -2083,6 +2446,7 @@
           ctx.restore();
         }
         drawSweepEffects(ctx, project, items, frameIndex, totalFrames, fps);
+        drawParticleEffects(ctx, project, frameIndex, totalFrames);
         drawSelectionOutlines(ctx, items, frameIndex, totalFrames, fps);
       };
 
@@ -2154,8 +2518,8 @@
         return asset.transform;
       };
 
-      const assetRenderGeometry = (asset) => {
-        const payload = assetPayloadByKey(asset.key);
+      const assetRenderGeometry = (asset, payloadOverride = null) => {
+        const payload = payloadOverride || assetPayloadByKey(asset.key);
         const imageWidth = Math.max(1, Math.round(Number(payload?.width || asset.source?.absoluteBoundingBox?.width || asset.width || 1)));
         const imageHeight = Math.max(1, Math.round(Number(payload?.height || asset.source?.absoluteBoundingBox?.height || asset.height || 1)));
         const baseWidth = Math.max(1, Number(asset.source?.absoluteBoundingBox?.width || asset.width || imageWidth));
@@ -2393,14 +2757,15 @@
 
         list.replaceChildren();
         for (const asset of project.assets) {
-          const status = state.layerStatuses.get(asset.key);
+          const isParticleLayer = asset.type === "effect" && asset.effectConfig?.type === "particles";
+          const status = isParticleLayer ? null : state.layerStatuses.get(asset.key);
           const isStale = status?.changed === true;
           const row = document.createElement("div");
           row.className = `layer-row${asset.key === state.selectedKey ? " selected" : ""}${isStale ? " stale" : ""}`;
           row.dataset.key = asset.key;
           const thumb = document.createElement("span");
           thumb.className = "layer-thumb";
-          thumb.textContent = "L";
+          thumb.textContent = isParticleLayer ? "P" : "L";
 
           const copy = document.createElement("span");
           copy.className = "layer-copy";
@@ -2412,12 +2777,15 @@
 
           const meta = document.createElement("span");
           meta.className = "layer-meta";
-          meta.textContent = isStale ? "已变化" : MOTION_LABELS[asset.animation?.type || "none"] || "无动画";
+          meta.textContent = isParticleLayer
+            ? `粒子 / ${PARTICLE_SYSTEM_LABELS[asset.effectConfig?.particleSystemType || "falling"] || "粒子"}`
+            : isStale ? "已变化" : MOTION_LABELS[asset.animation?.type || "none"] || "无动画";
 
           const updateBtn = document.createElement("button");
           updateBtn.className = "layer-update-btn";
           updateBtn.type = "button";
           updateBtn.textContent = "更新";
+          updateBtn.hidden = isParticleLayer;
 
           row.addEventListener("click", () => {
             state.selectedKey = asset.key;
@@ -2426,6 +2794,7 @@
           });
           updateBtn.addEventListener("click", (event) => {
             event.stopPropagation();
+            if (isParticleLayer) return;
             void updateLayer(asset.key);
           });
           copy.append(name, meta);
@@ -2458,10 +2827,21 @@
 
       const selectedSweepEffect = () => {
         const asset = selectedProjectAsset();
-        if (!asset) return null;
+        if (!asset || asset.type === "effect") return null;
         return ensureProjectEffects().find(
           (effect) => effect.type === "sweep" && effect.sweepTarget === asset.key,
         ) || null;
+      };
+
+      const isParticleAsset = (asset) =>
+        asset?.type === "effect" && asset.effectConfig?.type === "particles";
+
+      const activeParticleAssets = (project) =>
+        (project?.assets || []).filter((asset) => isParticleAsset(asset) && asset.visible !== false && asset.effectConfig?.enabled !== false);
+
+      const selectedParticleEffect = () => {
+        const asset = selectedProjectAsset();
+        return isParticleAsset(asset) ? asset.effectConfig : null;
       };
 
       const makeDefaultSweepEffect = (assetKey) => ({
@@ -2491,11 +2871,16 @@
       const syncSweepControlsFromSelected = () => {
         const asset = selectedProjectAsset();
         const effect = selectedSweepEffect();
-        $("addSweepBtn").disabled = !asset || Boolean(effect);
+        const canAttachSweep = Boolean(asset && !isParticleAsset(asset));
+        $("addSweepBtn").disabled = !canAttachSweep || Boolean(effect);
         $("sweepEmpty").hidden = Boolean(effect);
         $("sweepControls").hidden = !effect;
         if (!asset) {
           $("sweepEmpty").textContent = "选择图层后可添加扫光。";
+          return;
+        }
+        if (isParticleAsset(asset)) {
+          $("sweepEmpty").textContent = "粒子层不支持添加扫光。";
           return;
         }
         if (!effect) {
@@ -2547,9 +2932,145 @@
         renderPreview(state.previewFrame);
       };
 
+      const makeDefaultParticleEffect = (id) => ({
+        id,
+        type: "particles",
+        enabled: true,
+        particleSystemType: "falling",
+        particleShape: "snow",
+        particleCount: 30,
+        particleDensity: 1,
+        particleSpeed: 1,
+        particleSize: 15,
+        particleLifeSpan: 1,
+        particleDecay: 0.2,
+        particleRandomness: 0.5,
+        particleColorMode: "solid",
+        particleColor: "#ffffff",
+        particleGradientColors: ["#ffffff", "#000000"],
+        emissionOriginX: 0.5,
+        emissionOriginY: 0.5,
+        emissionAngle: 270,
+        emissionSpread: 45,
+        starPoints: 5,
+        starInnerRadius: 0.5,
+        sparkleIntensity: 0.6,
+      });
+
+      const makeDefaultParticleAsset = () => {
+        const project = state.package?.project;
+        const width = Math.max(1, Math.round(Number(project?.canvas?.width || 750)));
+        const height = Math.max(1, Math.round(Number(project?.canvas?.height || 750)));
+        const id = `particle_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        return {
+          key: `particle_layer_${id}`,
+          label: `粒子特效_${id.slice(-4)}`,
+          type: "effect",
+          visible: true,
+          width,
+          height,
+          transform: { x: 0, y: 0, scale: 1, rotate: 0 },
+          animation: { type: "none", speed: 1, intensity: 1 },
+          effectConfig: makeDefaultParticleEffect(id),
+        };
+      };
+
+      const updateParticleValueLabels = () => {
+        $("particleCountValue").textContent = String(Math.round(Number($("particleCount").value || 30)));
+        $("particleSizeValue").textContent = String(Math.round(Number($("particleSize").value || 15)));
+        $("particleSpeedValue").textContent = Number($("particleSpeed").value || 1).toFixed(1);
+        $("particleRandomnessValue").textContent = Number($("particleRandomness").value || 0.5).toFixed(2);
+        $("particleLifeSpanValue").textContent = Number($("particleLifeSpan").value || 1).toFixed(2);
+        $("particleDecayValue").textContent = Number($("particleDecay").value || 0.2).toFixed(2);
+        $("emissionOriginXValue").textContent = `${Math.round(Number($("emissionOriginX").value || 0.5) * 100)}%`;
+        $("emissionOriginYValue").textContent = `${Math.round(Number($("emissionOriginY").value || 0.5) * 100)}%`;
+        $("emissionAngleValue").textContent = `${Math.round(Number($("emissionAngle").value || 270))}°`;
+        $("emissionSpreadValue").textContent = `${Math.round(Number($("emissionSpread").value || 45))}°`;
+      };
+
+      const syncParticleControlsFromSelected = () => {
+        const project = state.package?.project;
+        const asset = selectedProjectAsset();
+        const effect = selectedParticleEffect();
+        $("addParticleBtn").disabled = !project?.canvas;
+        $("particleControls").hidden = !effect;
+        $("particleEmpty").hidden = Boolean(effect);
+        if (!project?.canvas) {
+          $("particleEmpty").textContent = "导入 Figma 画布后可添加粒子层。";
+          return;
+        }
+        if (!effect) {
+          $("particleEmpty").textContent = asset
+            ? "当前选中图层不是粒子层，点击添加粒子可新建粒子层。"
+            : "点击添加粒子新建粒子层。";
+          return;
+        }
+        $("particleSystemType").value = effect.particleSystemType || "falling";
+        $("particleShape").value = effect.particleShape || "snow";
+        $("particleCount").value = String(effect.particleCount || 30);
+        $("particleSize").value = String(effect.particleSize || 15);
+        $("particleSpeed").value = String(effect.particleSpeed || 1);
+        $("particleRandomness").value = String(effect.particleRandomness == null ? 0.5 : effect.particleRandomness);
+        $("particleLifeSpan").value = String(effect.particleLifeSpan || 1);
+        $("particleDecay").value = String(effect.particleDecay == null ? 0.2 : effect.particleDecay);
+        $("particleColorMode").value = effect.particleColorMode || "solid";
+        $("particleColor").value = effect.particleColor || "#ffffff";
+        $("particleColorPreview").value = effect.particleColor || "#ffffff";
+        $("particleSecondaryColor").value = effect.particleGradientColors?.[1] || "#000000";
+        $("particleSecondaryColorPreview").value = effect.particleGradientColors?.[1] || "#000000";
+        $("emissionOriginX").value = String(effect.emissionOriginX == null ? 0.5 : effect.emissionOriginX);
+        $("emissionOriginY").value = String(effect.emissionOriginY == null ? 0.5 : effect.emissionOriginY);
+        $("emissionAngle").value = String(effect.emissionAngle == null ? 270 : effect.emissionAngle);
+        $("emissionSpread").value = String(effect.emissionSpread == null ? 45 : effect.emissionSpread);
+        $("particleSecondaryColorField").hidden = $("particleColorMode").value === "solid";
+        $("particleSystemPanel").hidden = !["emission", "flame", "wave", "vortex"].includes($("particleSystemType").value);
+        updateParticleValueLabels();
+      };
+
+      const syncParticleFromControls = () => {
+        const effect = selectedParticleEffect();
+        if (!effect) return;
+        effect.particleSystemType = $("particleSystemType").value;
+        effect.particleShape = $("particleShape").value;
+        effect.particleCount = Number($("particleCount").value || 30);
+        effect.particleSize = Number($("particleSize").value || 15);
+        effect.particleSpeed = Number($("particleSpeed").value || 1);
+        effect.particleRandomness = Number($("particleRandomness").value || 0.5);
+        effect.particleLifeSpan = Number($("particleLifeSpan").value || 1);
+        effect.particleDecay = Number($("particleDecay").value || 0.2);
+        effect.particleColorMode = $("particleColorMode").value;
+        effect.particleColor = $("particleColor").value || "#ffffff";
+        effect.particleGradientColors = [effect.particleColor, $("particleSecondaryColor").value || "#000000"];
+        effect.emissionOriginX = Number($("emissionOriginX").value || 0.5);
+        effect.emissionOriginY = Number($("emissionOriginY").value || 0.5);
+        effect.emissionAngle = Number($("emissionAngle").value || 270);
+        effect.emissionSpread = Number($("emissionSpread").value || 45);
+        syncParticleControlsFromSelected();
+        renderLayers();
+      };
+
+      const addParticleLayer = () => {
+        const project = state.package?.project;
+        if (!project?.canvas) return;
+        const particleAsset = makeDefaultParticleAsset();
+        project.assets = [particleAsset, ...(project.assets || [])];
+        state.selectedKey = particleAsset.key;
+        syncParticleControlsFromSelected();
+        renderLayers();
+      };
+
+      const removeSelectedParticleLayer = () => {
+        const asset = selectedProjectAsset();
+        const project = state.package?.project;
+        if (!project || !isParticleAsset(asset)) return;
+        project.assets = project.assets.filter((item) => item.key !== asset.key);
+        state.selectedKey = project.assets[0]?.key || null;
+        renderLayers();
+      };
+
       const syncControlsFromSelected = () => {
         const asset = selectedProjectAsset();
-        const disabled = !asset;
+        const disabled = !asset || isParticleAsset(asset);
         for (const id of ["animationType", "speed", "intensity"]) $(id).disabled = disabled;
         syncTransformControls();
         if (!asset) {
@@ -2560,6 +3081,7 @@
           $("intensityValue").textContent = "1.0";
           renderMotionOptions();
           syncSweepControlsFromSelected();
+          syncParticleControlsFromSelected();
           return;
         }
         const animation = asset.animation || { type: "none", speed: 1, intensity: 1 };
@@ -2570,6 +3092,7 @@
         $("intensityValue").textContent = Number($("intensity").value).toFixed(1);
         renderMotionOptions();
         syncSweepControlsFromSelected();
+        syncParticleControlsFromSelected();
       };
 
       const syncSelectedFromControls = () => {
@@ -2705,6 +3228,109 @@
           mimeType: match[1],
           bytes: base64ToBytes(match[2]),
         };
+      };
+
+      const blobToDataUrl = (blob) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => reject(new Error("图片压缩失败。"));
+          reader.readAsDataURL(blob);
+        });
+
+      const canvasToDataUrl = (canvas, mimeType = "image/png", quality) =>
+        new Promise((resolve) => {
+          if (!canvas.toBlob) {
+            resolve(canvas.toDataURL(mimeType, quality));
+            return;
+          }
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(canvas.toDataURL(mimeType, quality));
+                return;
+              }
+              void blobToDataUrl(blob).then(resolve, () => resolve(canvas.toDataURL(mimeType, quality)));
+            },
+            mimeType,
+            quality,
+          );
+        });
+
+      const canvasHasAlpha = (ctx, width, height) => {
+        try {
+          const data = ctx.getImageData(0, 0, width, height).data;
+          const pixelCount = width * height;
+          const step = Math.max(1, Math.floor(pixelCount / 50000));
+          for (let pixel = 0; pixel < pixelCount; pixel += step) {
+            if (data[pixel * 4 + 3] < SVGA_ALPHA_THRESHOLD) return true;
+          }
+          return false;
+        } catch (_error) {
+          return true;
+        }
+      };
+
+      const compressedRasterScale = (width, height) => {
+        const maxEdge = Math.max(width, height);
+        if (maxEdge <= 96) return 1;
+        return Math.max(0.25, Math.min(1, SVGA_IMAGE_SCALE, SVGA_IMAGE_MAX_EDGE / maxEdge));
+      };
+
+      const optimizeImagePayloadForSvga = async (projectAsset, payload) => {
+        if (!projectAsset || !payload?.dataUrl) return payload;
+        try {
+          const original = parseDataUrlBytes(payload.dataUrl);
+          const image = await loadPreviewImage(payload);
+          const sourceWidth = Math.max(1, Math.round(Number(image.naturalWidth || image.width || payload.width || 1)));
+          const sourceHeight = Math.max(1, Math.round(Number(image.naturalHeight || image.height || payload.height || 1)));
+          const scale = compressedRasterScale(sourceWidth, sourceHeight);
+          const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
+          const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+          if (targetWidth === sourceWidth && targetHeight === sourceHeight && original.mimeType === "image/jpeg") {
+            return payload;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          if (!ctx) return payload;
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.clearRect(0, 0, targetWidth, targetHeight);
+          ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+          const hasAlpha = canvasHasAlpha(ctx, targetWidth, targetHeight);
+          const mimeType = hasAlpha ? "image/png" : "image/jpeg";
+          const dataUrl = await canvasToDataUrl(
+            canvas,
+            mimeType,
+            hasAlpha ? undefined : SVGA_JPEG_QUALITY,
+          );
+          const optimized = parseDataUrlBytes(dataUrl);
+          if (optimized.bytes.length >= original.bytes.length) return payload;
+          return {
+            ...payload,
+            mimeType,
+            width: targetWidth,
+            height: targetHeight,
+            dataUrl,
+          };
+        } catch (_error) {
+          return payload;
+        }
+      };
+
+      const optimizeAssetPayloadsForSvga = async (project, assetPayloads) => {
+        const projectAssetByKey = new Map((project.assets || []).map((asset) => [asset.key, asset]));
+        return Promise.all(
+          assetPayloads.map((payload) => {
+            const projectAsset = projectAssetByKey.get(payload.key);
+            if (!projectAsset || projectAsset.type !== "image") return payload;
+            return optimizeImagePayloadForSvga(projectAsset, payload);
+          }),
+        );
       };
 
       const base64UrlToBytes = (value) => {
@@ -2887,10 +3513,23 @@
         }
       };
 
-      const makeSweepMaskedPayload = ({ effect, image, targetGeometry, frameIndex, frameCount }) => {
-        const width = Math.max(1, Math.round(targetGeometry.displayWidth));
-        const height = Math.max(1, Math.round(targetGeometry.displayHeight));
-        const progress = sweepProgress(effect, frameIndex, frameCount);
+      const sweepTextureSize = (targetGeometry) => {
+        const displayWidth = Math.max(1, Math.round(targetGeometry.displayWidth));
+        const displayHeight = Math.max(1, Math.round(targetGeometry.displayHeight));
+        const maxEdge = Math.max(displayWidth, displayHeight);
+        const scale = Math.max(
+          0.18,
+          Math.min(1, SVGA_SWEEP_TEXTURE_SCALE, SVGA_SWEEP_TEXTURE_MAX_EDGE / maxEdge),
+        );
+        return {
+          width: Math.max(1, Math.round(displayWidth * scale)),
+          height: Math.max(1, Math.round(displayHeight * scale)),
+        };
+      };
+
+      const makeSweepMaskedPayload = ({ effect, image, targetGeometry, textureIndex, textureCount }) => {
+        const { width, height } = sweepTextureSize(targetGeometry);
+        const progress = sweepProgress(effect, textureIndex, textureCount);
         const canvas = makeSweepMaskCanvas({
           image,
           effect,
@@ -2899,7 +3538,7 @@
           height,
         });
         return {
-          key: `${effect.id || effect.sweepTarget}_masked_${String(frameIndex).padStart(4, "0")}`,
+          key: `${effect.id || effect.sweepTarget}_masked_${String(textureIndex).padStart(3, "0")}`,
           dataUrl: canvas.toDataURL("image/png"),
           width,
           height,
@@ -2915,18 +3554,20 @@
           try {
             const targetImage = await loadPreviewImage(targetPayload);
             const targetGeometry = assetRenderGeometry(target);
-            for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+            const textureCount = Math.max(1, Math.min(frameCount, SVGA_SWEEP_TEXTURE_STEPS));
+            for (let textureIndex = 0; textureIndex < textureCount; textureIndex += 1) {
               sweeps.push({
                 effect,
                 target,
                 targetGeometry,
-                frameIndex,
+                textureIndex,
+                textureCount,
                 payload: makeSweepMaskedPayload({
                   effect,
                   image: targetImage,
                   targetGeometry,
-                  frameIndex,
-                  frameCount,
+                  textureIndex,
+                  textureCount,
                 }),
               });
             }
@@ -2937,6 +3578,19 @@
         return sweeps;
       };
 
+      const buildParticlePayloads = (project) =>
+        activeParticleAssets(project).map((asset) => {
+          const canvas = makeParticleTextureCanvas(asset.effectConfig);
+          return {
+            asset,
+            key: asset.key,
+            dataUrl: canvas.toDataURL("image/png"),
+            width: canvas.width,
+            height: canvas.height,
+            count: particleCountForEffect(asset.effectConfig),
+          };
+        });
+
       const encodeMovie = async (project, assetPayloads) => {
         const fps = Math.max(1, Math.min(60, Math.round(Number(project.exportRules?.fps || 24))));
         const frameCount = Math.max(1, Math.min(600, Math.round(Number(project.exportRules?.frames || 72))));
@@ -2944,6 +3598,7 @@
         const canvasHeight = Math.max(1, Math.round(Number(project.canvas?.height || 300)));
         const payloadByKey = new Map(assetPayloads.map((asset) => [String(asset.key), asset]));
         const sweepPayloads = await buildSweepMaskedPayloads(project, payloadByKey, frameCount);
+        const particlePayloads = buildParticlePayloads(project);
         const writer = new ProtoWriter();
 
         writer.string(1, "2.0");
@@ -2972,10 +3627,18 @@
           });
         }
 
+        for (const particle of particlePayloads) {
+          const image = parseDataUrlBytes(particle.dataUrl);
+          writer.message(3, (entry) => {
+            entry.string(1, particle.key);
+            entry.rawBytes(2, image.bytes);
+          });
+        }
+
         for (const projectAsset of project.assets || []) {
           const payload = payloadByKey.get(projectAsset.key);
           if (!payload?.dataUrl) continue;
-          const geometry = assetRenderGeometry(projectAsset);
+          const geometry = assetRenderGeometry(projectAsset, payload);
           const imageWidth = geometry.imageWidth;
           const imageHeight = geometry.imageHeight;
           const displayWidth = geometry.displayWidth;
@@ -3015,9 +3678,13 @@
         for (const sweep of sweepPayloads) {
           const frames = [];
           for (let index = 0; index < frameCount; index += 1) {
-            const progress = sweepProgress(sweep.effect, sweep.frameIndex, frameCount);
+            const progress = sweepProgress(sweep.effect, index, frameCount);
             const fade = sweep.effect.sweepFadeEnabled ? Math.sin(progress * Math.PI) : 1;
-            const opacity = index === sweep.frameIndex
+            const textureIndex = Math.min(
+              sweep.textureCount - 1,
+              Math.floor((index / Math.max(1, frameCount)) * sweep.textureCount),
+            );
+            const opacity = textureIndex === sweep.textureIndex
               ? clamp(Number(sweep.effect.sweepOpacity == null ? 1 : sweep.effect.sweepOpacity) * fade, 0, 1)
               : 0;
             const motion = frameMotion(sweep.target, index, frameCount, fps);
@@ -3044,6 +3711,37 @@
               frames,
             }),
           );
+        }
+
+        for (const particle of particlePayloads) {
+          for (let particleIndex = 0; particleIndex < particle.count; particleIndex += 1) {
+            const frames = [];
+            for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+              const sample = sampleParticle(particle.asset, particleIndex, frameIndex, frameCount);
+              frames.push({
+                alpha: particle.asset.visible === false ? 0 : sample.alpha,
+                layout: { x: 0, y: 0, width: particle.width, height: particle.height },
+                transform: makeTransform({
+                  x: sample.x - particle.width / 2,
+                  y: sample.y - particle.height / 2,
+                  imageWidth: particle.width,
+                  imageHeight: particle.height,
+                  displayWidth: particle.width,
+                  displayHeight: particle.height,
+                  rotation: sample.rotation,
+                  extraScale: sample.scale,
+                  animX: 0,
+                  animY: 0,
+                }),
+              });
+            }
+            writer.message(4, (spriteWriter) =>
+              encodeSprite(spriteWriter, {
+                imageKey: particle.key,
+                frames,
+              }),
+            );
+          }
         }
 
         return writer.finish();
@@ -3090,6 +3788,20 @@
         return output.subarray(0, offset);
       };
 
+      const zlibDeflate = async (bytes) => {
+        if (typeof CompressionStream === "function") {
+          try {
+            const stream = new Blob([bytes])
+              .stream()
+              .pipeThrough(new CompressionStream("deflate"));
+            return new Uint8Array(await new Response(stream).arrayBuffer());
+          } catch (_error) {
+            // Fall back to a valid zlib stream without compression in older plugin runtimes.
+          }
+        }
+        return zlibStore(bytes);
+      };
+
       const downloadBytes = (filename, mimeType, bytes) => {
         const blob = new Blob([bytes], { type: mimeType });
         const url = URL.createObjectURL(blob);
@@ -3118,8 +3830,12 @@
           fps: Number($("fps").value || 24),
           frames: Number($("frames").value || 72),
         };
-        const movieBytes = await encodeMovie(state.package.project, state.package.assets);
-        const svgaBytes = zlibStore(movieBytes);
+        const optimizedAssets = await optimizeAssetPayloadsForSvga(
+          state.package.project,
+          state.package.assets,
+        );
+        const movieBytes = await encodeMovie(state.package.project, optimizedAssets);
+        const svgaBytes = await zlibDeflate(movieBytes);
         const filename = `${safeFilename(state.package.project.materialType)}.svga`;
         downloadBytes(filename, "application/octet-stream", svgaBytes);
         return { filename, bytes: svgaBytes.length, movieBytes: movieBytes.length };
@@ -3385,6 +4101,42 @@
         effect.sweepFadeEnabled = !effect.sweepFadeEnabled;
         syncSweepControlsFromSelected();
         renderPreview(state.previewFrame);
+      });
+
+      $("addParticleBtn").addEventListener("click", addParticleLayer);
+      $("removeParticleBtn").addEventListener("click", removeSelectedParticleLayer);
+      for (const id of [
+        "particleSystemType",
+        "particleShape",
+        "particleCount",
+        "particleSize",
+        "particleSpeed",
+        "particleRandomness",
+        "particleLifeSpan",
+        "particleDecay",
+        "particleColorMode",
+        "emissionOriginX",
+        "emissionOriginY",
+        "emissionAngle",
+        "emissionSpread",
+      ]) {
+        $(id).addEventListener("input", syncParticleFromControls);
+      }
+      $("particleColor").addEventListener("input", () => {
+        $("particleColorPreview").value = $("particleColor").value;
+        syncParticleFromControls();
+      });
+      $("particleColorPreview").addEventListener("input", () => {
+        $("particleColor").value = $("particleColorPreview").value;
+        syncParticleFromControls();
+      });
+      $("particleSecondaryColor").addEventListener("input", () => {
+        $("particleSecondaryColorPreview").value = $("particleSecondaryColor").value;
+        syncParticleFromControls();
+      });
+      $("particleSecondaryColorPreview").addEventListener("input", () => {
+        $("particleSecondaryColor").value = $("particleSecondaryColorPreview").value;
+        syncParticleFromControls();
       });
 
       window.onmessage = (event) => {

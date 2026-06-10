@@ -679,6 +679,7 @@ const checkLayerUpdates = async (project) => {
   const layers = [];
   for (const asset of assets) {
     const source = asset && asset.source ? asset.source : {};
+    if (!source.figmaNodeId) continue;
     const node = await getNodeByIdSafe(source.figmaNodeId);
     if (!nodeCanExport(node) || !canvasBounds) {
       layers.push({
