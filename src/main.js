@@ -405,14 +405,24 @@ const saveStoredLicenseState = async (state) => {
   await writeLicenseStorage(state);
 };
 
+const licenseHasExportLimit = (license) =>
+  license &&
+  license.maxExports !== null &&
+  typeof license.maxExports !== "undefined" &&
+  license.maxExports !== "" &&
+  Number.isFinite(Number(license.maxExports)) &&
+  Number(license.maxExports) >= 0;
+
 const isLicenseActive = (state) => {
   const license = state && state.license ? state.license : null;
   if (!license || license.product !== LICENSE_PRODUCT_ID) return false;
   if (license.installationId && license.installationId !== state.installationId) return false;
-  if (license.expiresAt && Date.parse(license.expiresAt) <= Date.now()) return false;
+  if (license.expiresAt) {
+    const expiresAt = Date.parse(license.expiresAt);
+    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return false;
+  }
   if (
-    Number.isFinite(Number(license.maxExports)) &&
-    Number(license.maxExports) >= 0 &&
+    licenseHasExportLimit(license) &&
     state.activatedExportsUsed >= Number(license.maxExports)
   ) {
     return false;
@@ -466,6 +476,15 @@ const saveLicensePayload = async (payload, requestId) => {
   if (license.installationId && license.installationId !== state.installationId) {
     throw new Error("授权码与当前插件识别码不匹配。");
   }
+  if (license.expiresAt) {
+    const expiresAt = Date.parse(license.expiresAt);
+    if (!Number.isFinite(expiresAt)) {
+      throw new Error("授权码过期时间无效。");
+    }
+    if (expiresAt <= Date.now()) {
+      throw new Error("授权码已过期。");
+    }
+  }
   const nextLicense = Object.assign({}, license, {
     activatedAt: new Date().toISOString(),
   });
@@ -486,7 +505,7 @@ const requestExportAccess = async (requestId) => {
   if (isLicenseActive(state)) {
     const license = state.license || {};
     const nextState =
-      Number.isFinite(Number(license.maxExports)) && Number(license.maxExports) >= 0
+      licenseHasExportLimit(license)
         ? Object.assign({}, state, {
             activatedExportsUsed: (state.activatedExportsUsed || 0) + 1,
           })
@@ -665,6 +684,122 @@ const buildMaterialProject = async (options = {}) => {
   };
 };
 
+const shouldRunFullCaptureForSelection = (selection, project) => {
+  if (selection.length !== 1) return false;
+  const selected = selection[0];
+  if (!nodeCanBeCanvas(selected) || !nodeHasChildren(selected)) return false;
+  const sourceCanvasId = project && project.metadata ? project.metadata.sourceCanvasId : null;
+  return !sourceCanvasId || selected.id === sourceCanvasId;
+};
+
+const uniqueAssetKey = (baseKey, usedKeys) => {
+  let key = baseKey;
+  let suffix = 2;
+  while (usedKeys.has(key)) {
+    key = `${baseKey}_${suffix}`;
+    suffix += 1;
+  }
+  usedKeys.add(key);
+  return key;
+};
+
+const syncSelectedProjectLayers = async (message) => {
+  const project = message.project;
+  const options = message.options || {};
+  if (!project || !Array.isArray(project.assets)) {
+    return {
+      mode: "full",
+      package: await buildMaterialProject(options),
+    };
+  }
+
+  const selection = getExportableSelection();
+  if (selection.length === 0) {
+    throw new Error("请先在 Figma 中选择要同步的画布或图层。");
+  }
+
+  if (shouldRunFullCaptureForSelection(selection, project)) {
+    return {
+      mode: "full",
+      package: await buildMaterialProject(options),
+    };
+  }
+
+  const projectMetadata = project.metadata || {};
+  const canvasNode = projectMetadata.sourceCanvasId
+    ? await getNodeByIdSafe(projectMetadata.sourceCanvasId)
+    : null;
+  const canvasBounds = await getProjectCanvasBounds(project, project.assets);
+  if (!canvasBounds) throw new Error("无法读取原 Figma 画布尺寸。");
+
+  const exportScale = Math.max(0.25, Math.min(4, Number(options.exportScale || DEFAULT_EXPORT_SCALE)));
+  const usedKeys = new Set(project.assets.map((asset) => asset.key).filter(Boolean));
+  const existingByNodeId = new Map();
+  for (const asset of project.assets) {
+    const nodeId = asset && asset.source ? asset.source.figmaNodeId : null;
+    if (nodeId) existingByNodeId.set(nodeId, asset);
+  }
+
+  const layers = [];
+  for (let index = 0; index < selection.length; index += 1) {
+    const node = selection[index];
+    if (!nodeCanExport(node)) continue;
+    const existingAsset = existingByNodeId.get(node.id);
+    const key = existingAsset
+      ? existingAsset.key
+      : uniqueAssetKey(sanitizeKey(node.name, `layer_${project.assets.length + index + 1}`), usedKeys);
+    const layer = await makeProjectAssetFromNode({
+      node,
+      canvasNode: canvasNode && canvasNode.absoluteBoundingBox ? canvasNode : null,
+      canvasBounds,
+      index,
+      key,
+      animation: existingAsset && existingAsset.animation ? existingAsset.animation : {
+        type: "none",
+        speed: 1,
+        intensity: 1,
+      },
+      exportScale,
+      importMode:
+        existingAsset && existingAsset.source && existingAsset.source.importMode
+          ? existingAsset.source.importMode
+          : projectMetadata.sourceImportMode || "selected-layer-sync",
+    });
+    if (!layer) continue;
+    layers.push({
+      nodeId: node.id,
+      previousKey: existingAsset ? existingAsset.key : null,
+      isNew: !existingAsset,
+      asset: layer.projectAsset,
+      payload: layer.assetPayload,
+    });
+  }
+
+  if (layers.length === 0) {
+    throw new Error("当前选择中没有可同步的图层。");
+  }
+
+  const canvasLayerOrderNodeIds =
+    canvasNode && nodeHasChildren(canvasNode)
+      ? getExportableChildren(canvasNode).map((node) => node.id)
+      : [];
+
+  return {
+    mode: "partial",
+    canvas: {
+      width: Math.max(1, Math.round(canvasBounds.width)),
+      height: Math.max(1, Math.round(canvasBounds.height)),
+      absoluteBoundingBox: makeBox(canvasBounds),
+      sourceCanvasName:
+        canvasNode && canvasNode.name
+          ? canvasNode.name
+          : projectMetadata.sourceCanvasName || null,
+    },
+    canvasLayerOrderNodeIds,
+    layers,
+  };
+};
+
 const checkLayerUpdates = async (project) => {
   const assets = project && Array.isArray(project.assets) ? project.assets : [];
   const canvasBounds = await getProjectCanvasBounds(project, assets);
@@ -791,6 +926,15 @@ figma.ui.onmessage = async (message) => {
       const payload = await buildMaterialProject(message.options || {});
       postToUi({ type: "capture-complete", payload });
       figma.notify(`已导入 ${payload.summary.layerCount} 个 Figma 图层`);
+      return;
+    }
+
+    if (message.type === "sync-selected-layers") {
+      postToUi({
+        type: "sync-selected-layers-response",
+        requestId: message.requestId,
+        payload: await syncSelectedProjectLayers(message),
+      });
       return;
     }
 

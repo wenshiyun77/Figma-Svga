@@ -1,32 +1,32 @@
-# Offline License Codes
+# 离线授权码
 
-This plugin uses a no-backend licensing model.
+这个插件使用无后端授权模式。
 
-## What the plugin does
+## 插件侧逻辑
 
-- Stores usage in `figma.clientStorage`.
-- Allows 10 free SVGA exports per plugin installation.
-- Blocks export after the free quota is used unless a valid license code is activated.
-- Shows the embedded contact QR code and the local authorization ID.
-- Verifies license codes with an embedded ECDSA P-256 public key.
+- 使用 `figma.clientStorage` 记录本机免费导出次数。
+- 每个插件安装环境免费导出 10 次。
+- 免费次数用完后，需要激活有效授权码才能继续导出。
+- 授权弹窗展示联系二维码和本机 `授权识别码`。
+- 插件内置 ECDSA P-256 公钥，本地验签授权码，不请求后端。
 
-## Why this avoids a backend
+## 为什么不需要后端
 
-The plugin ships only the public verification key. You keep the private signing key locally. A valid license code is a signed JSON payload:
+插件只内置公钥。私钥只保存在你本地。有效授权码是一段签名后的 JSON：
 
 ```text
 SVGA1.<base64url payload>.<base64url signature>
 ```
 
-Because the plugin has the public key, it can verify that a code was signed by your private key without contacting a server.
+插件用公钥验证这段授权码确实由你的私钥签发，因此不需要服务器。
 
-## Important limitation
+## 注意
 
-No-backend licensing cannot be perfectly tamper-proof. A determined user can modify plugin code. The practical goal here is controlled distribution for normal users without operating a server.
+无后端授权无法做到绝对防破解。它适合正常用户分发和轻量授权，不适合高强度防篡改场景。
 
-## Setup
+## 初始化密钥
 
-Generate a private key and write the matching public key into `src/ui.html`:
+生成私钥，并把对应公钥写入 `src/ui.html`：
 
 ```bash
 npm run license:keygen
@@ -38,24 +38,40 @@ This creates:
 license-private-key.pem
 ```
 
-Keep this file private. It is ignored by `.gitignore`.
+这个文件必须保密，已经被 `.gitignore` 忽略。
 
-## Issue a code
+## 生成授权码
 
-Ask the user to send the `授权识别码` shown in the plugin. Then run:
-
-```bash
-npm run license:code -- --customer "客户名" --installation-id "figma-xxxx" --days 365
-```
-
-Send the printed `SVGA1...` code to the user.
-
-## Shareable code
-
-For a non-device-bound code:
+让用户发送插件里的 `授权识别码`，然后按月数生成授权码。默认 1 个月：
 
 ```bash
-npm run license:code -- --customer "客户名" --all-devices --days 365
+npm run license:code -- --customer "客户名" --installation-id "figma-xxxx"
 ```
 
-This is easier to share, but also easier for users to forward.
+指定 3 个月：
+
+```bash
+npm run license:code -- --customer "客户名" --installation-id "figma-xxxx" --months 3
+```
+
+把输出的 `SVGA1...` 发给用户。
+
+## 验证授权码
+
+生成后建议用当前插件公钥验签一次：
+
+```bash
+npm run license:verify -- --code "SVGA1..." --installation-id "figma-xxxx"
+```
+
+验签通过会输出授权 ID、识别码和准确过期时间。
+
+## 通用授权码
+
+如果需要不绑定单个识别码：
+
+```bash
+npm run license:code -- --customer "客户名" --all-devices --months 1
+```
+
+通用码更容易分发，也更容易被转发。
