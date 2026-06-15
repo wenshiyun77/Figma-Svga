@@ -40,9 +40,11 @@ figma-svga-editor-plugin/manifest.json
 
 - If you select one Frame, Component, Instance, Component Set, or Section, that node becomes the SVGA canvas.
 - The SVGA `viewBoxWidth` and `viewBoxHeight` match that Figma canvas size.
-- The plugin exports the selected canvas node's visible direct children as SVGA image sprites.
+- The plugin recursively exports the selected canvas node's visible descendants as SVGA image sprites.
+- Text, image-filled shapes, vector, and basic shape nodes are all imported by rasterizing each element to a PNG-backed sprite.
+- Rotated and mirrored Figma layers are imported as the final rasterized visual shown in Figma, without preserving editable rotation or mirror metadata.
 - The plugin reads each imported Figma layer's name, node id, type, absolute bounds, and canvas-relative bounds.
-- Each sprite's size matches its Figma bounding box.
+- Each sprite's size matches the imported Figma layer's final visual bounds.
 - Each sprite's position is relative to the Figma canvas origin.
 - If you select several elements inside the same Frame, the shared parent Frame becomes the SVGA canvas and only the selected elements are exported.
 - If no parent Frame can be found, the plugin falls back to the selected elements' bounding box.

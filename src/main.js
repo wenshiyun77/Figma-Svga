@@ -1,10 +1,14 @@
 const UI_SIZE = { width: 1120, height: 780 };
+const UI_MIN_SIZE = { width: 360, height: 56 };
+const UI_MAX_SIZE = { width: 2400, height: 1600 };
+const UI_MINIMIZED_OFFSET = { right: 96, bottom: 64 };
 const DEFAULT_EXPORT_SCALE = 1;
 const FREE_EXPORT_LIMIT = 10;
 const LICENSE_STORAGE_KEY = "svga-editor-license-v1";
 const LICENSE_PRODUCT_ID = "figma-svga-editor";
 let fallbackLicenseStorage = null;
 let licenseStorageMode = "clientStorage";
+let restoreUiCanvasPosition = null;
 
 figma.showUI(__html__, {
   width: UI_SIZE.width,
@@ -43,6 +47,28 @@ const CANVAS_NODE_TYPES = new Set([
   "SECTION",
 ]);
 
+const FLATTENED_CONTAINER_TYPES = new Set([
+  "FRAME",
+  "GROUP",
+  "COMPONENT",
+  "COMPONENT_SET",
+  "INSTANCE",
+  "SECTION",
+]);
+
+const VECTOR_NODE_TYPES = new Set([
+  "VECTOR",
+  "BOOLEAN_OPERATION",
+  "LINE",
+]);
+
+const SHAPE_NODE_TYPES = new Set([
+  "RECTANGLE",
+  "ELLIPSE",
+  "POLYGON",
+  "STAR",
+]);
+
 const nodeCanBeCanvas = (node) =>
   node &&
   CANVAS_NODE_TYPES.has(node.type) &&
@@ -50,8 +76,92 @@ const nodeCanBeCanvas = (node) =>
 
 const nodeHasChildren = (node) => Boolean(node && Array.isArray(node.children));
 
-const getExportableChildren = (node) =>
-  nodeHasChildren(node) ? node.children.filter((child) => nodeCanExport(child)) : [];
+const canRepositionUi = () => typeof figma.ui.reposition === "function";
+
+const getUiCanvasPosition = () => {
+  if (typeof figma.ui.getPosition !== "function") return null;
+  try {
+    return figma.ui.getPosition().canvasSpace;
+  } catch (_error) {
+    return null;
+  }
+};
+
+const minimizedUiCanvasPosition = (width, height) => {
+  const bounds = figma.viewport.bounds;
+  const zoom = Math.max(0.01, Number(figma.viewport.zoom || 1));
+  return {
+    x: bounds.x + bounds.width - (width + UI_MINIMIZED_OFFSET.right) / zoom,
+    y: bounds.y + bounds.height - (height + UI_MINIMIZED_OFFSET.bottom) / zoom,
+  };
+};
+
+const nodeShouldFlattenForImport = (node) =>
+  nodeHasChildren(node) && FLATTENED_CONTAINER_TYPES.has(node.type);
+
+const nodeHasImageFill = (node) => {
+  const fills = node && Array.isArray(node.fills) ? node.fills : [];
+  return fills.some((fill) => fill && fill.type === "IMAGE" && fill.visible !== false);
+};
+
+const inferFigmaAssetKind = (node) => {
+  if (!node) return "layer";
+  if (node.type === "TEXT") return "text";
+  if (nodeHasImageFill(node)) return "image";
+  if (VECTOR_NODE_TYPES.has(node.type)) return "vector";
+  if (SHAPE_NODE_TYPES.has(node.type)) return "shape";
+  if (nodeShouldFlattenForImport(node)) return "container";
+  return "layer";
+};
+
+const pushUniqueNode = (nodes, node, ids) => {
+  if (!node || !node.id || ids.has(node.id)) return;
+  nodes.push(node);
+  ids.add(node.id);
+};
+
+const collectExportableDescendants = (node, nodes, ids) => {
+  if (!nodeHasChildren(node)) return;
+  for (const child of node.children) {
+    if (!child || child.visible === false) continue;
+    if (nodeShouldFlattenForImport(child)) {
+      const beforeCount = nodes.length;
+      collectExportableDescendants(child, nodes, ids);
+      if (nodes.length === beforeCount && nodeCanExport(child)) {
+        pushUniqueNode(nodes, child, ids);
+      }
+      continue;
+    }
+    if (nodeCanExport(child)) pushUniqueNode(nodes, child, ids);
+  }
+};
+
+const getExportableDescendants = (node) => {
+  const nodes = [];
+  const ids = new Set();
+  collectExportableDescendants(node, nodes, ids);
+  return nodes;
+};
+
+const getExportableChildren = (node) => getExportableDescendants(node);
+
+const getImportableAssetNodes = (nodes) => {
+  const assetNodes = [];
+  const ids = new Set();
+  for (const node of nodes) {
+    if (!node || node.visible === false) continue;
+    if (nodeShouldFlattenForImport(node)) {
+      const beforeCount = assetNodes.length;
+      collectExportableDescendants(node, assetNodes, ids);
+      if (assetNodes.length === beforeCount && nodeCanExport(node)) {
+        pushUniqueNode(assetNodes, node, ids);
+      }
+      continue;
+    }
+    if (nodeCanExport(node)) pushUniqueNode(assetNodes, node, ids);
+  }
+  return assetNodes;
+};
 
 const getSelectionBounds = (nodes) => {
   let minX = Number.POSITIVE_INFINITY;
@@ -144,8 +254,8 @@ const createImportPlan = () => {
         canvasBounds: canvasNode.absoluteBoundingBox,
         assetNodes:
           selectedDescendants.length > 0
-            ? selectedDescendants
-            : getExportableChildren(canvasNode),
+            ? getImportableAssetNodes(selectedDescendants)
+            : getExportableDescendants(canvasNode),
         selection,
       };
     }
@@ -154,7 +264,7 @@ const createImportPlan = () => {
   const singleSelection = selection.length === 1 ? selection[0] : null;
   if (singleSelection && nodeCanBeCanvas(singleSelection) && nodeHasChildren(singleSelection)) {
     const canvasBounds = singleSelection.absoluteBoundingBox;
-    const assetNodes = getExportableChildren(singleSelection);
+    const assetNodes = getExportableDescendants(singleSelection);
     return {
       mode: "selected-canvas",
       canvasNode: singleSelection,
@@ -170,7 +280,7 @@ const createImportPlan = () => {
       mode: "common-parent-canvas",
       canvasNode: commonCanvas,
       canvasBounds: commonCanvas.absoluteBoundingBox,
-      assetNodes: selection,
+      assetNodes: getImportableAssetNodes(selection),
       selection,
     };
   }
@@ -179,7 +289,7 @@ const createImportPlan = () => {
     mode: "selection-bounds",
     canvasNode: null,
     canvasBounds: getSelectionBounds(selection),
-    assetNodes: selection,
+    assetNodes: getImportableAssetNodes(selection),
     selection,
   };
 };
@@ -236,6 +346,30 @@ const makeBox = (box) =>
         height: round(box.height),
       }
     : null;
+
+const readPngSize = (bytes) => {
+  if (!bytes || bytes.length < 24) return null;
+  if (
+    bytes[0] !== 137 ||
+    bytes[1] !== 80 ||
+    bytes[2] !== 78 ||
+    bytes[3] !== 71 ||
+    bytes[4] !== 13 ||
+    bytes[5] !== 10 ||
+    bytes[6] !== 26 ||
+    bytes[7] !== 10
+  ) {
+    return null;
+  }
+  const width =
+    bytes[16] * 16777216 + bytes[17] * 65536 + bytes[18] * 256 + bytes[19];
+  const height =
+    bytes[20] * 16777216 + bytes[21] * 65536 + bytes[22] * 256 + bytes[23];
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null;
+  }
+  return { width, height };
+};
 
 const makeNodeSnapshot = (node, canvasBounds) => {
   const box = node && node.absoluteBoundingBox ? node.absoluteBoundingBox : null;
@@ -306,7 +440,9 @@ const makeProjectAssetFromNode = async ({
   const bytes = await node.exportAsync({
     format: "PNG",
     constraint: { type: "SCALE", value: exportScale },
+    useAbsoluteBounds: true,
   });
+  const pngSize = readPngSize(bytes);
   const base64 = bytesToBase64(bytes);
   const file = `assets/${assetKey}.png`;
 
@@ -333,12 +469,14 @@ const makeProjectAssetFromNode = async ({
       source: {
         figmaNodeId: node.id,
         figmaNodeType: node.type,
+        figmaAssetKind: inferFigmaAssetKind(node),
         figmaNodeName: node.name || "",
         figmaCanvasId: canvasNode && canvasNode.id ? canvasNode.id : null,
         figmaCanvasName: canvasNode && canvasNode.name ? canvasNode.name : null,
         importMode,
         absoluteBoundingBox: snapshot.absolute,
         canvasRelativeBoundingBox: snapshot.relative,
+        rasterizedVisualTransform: true,
         signature: snapshot.signature,
         exportScale,
       },
@@ -347,8 +485,8 @@ const makeProjectAssetFromNode = async ({
       key: assetKey,
       file,
       mimeType: "image/png",
-      width: Math.max(1, Math.round(box.width * exportScale)),
-      height: Math.max(1, Math.round(box.height * exportScale)),
+      width: pngSize ? pngSize.width : Math.max(1, Math.round(snapshot.relative.width * exportScale)),
+      height: pngSize ? pngSize.height : Math.max(1, Math.round(snapshot.relative.height * exportScale)),
       dataUrl: `data:image/png;base64,${base64}`,
     },
   };
@@ -564,12 +702,15 @@ const makeSelectionSummary = () => {
       : null,
     layers: nodes.map((node, index) => {
       const box = node.absoluteBoundingBox;
+      const snapshot = box ? makeNodeSnapshot(node, bounds) : null;
+      const relative = snapshot ? snapshot.relative : null;
       return {
         id: node.id,
         name: node.name || `Layer ${index + 1}`,
         type: node.type,
-        width: box ? round(box.width) : 0,
-        height: box ? round(box.height) : 0,
+        kind: inferFigmaAssetKind(node),
+        width: relative ? relative.width : box ? round(box.width) : 0,
+        height: relative ? relative.height : box ? round(box.height) : 0,
       };
     }),
   };
@@ -962,9 +1103,23 @@ figma.ui.onmessage = async (message) => {
     }
 
     if (message.type === "resize") {
-      const width = Math.max(760, Math.min(1600, Math.round(Number(message.width || UI_SIZE.width))));
-      const height = Math.max(560, Math.min(1100, Math.round(Number(message.height || UI_SIZE.height))));
+      const width = Math.max(UI_MIN_SIZE.width, Math.min(UI_MAX_SIZE.width, Math.round(Number(message.width || UI_SIZE.width))));
+      const height = Math.max(UI_MIN_SIZE.height, Math.min(UI_MAX_SIZE.height, Math.round(Number(message.height || UI_SIZE.height))));
+      if (message.position === "minimized-bottom" && canRepositionUi()) {
+        const currentPosition = getUiCanvasPosition();
+        if (currentPosition && message.rememberPosition !== false) {
+          restoreUiCanvasPosition = currentPosition;
+        }
+      }
       figma.ui.resize(width, height);
+      if (message.position === "minimized-bottom" && canRepositionUi()) {
+        const position = minimizedUiCanvasPosition(width, height);
+        figma.ui.reposition(position.x, position.y);
+      }
+      if (message.position === "restore" && restoreUiCanvasPosition && canRepositionUi()) {
+        figma.ui.reposition(restoreUiCanvasPosition.x, restoreUiCanvasPosition.y);
+        restoreUiCanvasPosition = null;
+      }
     }
   } catch (error) {
     postToUi({
