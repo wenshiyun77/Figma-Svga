@@ -5,9 +5,12 @@ const UI_MINIMIZED_OFFSET = { right: 96, bottom: 64 };
 const DEFAULT_EXPORT_SCALE = 1;
 const FREE_EXPORT_LIMIT = 10;
 const LICENSE_STORAGE_KEY = "svga-editor-license-v1";
+const SEQUENCE_LIBRARY_STORAGE_KEY = "svga-editor-sequence-library-v1";
 const LICENSE_PRODUCT_ID = "figma-svga-editor";
 let fallbackLicenseStorage = null;
 let licenseStorageMode = "clientStorage";
+let fallbackSequenceLibraryStorage = [];
+let sequenceLibraryStorageMode = "clientStorage";
 let restoreUiCanvasPosition = null;
 
 figma.showUI(__html__, {
@@ -518,6 +521,64 @@ const writeLicenseStorage = async (state) => {
     licenseStorageMode = "memory";
     fallbackLicenseStorage = state;
   }
+};
+
+const normalizeSequenceLibraryPayload = (value) => {
+  if (!Array.isArray(value)) return [];
+  return value;
+};
+
+const readSequenceLibraryStorage = async () => {
+  if (sequenceLibraryStorageMode === "memory") {
+    return fallbackSequenceLibraryStorage || [];
+  }
+  try {
+    const stored = await figma.clientStorage.getAsync(SEQUENCE_LIBRARY_STORAGE_KEY);
+    return normalizeSequenceLibraryPayload(stored);
+  } catch (_error) {
+    sequenceLibraryStorageMode = "memory";
+    return fallbackSequenceLibraryStorage || [];
+  }
+};
+
+const writeSequenceLibraryStorage = async (sets) => {
+  const nextSets = normalizeSequenceLibraryPayload(sets);
+  if (sequenceLibraryStorageMode === "memory") {
+    fallbackSequenceLibraryStorage = nextSets;
+    return "memory";
+  }
+  try {
+    await figma.clientStorage.setAsync(SEQUENCE_LIBRARY_STORAGE_KEY, nextSets);
+    fallbackSequenceLibraryStorage = nextSets;
+    return "clientStorage";
+  } catch (_error) {
+    sequenceLibraryStorageMode = "memory";
+    fallbackSequenceLibraryStorage = nextSets;
+    return "memory";
+  }
+};
+
+const postSequenceLibrary = async (requestId) => {
+  const sets = await readSequenceLibraryStorage();
+  postToUi({
+    type: "sequence-library-load-response",
+    requestId,
+    payload: {
+      sets,
+      storageMode: sequenceLibraryStorageMode,
+    },
+  });
+};
+
+const saveSequenceLibrary = async (message) => {
+  const storageMode = await writeSequenceLibraryStorage(message.sets || []);
+  postToUi({
+    type: "sequence-library-save-response",
+    requestId: message.requestId,
+    payload: {
+      storageMode,
+    },
+  });
 };
 
 const getStoredLicenseState = async () => {
@@ -1054,6 +1115,16 @@ figma.ui.onmessage = async (message) => {
 
     if (message.type === "license-request-export") {
       await requestExportAccess(message.requestId);
+      return;
+    }
+
+    if (message.type === "sequence-library-load") {
+      await postSequenceLibrary(message.requestId);
+      return;
+    }
+
+    if (message.type === "sequence-library-save") {
+      await saveSequenceLibrary(message);
       return;
     }
 

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="shade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#05060b" stop-opacity="0.98"/>
+      <stop offset="0.34" stop-color="#05060b" stop-opacity="0.88"/>
+      <stop offset="0.62" stop-color="#05060b" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#05060b" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#54d5ff"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <image href="file:///Users/baoyuanjia/Documents/Figma-Svga/wenshiyun77-Figma-Svga/publish-assets/feature-motion-effects-1920x1080.png" x="0" y="0" width="1920" height="1080" preserveAspectRatio="xMidYMid slice"/>
+  <rect width="1920" height="1080" fill="url(#shade)"/>
+  <circle cx="156" cy="222" r="5" fill="#54d5ff" opacity="0.9" filter="url(#glow)"/>
+  <rect x="120" y="178" width="236" height="42" rx="21" fill="#ffffff" opacity="0.07" stroke="#ffffff" stroke-opacity="0.13"/>
+  <text x="146" y="205" font-family="PingFang SC, Hiragino Sans GB, Arial Unicode MS, sans-serif" font-size="18" font-weight="800" letter-spacing="3" fill="#b9c6ff" opacity="0.9">MOTION EDITOR</text>
+  <text x="120" y="340" font-family="PingFang SC, Hiragino Sans GB, Arial Unicode MS, sans-serif" font-size="74" font-weight="900" fill="#ffffff" opacity="1">扫光 · 发光 · 粒子</text>
+<text x="120" y="426" font-family="PingFang SC, Hiragino Sans GB, Arial Unicode MS, sans-serif" font-size="74" font-weight="900" fill="#ffffff" opacity="1">快速做出动效质感</text>
+  <rect x="122" y="556" width="128" height="5" rx="2.5" fill="url(#accent)" opacity="0.95"/>
+  <text x="120" y="640" font-family="PingFang SC, Hiragino Sans GB, Arial Unicode MS, sans-serif" font-size="30" font-weight="520" fill="#d9e3ff" opacity="0.88">为每个图层叠加位移、缩放、旋转、扫光、发光和闪烁粒子。</text>
+<text x="120" y="688" font-family="PingFang SC, Hiragino Sans GB, Arial Unicode MS, sans-serif" font-size="30" font-weight="520" fill="#d9e3ff" opacity="0.88">实时预览，参数可调，适合礼物、活动、游戏和运营素材。</text>
+  <text x="120" y="914" font-family="PingFang SC, Hiragino Sans GB, Arial Unicode MS, sans-serif" font-size="24" font-weight="800" fill="#ffffff" opacity="0.72">SVGA Editor</text>
+  <text x="120" y="954" font-family="PingFang SC, Hiragino Sans GB, Arial Unicode MS, sans-serif" font-size="20" font-weight="500" fill="#91a3c7" opacity="0.72">Figma 图层动效导出插件</text>
+</svg>

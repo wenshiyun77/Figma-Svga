@@ -1377,6 +1377,49 @@
         transform: translate(-50%, 50%);
       }
 
+      .selection-side-handle {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border: 1.5px solid #3b82f6;
+        border-radius: 999px;
+        background: #ffffff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        pointer-events: auto;
+      }
+
+      .selection-box:not(.sequence-resizable) .selection-side-handle {
+        display: none;
+      }
+
+      .selection-side-handle.n {
+        left: 50%;
+        top: 0;
+        cursor: ns-resize;
+        transform: translate(-50%, -50%);
+      }
+
+      .selection-side-handle.e {
+        right: 0;
+        top: 50%;
+        cursor: ew-resize;
+        transform: translate(50%, -50%);
+      }
+
+      .selection-side-handle.s {
+        left: 50%;
+        bottom: 0;
+        cursor: ns-resize;
+        transform: translate(-50%, 50%);
+      }
+
+      .selection-side-handle.w {
+        left: 0;
+        top: 50%;
+        cursor: ew-resize;
+        transform: translate(-50%, -50%);
+      }
+
       .rotation-stem {
         position: absolute;
         left: 50%;
@@ -1567,7 +1610,7 @@
 
       .motion-tabs {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 6px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
@@ -1576,6 +1619,9 @@
       }
 
       .motion-tab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         height: 32px;
         border-radius: 9px;
         padding: 0 8px;
@@ -1583,6 +1629,8 @@
         background: transparent;
         font-size: 10px;
         font-weight: 900;
+        line-height: 1;
+        white-space: nowrap;
       }
 
       .motion-tab.active {
@@ -1695,6 +1743,56 @@
       .particle-controls[hidden],
       .field[hidden] {
         display: none;
+      }
+
+      .sequence-compact-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+        gap: 8px 12px;
+        margin-bottom: 10px;
+      }
+
+      #motionSequencePanel .sweep-controls {
+        gap: 6px;
+      }
+
+      #motionSequencePanel .section-title {
+        margin-bottom: 2px;
+      }
+
+      .sequence-compact-grid .field {
+        display: grid;
+        min-width: 0;
+        gap: 4px;
+      }
+
+      .sequence-compact-grid .field label {
+        display: flex;
+        min-height: 16px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        line-height: 1;
+        text-transform: none;
+        white-space: nowrap;
+      }
+
+      .sequence-compact-grid .field label span {
+        flex: 0 0 auto;
+        color: rgba(255, 255, 255, 0.68);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .sequence-compact-grid input[type="range"] {
+        width: 100%;
+        height: 16px;
+        margin: 0;
+        accent-color: #93c5fd;
       }
 
       .motion-anchor-field {
@@ -1864,7 +1962,7 @@
       .transform-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
+        gap: 8px 10px;
       }
 
       .color-input {
@@ -1897,6 +1995,184 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
+      }
+
+      .sequence-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .sequence-card {
+        position: relative;
+        display: grid;
+        box-sizing: border-box;
+        height: 160px;
+        grid-template-rows: 86px 30px 16px;
+        align-content: start;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 16px;
+        padding: 9px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .sequence-card.add-card {
+        display: flex;
+        height: 126px;
+        align-items: center;
+        justify-content: center;
+        grid-template-rows: none;
+        border-color: rgba(167, 139, 250, 0.32);
+        border-style: dashed;
+        color: rgba(167, 139, 250, 0.84);
+        background: rgba(124, 58, 237, 0.08);
+      }
+
+      .sequence-card button {
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .sequence-preview {
+        position: relative;
+        display: grid;
+        height: 86px;
+        overflow: hidden;
+        place-items: center;
+        border-radius: 12px;
+        background:
+          linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%);
+        background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+        background-size: 16px 16px;
+      }
+
+      .sequence-preview img {
+        max-width: 100%;
+        max-height: 78px;
+        object-fit: contain;
+      }
+
+      .sequence-card-title {
+        margin-top: 8px;
+        overflow: hidden;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 11px;
+        font-weight: 850;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .sequence-name-input {
+        box-sizing: border-box;
+        width: 100%;
+        height: 30px;
+        min-height: 30px;
+        margin-top: 6px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 4px 6px;
+        color: rgba(255, 255, 255, 0.9);
+        background: transparent;
+        cursor: text;
+        font-size: 11px;
+        font-weight: 850;
+        line-height: 20px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        user-select: text;
+        white-space: nowrap;
+      }
+
+      .sequence-name-input:hover,
+      .sequence-name-input:focus {
+        border-color: rgba(99, 102, 241, 0.55);
+        background: rgba(255, 255, 255, 0.06);
+        outline: none;
+      }
+
+      .sequence-card-meta {
+        height: 16px;
+        margin-top: 2px;
+        overflow: hidden;
+        color: rgba(255, 255, 255, 0.38);
+        font-size: 10px;
+        line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .sequence-add-layer-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 2;
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-color: rgba(255, 255, 255, 0.2);
+        border-radius: 14px;
+        padding: 0;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 950;
+        line-height: 1;
+        background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+        box-shadow: 0 10px 26px rgba(124, 58, 237, 0.44);
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, -50%) scale(0.92);
+        transition: opacity 0.16s ease, transform 0.16s ease;
+      }
+
+      .sequence-card:hover .sequence-add-layer-btn,
+      .sequence-add-layer-btn:focus-visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .sequence-delete-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        padding: 0;
+        color: #ffffff;
+        background: rgba(239, 68, 68, 0.94);
+        opacity: 0;
+        transition: opacity 0.16s ease;
+      }
+
+      .sequence-card:hover .sequence-delete-btn,
+      .sequence-delete-btn:focus-visible {
+        opacity: 1;
+      }
+
+      .sequence-add-copy {
+        display: grid;
+        gap: 5px;
+        justify-items: center;
+        line-height: 1;
+        text-align: center;
+      }
+
+      .sequence-add-copy strong {
+        color: #a78bfa;
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .sequence-add-copy span {
+        color: rgba(167, 139, 250, 0.68);
+        font-size: 10px;
+        font-weight: 850;
       }
 
       .contact-panel {
@@ -1944,6 +2220,64 @@
         height: 10px;
         border-right: 2px solid rgba(255, 255, 255, 0.35);
         border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+      }
+
+      .export-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 50% 40%, rgba(99, 102, 241, 0.16), transparent 34%),
+          rgba(3, 4, 8, 0.72);
+        backdrop-filter: blur(10px);
+      }
+
+      .export-modal[hidden] {
+        display: none;
+      }
+
+      .export-modal-card {
+        display: grid;
+        justify-items: center;
+        gap: 12px;
+        width: min(340px, calc(100vw - 48px));
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 22px;
+        padding: 24px;
+        background: rgba(17, 18, 24, 0.96);
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.62);
+        text-align: center;
+      }
+
+      .export-modal-spinner {
+        width: 34px;
+        height: 34px;
+        border: 3px solid rgba(255, 255, 255, 0.12);
+        border-top-color: #93c5fd;
+        border-radius: 999px;
+        animation: export-spin 0.8s linear infinite;
+      }
+
+      .export-modal-title {
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 950;
+      }
+
+      .export-modal-detail {
+        color: rgba(255, 255, 255, 0.54);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.6;
+      }
+
+      @keyframes export-spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
 
       @media (max-width: 980px) {
@@ -2183,6 +2517,10 @@
                   <div class="selection-handle ne" data-drag-mode="scale"></div>
                   <div class="selection-handle se" data-drag-mode="scale"></div>
                   <div class="selection-handle sw" data-drag-mode="scale"></div>
+                  <div class="selection-side-handle n" data-drag-mode="resize-y" data-resize-dir="-1"></div>
+                  <div class="selection-side-handle e" data-drag-mode="resize-x" data-resize-dir="1"></div>
+                  <div class="selection-side-handle s" data-drag-mode="resize-y" data-resize-dir="1"></div>
+                  <div class="selection-side-handle w" data-drag-mode="resize-x" data-resize-dir="-1"></div>
                   <div class="rotation-stem"></div>
                   <div class="rotation-handle" data-drag-mode="rotate"></div>
                   <div id="motionAnchorMarker" class="motion-anchor-marker" hidden></div>
@@ -2267,6 +2605,7 @@
                 <button class="motion-tab" data-motion-tab="sweep" type="button" role="tab" aria-selected="false">扫光</button>
                 <button class="motion-tab" data-motion-tab="glow" type="button" role="tab" aria-selected="false">发光</button>
                 <button class="motion-tab" data-motion-tab="particle" type="button" role="tab" aria-selected="false">粒子</button>
+                <button class="motion-tab" data-motion-tab="sequence" type="button" role="tab" aria-selected="false">序列帧</button>
               </div>
               <div id="motionBasePanel" class="motion-tab-panel" data-motion-panel="base" role="tabpanel">
               <div class="inspector-subtitle">
@@ -2427,8 +2766,12 @@
                   <button id="sweepMaterialClearBtn" type="button" disabled>移除</button>
                 </div>
                 <div class="field">
-                  <label for="sweepSpeed">循环速度 <span id="sweepSpeedValue">1</span></label>
-                  <input id="sweepSpeed" type="range" min="0.2" max="6" step="0.1" value="1" />
+                  <label for="sweepSpeed">循环次数 <span id="sweepSpeedValue">1圈</span></label>
+                  <input id="sweepSpeed" type="range" min="1" max="6" step="1" value="1" />
+                </div>
+                <div class="field">
+                  <label for="sweepDelay">延后时间 <span id="sweepDelayValue">0.00s</span></label>
+                  <input id="sweepDelay" type="range" min="0" max="5" step="0.05" value="0" />
                 </div>
                 <div class="field">
                   <label for="sweepWidth">扫光粗细 <span id="sweepWidthValue">100</span></label>
@@ -2659,13 +3002,50 @@
                   <button id="removeParticleBtn" type="button">删除粒子层</button>
                 </div>
               </div>
-            </div>
+              </div>
+              <div id="motionSequencePanel" class="motion-tab-panel" data-motion-panel="sequence" role="tabpanel" hidden>
+              <div class="section-title">
+                <div class="section-title-main">
+                  <strong>序列帧动画</strong>
+                </div>
+              </div>
+              <div id="sequenceLayerEmpty" class="sweep-empty">选择序列帧图层后可调整播放速度。</div>
+              <div id="sequenceLayerControls" class="sweep-controls" hidden>
+                <div class="sequence-compact-grid">
+                  <div class="field">
+                    <label for="sequenceSpeed">播放速度 <span id="sequenceSpeedValue">1.0x</span></label>
+                    <input id="sequenceSpeed" type="range" min="0.1" max="5" step="0.1" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="sequenceOpacity">透明度 <span id="sequenceOpacityValue">100%</span></label>
+                    <input id="sequenceOpacity" type="range" min="0" max="100" step="1" value="100" />
+                  </div>
+                  <div class="field">
+                    <label for="sequenceHue">色调 <span id="sequenceHueValue">0°</span></label>
+                    <input id="sequenceHue" type="range" min="-180" max="180" step="1" value="0" />
+                  </div>
+                  <div class="field">
+                    <label for="sequenceBrightness">亮度 <span id="sequenceBrightnessValue">100%</span></label>
+                    <input id="sequenceBrightness" type="range" min="20" max="200" step="1" value="100" />
+                  </div>
+                </div>
+              </div>
+              <input id="sequenceFolderInput" type="file" accept="image/*" webkitdirectory directory multiple hidden />
+              <div id="sequenceGrid" class="sequence-grid" aria-label="序列帧动画列表"></div>
+              </div>
             </div>
           </div>
         </aside>
       </section>
       <div id="resizeHandle" class="resize-handle" title="拖拽调整插件窗口"></div>
     </main>
+    <div id="exportModal" class="export-modal" role="status" aria-live="polite" hidden>
+      <div class="export-modal-card">
+        <div class="export-modal-spinner" aria-hidden="true"></div>
+        <div id="exportModalTitle" class="export-modal-title">正在导出 SVGA</div>
+        <div id="exportModalDetail" class="export-modal-detail">正在准备素材，请稍候...</div>
+      </div>
+    </div>
 
     <script>
       const LICENSE_PRODUCT_ID = "figma-svga-editor";
@@ -2779,6 +3159,11 @@
         previewDrawToken: 0,
         previewImageCache: new Map(),
         particleContentDistributionCache: new Map(),
+        sequenceFrameEffectCache: new Map(),
+        sequenceLibrary: [],
+        sequenceLibraryLoaded: false,
+        sequenceEditingSetId: null,
+        sequencePreviewTimer: null,
         canvasZoom: 1,
         canvasBg: "checkered",
         layerDragKey: null,
@@ -2792,6 +3177,11 @@
         canvasDrag: null,
         selectedMotionType: "float",
         anchorPickType: null,
+        undoStack: [],
+        redoStack: [],
+        undoCheckpoint: null,
+        undoCheckpointTimer: null,
+        historyApplying: false,
       };
       const glowContourCache = new WeakMap();
 
@@ -2912,13 +3302,13 @@
         parent.postMessage({ pluginMessage: { type, ...payload } }, "*");
       };
 
-      const requestPlugin = (type, payload = {}) =>
+      const requestPlugin = (type, payload = {}, timeoutMs = 30000) =>
         new Promise((resolve, reject) => {
           const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
           const timer = window.setTimeout(() => {
             state.pendingRequests.delete(requestId);
             reject(new Error("插件响应超时。"));
-          }, 15000);
+          }, timeoutMs);
           state.pendingRequests.set(requestId, { resolve, reject, timer });
           postPlugin(type, { ...payload, requestId });
         });
@@ -3016,6 +3406,22 @@
         }
       };
 
+      const waitForPaint = () =>
+        new Promise((resolve) => window.requestAnimationFrame(() => window.requestAnimationFrame(resolve)));
+
+      const setExportModal = (open, title = "正在导出 SVGA", detail = "正在准备素材，请稍候...") => {
+        const modal = $("exportModal");
+        if (!modal) return;
+        $("exportModalTitle").textContent = title;
+        $("exportModalDetail").textContent = detail;
+        modal.hidden = !open;
+      };
+
+      const updateExportModal = async (title, detail) => {
+        setExportModal(true, title, detail);
+        await waitForPaint();
+      };
+
       const assetPayloadByKey = (key) =>
         state.package?.assets?.find((asset) => asset.key === key) || null;
 
@@ -3024,6 +3430,11 @@
         if (value == null || value === "") return fallback;
         const number = Number(value);
         return Number.isFinite(number) ? number : fallback;
+      };
+
+      const positiveModulo = (value, divisor) => {
+        const safeDivisor = Math.max(0.000001, Number(divisor) || 1);
+        return ((value % safeDivisor) + safeDivisor) % safeDivisor;
       };
 
       const projectFrameCount = () =>
@@ -3130,8 +3541,18 @@
       const activeGlowEffects = (project) =>
         (project?.effects || []).filter((effect) => effect.type === "glow" && effect.enabled !== false);
 
-      const sweepProgress = (effect, frameIndex, totalFrames) =>
-        ((frameIndex / Math.max(1, totalFrames)) * Math.max(0.01, Number(effect.sweepSpeed || 1))) % 1;
+      const sweepLoopCount = (effect) =>
+        Math.max(1, Math.min(6, Math.round(numberOrFallback(effect?.sweepSpeed, 1))));
+
+      const sweepDelaySeconds = (effect) =>
+        Math.max(0, Math.min(5, numberOrFallback(effect?.sweepDelay, 0)));
+
+      const sweepProgress = (effect, frameIndex, totalFrames, fps = projectFps()) => {
+        const frameRate = Math.max(1, Number(fps) || projectFps());
+        const frameTotal = Math.max(1, Number(totalFrames) || 1);
+        const delayedFrame = Number(frameIndex || 0) - sweepDelaySeconds(effect) * frameRate;
+        return positiveModulo((delayedFrame / frameTotal) * sweepLoopCount(effect), 1);
+      };
 
       const glowProgress = (effect, frameIndex, totalFrames) =>
         ((frameIndex / Math.max(1, totalFrames)) * Math.max(0.01, Number(effect.glowSpeed || 1))) % 1;
@@ -3944,7 +4365,7 @@
           if (effect.sweepTarget !== item.asset.key) continue;
           const width = Math.max(1, item.displayWidth);
           const height = Math.max(1, item.displayHeight);
-          const progress = sweepProgress(effect, frameIndex, totalFrames);
+          const progress = sweepProgress(effect, frameIndex, totalFrames, fps);
           const fade = effect.sweepFadeEnabled ? Math.sin(progress * Math.PI) : 1;
           const opacity = clamp(Number(effect.sweepOpacity == null ? 1 : effect.sweepOpacity) * fade, 0, 1);
           if (opacity <= 0) continue;
@@ -4024,6 +4445,29 @@
           if (asset.visible === false) continue;
           if (isParticleAsset(asset)) {
             items.push({ type: "particle", asset });
+            continue;
+          }
+          if (isSequenceAsset(asset)) {
+            const framePayload = sequenceFrameForAsset(asset, frameIndex, totalFrames, project);
+            if (!framePayload?.dataUrl) continue;
+            try {
+              const adjustedPayload = await processSequenceFramePayload(asset, framePayload);
+              const img = await loadPreviewImage(adjustedPayload);
+              const geometry = assetRenderGeometry(asset, adjustedPayload);
+              const imageItem = {
+                type: "sequence",
+                asset,
+                img,
+                x: geometry.x,
+                y: geometry.y,
+                displayWidth: geometry.displayWidth,
+                displayHeight: geometry.displayHeight,
+              };
+              items.push(imageItem);
+              imageItems.push(imageItem);
+            } catch (_error) {
+              // A broken sequence frame should not block the rest of the preview.
+            }
             continue;
           }
           const payload = assetPayloadByKey(asset.key);
@@ -4161,6 +4605,8 @@
           x: Number(asset.transform?.x || 0),
           y: Number(asset.transform?.y || 0),
           scale: Math.max(0.01, Number(asset.transform?.scale || 1)),
+          scaleX: Math.max(0.01, Number(asset.transform?.scaleX || 1)),
+          scaleY: Math.max(0.01, Number(asset.transform?.scaleY || 1)),
           rotate: Number(asset.transform?.rotate || 0),
         };
         return asset.transform;
@@ -4173,6 +4619,8 @@
           x: Number(relative.x ?? current.x ?? 0),
           y: Number(relative.y ?? current.y ?? 0),
           scale: 1,
+          scaleX: 1,
+          scaleY: 1,
           rotate: 0,
         };
       };
@@ -4188,16 +4636,20 @@
         const baseHeight = Math.max(1, Number(relative.height || asset.height || absolute.height || imageHeight));
         const transform = normalizeAssetTransform(asset);
         const scale = Math.max(0.01, Number(transform.scale || 1));
+        const scaleX = Math.max(0.01, Number(transform.scaleX || 1));
+        const scaleY = Math.max(0.01, Number(transform.scaleY || 1));
         return {
           imageWidth,
           imageHeight,
           baseWidth,
           baseHeight,
-          displayWidth: baseWidth * scale,
-          displayHeight: baseHeight * scale,
+          displayWidth: baseWidth * scale * scaleX,
+          displayHeight: baseHeight * scale * scaleY,
           x: Number(transform.x || 0),
           y: Number(transform.y || 0),
           scale,
+          scaleX,
+          scaleY,
           rotate: Number(transform.rotate || 0),
         };
       };
@@ -4222,6 +4674,7 @@
         const zoom = state.canvasZoom;
         interaction.hidden = false;
         $("alignmentTools").hidden = false;
+        box.classList.toggle("sequence-resizable", isSequenceAsset(asset));
         box.style.left = `${geometry.x * zoom}px`;
         box.style.top = `${geometry.y * zoom}px`;
         box.style.width = `${geometry.displayWidth * zoom}px`;
@@ -4281,6 +4734,8 @@
           ...transform,
           ...patch,
           scale: Math.max(0.01, Number(patch.scale ?? transform.scale ?? 1)),
+          scaleX: Math.max(0.01, Number(patch.scaleX ?? transform.scaleX ?? 1)),
+          scaleY: Math.max(0.01, Number(patch.scaleY ?? transform.scaleY ?? 1)),
         };
         syncTransformControls();
         if (renderMode === "full") {
@@ -4388,8 +4843,13 @@
           startY: geometry.y,
           startScale: geometry.scale,
           startRotate: geometry.rotate,
+          startDisplayWidth: geometry.displayWidth,
+          startDisplayHeight: geometry.displayHeight,
+          startBaseWidth: geometry.baseWidth,
+          startBaseHeight: geometry.baseHeight,
           centerX: geometry.x + geometry.displayWidth / 2,
           centerY: geometry.y + geometry.displayHeight / 2,
+          resizeDir: Number(event.target?.dataset?.resizeDir || 1),
         };
         try {
           event.target.setPointerCapture(event.pointerId);
@@ -4415,6 +4875,37 @@
           updateSelectedAssetTransform({
             scale: clamp(drag.startScale * (currentDistance / startDistance), 0.05, 5),
           }, "preview");
+        } else if (drag.mode === "resize-x" || drag.mode === "resize-y") {
+          const asset = selectedProjectAsset();
+          if (!isSequenceAsset(asset)) return;
+          const radians = ((Number(drag.startRotate || 0) || 0) * Math.PI) / 180;
+          const dx = point.x - drag.startPoint.x;
+          const dy = point.y - drag.startPoint.y;
+          const localDeltaX = dx * Math.cos(radians) + dy * Math.sin(radians);
+          const localDeltaY = -dx * Math.sin(radians) + dy * Math.cos(radians);
+          if (drag.mode === "resize-x") {
+            const nextWidth = clamp(drag.startDisplayWidth + localDeltaX * drag.resizeDir, 4, 10000);
+            const nextScaleX = nextWidth / Math.max(1, drag.startBaseWidth * drag.startScale);
+            const centerOffset = ((nextWidth - drag.startDisplayWidth) / 2) * drag.resizeDir;
+            const nextCenterX = drag.centerX + centerOffset * Math.cos(radians);
+            const nextCenterY = drag.centerY + centerOffset * Math.sin(radians);
+            updateSelectedAssetTransform({
+              x: nextCenterX - nextWidth / 2,
+              y: nextCenterY - drag.startDisplayHeight / 2,
+              scaleX: nextScaleX,
+            }, "preview");
+          } else {
+            const nextHeight = clamp(drag.startDisplayHeight + localDeltaY * drag.resizeDir, 4, 10000);
+            const nextScaleY = nextHeight / Math.max(1, drag.startBaseHeight * drag.startScale);
+            const centerOffset = ((nextHeight - drag.startDisplayHeight) / 2) * drag.resizeDir;
+            const nextCenterX = drag.centerX - centerOffset * Math.sin(radians);
+            const nextCenterY = drag.centerY + centerOffset * Math.cos(radians);
+            updateSelectedAssetTransform({
+              x: nextCenterX - drag.startDisplayWidth / 2,
+              y: nextCenterY - nextHeight / 2,
+              scaleY: nextScaleY,
+            }, "preview");
+          }
         } else if (drag.mode === "rotate") {
           const startRadians = Math.atan2(drag.startPoint.y - drag.centerY, drag.startPoint.x - drag.centerX);
           const currentRadians = Math.atan2(point.y - drag.centerY, point.x - drag.centerX);
@@ -4536,9 +5027,11 @@
         list.replaceChildren();
         const visibleOrderAssets = (project.assets || []).slice().reverse();
         for (const asset of visibleOrderAssets) {
-          const isParticleLayer = asset.type === "effect" && asset.effectConfig?.type === "particles";
+          const isParticleLayer = isParticleAsset(asset);
+          const isSequenceLayer = isSequenceAsset(asset);
+          const sequenceSet = isSequenceLayer ? sequenceSetByIdFromAny(asset.effectConfig?.sequenceSetId, project) : null;
           const kind = figmaLayerKind(asset);
-          const status = isParticleLayer ? null : state.layerStatuses.get(asset.key);
+          const status = isEffectAsset(asset) ? null : state.layerStatuses.get(asset.key);
           const isStale = status?.changed === true;
           const row = document.createElement("div");
           row.className = `layer-row${asset.key === state.selectedKey ? " selected" : ""}${isStale ? " stale" : ""}${asset.visible === false ? " hidden-layer" : ""}`;
@@ -4546,8 +5039,8 @@
           row.draggable = true;
           const thumb = document.createElement("span");
           thumb.className = "layer-thumb";
-          thumb.title = isParticleLayer ? "粒子" : FIGMA_KIND_LABELS[kind] || "图层";
-          thumb.textContent = isParticleLayer ? "P" : FIGMA_KIND_BADGES[kind] || "L";
+          thumb.title = isParticleLayer ? "粒子" : isSequenceLayer ? "序列帧" : FIGMA_KIND_LABELS[kind] || "图层";
+          thumb.textContent = isParticleLayer ? "P" : isSequenceLayer ? "F" : FIGMA_KIND_BADGES[kind] || "L";
 
           const copy = document.createElement("span");
           copy.className = "layer-copy";
@@ -4561,6 +5054,10 @@
           meta.className = "layer-meta";
           meta.textContent = isParticleLayer
             ? `粒子 / ${PARTICLE_SYSTEM_LABELS[asset.effectConfig?.particleSystemType || "falling"] || "粒子"}`
+            : isSequenceLayer
+              ? sequenceSet
+                ? `序列帧 / ${sequenceSet.frames?.length || 0} 帧 / ${sequencePlaybackSpeed(asset).toFixed(1)}x`
+                : "序列帧 / 素材已删除"
             : `${FIGMA_KIND_LABELS[kind] || "图层"} / ${isStale ? "已变化" : describeAssetMotion(asset)}`;
 
           const actions = document.createElement("span");
@@ -4641,6 +5138,16 @@
               removeParticleLayer(asset.key);
             });
             actions.append(resetBtn, deleteBtn);
+          } else if (isSequenceLayer) {
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "layer-update-btn layer-delete-btn";
+            deleteBtn.type = "button";
+            deleteBtn.textContent = "删除";
+            deleteBtn.addEventListener("click", (event) => {
+              event.stopPropagation();
+              removeSequenceLayer(asset.key);
+            });
+            actions.append(deleteBtn);
           } else if (isStale) {
             const updateBtn = document.createElement("button");
             updateBtn.className = "layer-update-btn icon-button";
@@ -4682,7 +5189,7 @@
 
       const renderMotionOptions = () => {
         const asset = selectedProjectAsset();
-        const disabled = !asset || isParticleAsset(asset);
+        const disabled = !asset || isEffectAsset(asset);
         const active = disabled ? [] : activeMotionEffects(asset);
         if (!MOTION_TYPES.includes(state.selectedMotionType)) {
           state.selectedMotionType = active[0]?.type || "float";
@@ -4763,12 +5270,195 @@
       const isParticleAsset = (asset) =>
         asset?.type === "effect" && asset.effectConfig?.type === "particles";
 
+      const isSequenceAsset = (asset) =>
+        asset?.type === "effect" && asset.effectConfig?.type === "sequence";
+
+      const isEffectAsset = (asset) => isParticleAsset(asset) || isSequenceAsset(asset);
+
+      const ensureSequenceSets = (project = state.package?.project) => {
+        if (!project) return [];
+        if (!Array.isArray(project.sequenceSets)) {
+          project.sequenceSets = [];
+        }
+        return project.sequenceSets;
+      };
+
+      const sequenceSetsForDisplay = (project = state.package?.project) =>
+        project ? ensureSequenceSets(project) : state.sequenceLibrary;
+
+      const sequenceSetById = (id, project = state.package?.project) =>
+        sequenceSetsForDisplay(project).find((set) => set.id === id) || null;
+
+      const sequenceSetByIdFromAny = (id, project = state.package?.project) =>
+        sequenceSetById(id, project) || sequenceSetById(id, null);
+
+      const sequencePlaybackSpeed = (assetOrEffect) => {
+        const effect = isSequenceAsset(assetOrEffect) ? assetOrEffect.effectConfig : assetOrEffect;
+        return clamp(numberOrFallback(effect?.sequenceSpeed, 1), 0.1, 5);
+      };
+
+      const sequenceHueDegrees = (assetOrEffect) => {
+        const effect = isSequenceAsset(assetOrEffect) ? assetOrEffect.effectConfig : assetOrEffect;
+        return clamp(numberOrFallback(effect?.sequenceHue, 0), -180, 180);
+      };
+
+      const sequenceBrightnessPercent = (assetOrEffect) => {
+        const effect = isSequenceAsset(assetOrEffect) ? assetOrEffect.effectConfig : assetOrEffect;
+        return clamp(Math.round(numberOrFallback(effect?.sequenceBrightness, 100)), 20, 200);
+      };
+
+      const sequenceOpacityPercent = (assetOrEffect) => {
+        const effect = isSequenceAsset(assetOrEffect) ? assetOrEffect.effectConfig : assetOrEffect;
+        return clamp(Math.round(numberOrFallback(effect?.sequenceOpacity, 100)), 0, 100);
+      };
+
+      const sequenceFrameNeedsProcessing = (assetOrEffect) =>
+        sequenceOpacityPercent(assetOrEffect) < 100 ||
+        Math.abs(sequenceHueDegrees(assetOrEffect)) > 0.001 ||
+        Math.abs(sequenceBrightnessPercent(assetOrEffect) - 100) > 0.001;
+
+      const sequencePayloadKeyForFrame = (asset, frame) =>
+        sequenceFrameNeedsProcessing(asset)
+          ? `${asset.key}_${frame.key}_seqfx`
+          : frame.key;
+
+      const sequenceFrameEffectCacheKey = (asset, frame) => [
+        sequencePayloadKeyForFrame(asset, frame),
+        String(frame?.dataUrl || "").length,
+        String(frame?.dataUrl || "").slice(0, 32),
+        String(frame?.dataUrl || "").slice(-32),
+        sequenceOpacityPercent(asset),
+        sequenceHueDegrees(asset),
+        sequenceBrightnessPercent(asset),
+      ].join("|");
+
+      const rgbToHsl = (r, g, b) => {
+        const rn = r / 255;
+        const gn = g / 255;
+        const bn = b / 255;
+        const max = Math.max(rn, gn, bn);
+        const min = Math.min(rn, gn, bn);
+        const lightness = (max + min) / 2;
+        if (max === min) return { h: 0, s: 0, l: lightness };
+        const delta = max - min;
+        const saturation = lightness > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+        let hue = 0;
+        if (max === rn) hue = (gn - bn) / delta + (gn < bn ? 6 : 0);
+        if (max === gn) hue = (bn - rn) / delta + 2;
+        if (max === bn) hue = (rn - gn) / delta + 4;
+        return { h: hue / 6, s: saturation, l: lightness };
+      };
+
+      const hslHueToRgb = (p, q, t) => {
+        let value = t;
+        if (value < 0) value += 1;
+        if (value > 1) value -= 1;
+        if (value < 1 / 6) return p + (q - p) * 6 * value;
+        if (value < 1 / 2) return q;
+        if (value < 2 / 3) return p + (q - p) * (2 / 3 - value) * 6;
+        return p;
+      };
+
+      const hslToRgb = (h, s, l) => {
+        if (s === 0) {
+          const gray = Math.round(l * 255);
+          return { r: gray, g: gray, b: gray };
+        }
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        return {
+          r: Math.round(hslHueToRgb(p, q, h + 1 / 3) * 255),
+          g: Math.round(hslHueToRgb(p, q, h) * 255),
+          b: Math.round(hslHueToRgb(p, q, h - 1 / 3) * 255),
+        };
+      };
+
+      const applySequencePixelAdjustments = (ctx, width, height, asset) => {
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        const opacity = sequenceOpacityPercent(asset) / 100;
+        const hueShift = sequenceHueDegrees(asset) / 360;
+        const brightness = sequenceBrightnessPercent(asset) / 100;
+        for (let offset = 0; offset < data.length; offset += 4) {
+          if (data[offset + 3] <= 0) continue;
+          let r = data[offset];
+          let g = data[offset + 1];
+          let b = data[offset + 2];
+          if (Math.abs(opacity - 1) > 0.001) {
+            data[offset + 3] = clamp(Math.round(data[offset + 3] * opacity), 0, 255);
+          }
+          if (Math.abs(hueShift) > 0.001) {
+            const hsl = rgbToHsl(r, g, b);
+            const shifted = hslToRgb(positiveModulo(hsl.h + hueShift, 1), hsl.s, hsl.l);
+            r = shifted.r;
+            g = shifted.g;
+            b = shifted.b;
+          }
+          if (Math.abs(brightness - 1) > 0.001) {
+            r = clamp(Math.round(r * brightness), 0, 255);
+            g = clamp(Math.round(g * brightness), 0, 255);
+            b = clamp(Math.round(b * brightness), 0, 255);
+          }
+          data[offset] = r;
+          data[offset + 1] = g;
+          data[offset + 2] = b;
+        }
+        ctx.putImageData(imageData, 0, 0);
+      };
+
+      const processSequenceFramePayload = async (asset, framePayload) => {
+        if (!framePayload?.dataUrl || !sequenceFrameNeedsProcessing(asset)) return framePayload;
+        const cacheKey = sequenceFrameEffectCacheKey(asset, framePayload);
+        const cached = state.sequenceFrameEffectCache.get(cacheKey);
+        if (cached) return cached;
+        const promise = (async () => {
+          const image = await loadPreviewImage(framePayload);
+          const width = Math.max(1, Math.round(Number(image.naturalWidth || image.width || framePayload.width || 1)));
+          const height = Math.max(1, Math.round(Number(image.naturalHeight || image.height || framePayload.height || 1)));
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          if (!ctx) return framePayload;
+          ctx.clearRect(0, 0, width, height);
+          ctx.drawImage(image, 0, 0, width, height);
+          applySequencePixelAdjustments(ctx, width, height, asset);
+          return {
+            ...framePayload,
+            key: sequencePayloadKeyForFrame(asset, framePayload),
+            dataUrl: await canvasToDataUrl(canvas, "image/png"),
+            mimeType: "image/png",
+            width,
+            height,
+          };
+        })();
+        if (state.sequenceFrameEffectCache.size > 240) {
+          state.sequenceFrameEffectCache.clear();
+        }
+        state.sequenceFrameEffectCache.set(cacheKey, promise);
+        return promise;
+      };
+
+      const sequenceFrameIndex = (frameIndex, _totalFrames, frameCount, speed = 1) => {
+        const count = Math.max(1, Math.round(Number(frameCount) || 1));
+        const steppedFrame = Math.floor((Number(frameIndex) || 0) * sequencePlaybackSpeed({ sequenceSpeed: speed }));
+        return Math.floor(positiveModulo(steppedFrame, count));
+      };
+
+      const sequenceFrameForAsset = (asset, frameIndex, totalFrames, project = state.package?.project) => {
+        if (!isSequenceAsset(asset)) return null;
+        const sequenceSet = sequenceSetByIdFromAny(asset.effectConfig?.sequenceSetId, project);
+        const frames = sequenceSet?.frames || [];
+        if (!frames.length) return null;
+        return frames[sequenceFrameIndex(frameIndex, totalFrames, frames.length, sequencePlaybackSpeed(asset))] || frames[0];
+      };
+
       const particleContentPayloadForAsset = (asset, payloadByKey = null) =>
         payloadByKey?.get?.(String(asset.key)) || payloadByKey?.get?.(asset.key) || assetPayloadByKey(asset.key);
 
       const particleContentSourceAssets = (project, payloadByKey = null) =>
         (project?.assets || [])
-          .filter((asset) => asset.visible !== false && !isParticleAsset(asset))
+          .filter((asset) => asset.visible !== false && !isEffectAsset(asset))
           .map((asset) => ({ asset, payload: particleContentPayloadForAsset(asset, payloadByKey) }))
           .filter((item) => item.payload?.dataUrl);
 
@@ -4886,6 +5576,202 @@
         return JSON.parse(JSON.stringify(value));
       };
 
+      const HISTORY_LIMIT = 24;
+      const HISTORY_COMMIT_DELAY = 260;
+
+      const createHistoryEntry = (label = "编辑", options = {}) => {
+        const project = state.package?.project;
+        if (!project) return null;
+        const data = {
+          project: cloneData(project),
+          sequenceLibrary: cloneData(state.sequenceLibrary || []),
+          selectedKey: state.selectedKey || null,
+        };
+        if (options.includeAssetPayloads) {
+          data.assetPayloads = cloneData(state.package?.assets || []);
+        }
+        const fingerprint = JSON.stringify({
+          project: data.project,
+          sequenceLibrary: data.sequenceLibrary,
+          assetPayloads: data.assetPayloads || null,
+        });
+        return {
+          label,
+          data: JSON.stringify(data),
+          fingerprint,
+          includesAssetPayloads: Boolean(options.includeAssetPayloads),
+        };
+      };
+
+      const clearUndoCheckpointTimer = () => {
+        if (!state.undoCheckpointTimer) return;
+        window.clearTimeout(state.undoCheckpointTimer);
+        state.undoCheckpointTimer = null;
+      };
+
+      const pushUndoEntry = (entry) => {
+        if (!entry || state.historyApplying) return;
+        const last = state.undoStack[state.undoStack.length - 1];
+        if (last?.fingerprint === entry.fingerprint) return;
+        state.undoStack.push(entry);
+        if (state.undoStack.length > HISTORY_LIMIT) {
+          state.undoStack.splice(0, state.undoStack.length - HISTORY_LIMIT);
+        }
+        state.redoStack = [];
+      };
+
+      const beginUndoCheckpoint = (label = "编辑", options = {}) => {
+        if (state.historyApplying || !state.package?.project) return;
+        if (!state.undoCheckpoint) {
+          state.undoCheckpoint = createHistoryEntry(label, options);
+        } else if (options.includeAssetPayloads && !state.undoCheckpoint.includesAssetPayloads) {
+          state.undoCheckpoint = createHistoryEntry(label, options);
+        } else if (label && state.undoCheckpoint.label === "编辑") {
+          state.undoCheckpoint.label = label;
+        }
+      };
+
+      const commitUndoCheckpoint = () => {
+        clearUndoCheckpointTimer();
+        const before = state.undoCheckpoint;
+        if (!before) return;
+        state.undoCheckpoint = null;
+        const after = createHistoryEntry(before.label);
+        if (!after || before.fingerprint === after.fingerprint) return;
+        pushUndoEntry(before);
+      };
+
+      const holdUndoCheckpoint = (label = "编辑", options = {}) => {
+        beginUndoCheckpoint(label, options);
+        if (state.undoCheckpoint) state.undoCheckpoint.label = label;
+        clearUndoCheckpointTimer();
+      };
+
+      const scheduleUndoCommit = (delay = HISTORY_COMMIT_DELAY) => {
+        if (!state.undoCheckpoint) return;
+        clearUndoCheckpointTimer();
+        state.undoCheckpointTimer = window.setTimeout(commitUndoCheckpoint, delay);
+      };
+
+      const selectedKeyExistsInProject = (key, project = state.package?.project) =>
+        Boolean(key && (project?.assets || []).some((asset) => asset.key === key));
+
+      const refreshAfterHistoryRestore = () => {
+        if (!state.package?.project) return;
+        ensureProjectEffects();
+        state.anchorPickType = null;
+        state.previewFrame = Math.min(state.previewFrame, projectFrameCount() - 1);
+        state.previewImageCache.clear();
+        state.sequenceFrameEffectCache.clear();
+        state.particleContentDistributionCache.clear();
+        $("fps").value = String(state.package.project.exportRules?.fps || 24);
+        $("frames").value = String(state.package.project.exportRules?.frames || 72);
+        updateAnchorPickUi();
+        renderSequenceList();
+        renderLayers();
+        ensurePreviewPlayback();
+        if (state.sequenceLibraryLoaded) {
+          void persistSequenceLibrary().catch((error) => log(`序列帧本地库保存失败: ${error.message}`));
+        }
+      };
+
+      const restoreHistoryEntry = (entry) => {
+        if (!entry || !state.package) return false;
+        let data = null;
+        try {
+          data = JSON.parse(entry.data);
+        } catch (_error) {
+          return false;
+        }
+        if (!data?.project) return false;
+        state.historyApplying = true;
+        try {
+          state.package.project = data.project;
+          if (Array.isArray(data.assetPayloads)) {
+            state.package.assets = data.assetPayloads;
+          }
+          state.sequenceLibrary = Array.isArray(data.sequenceLibrary)
+            ? data.sequenceLibrary
+            : cloneData(data.project.sequenceSets || []);
+          state.package.project.sequenceSets = cloneData(data.project.sequenceSets || state.sequenceLibrary || []);
+          state.selectedKey = selectedKeyExistsInProject(data.selectedKey, state.package.project)
+            ? data.selectedKey
+            : state.package.project.assets?.[state.package.project.assets.length - 1]?.key || null;
+          refreshAfterHistoryRestore();
+          return true;
+        } finally {
+          state.historyApplying = false;
+        }
+      };
+
+      const undoProjectEdit = () => {
+        commitUndoCheckpoint();
+        if (!state.undoStack.length || !state.package?.project) return false;
+        const previous = state.undoStack.pop();
+        const current = createHistoryEntry("重做", {
+          includeAssetPayloads: Boolean(previous?.includesAssetPayloads),
+        });
+        if (current && current.fingerprint !== previous?.fingerprint) {
+          state.redoStack.push(current);
+        }
+        return restoreHistoryEntry(previous);
+      };
+
+      const redoProjectEdit = () => {
+        commitUndoCheckpoint();
+        if (!state.redoStack.length || !state.package?.project) return false;
+        const next = state.redoStack.pop();
+        const current = createHistoryEntry("撤销", {
+          includeAssetPayloads: Boolean(next?.includesAssetPayloads),
+        });
+        if (current && current.fingerprint !== next?.fingerprint) {
+          state.undoStack.push(current);
+          if (state.undoStack.length > HISTORY_LIMIT) {
+            state.undoStack.splice(0, state.undoStack.length - HISTORY_LIMIT);
+          }
+        }
+        return restoreHistoryEntry(next);
+      };
+
+      const historyShortcutAction = (event) => {
+        if (event.altKey || !(event.metaKey || event.ctrlKey)) return "";
+        const key = String(event.key || "").toLowerCase();
+        if (key === "z") return event.shiftKey ? "redo" : "undo";
+        if (key === "y" && event.ctrlKey && !event.metaKey) return "redo";
+        return "";
+      };
+
+      const shouldUseNativeTextUndo = (target) => {
+        const element = target instanceof Element ? target : null;
+        const editable = element?.closest?.("textarea, input, [contenteditable='true']");
+        if (!editable) return false;
+        if (editable.isContentEditable || editable.tagName === "TEXTAREA") return true;
+        const type = String(editable.getAttribute("type") || "text").toLowerCase();
+        return !["range", "color", "checkbox", "radio", "button", "file"].includes(type);
+      };
+
+      const isUndoableProjectTarget = (target) => {
+        const element = target instanceof Element ? target : null;
+        if (!element) return false;
+        if (
+          element.closest(
+            ".license-menu, .help-menu, .bg-switcher, #captureBtn, #exportSvgaBtn, #playPreviewBtn, #windowMinimizeBtn, #windowMaximizeBtn",
+          )
+        ) {
+          return false;
+        }
+        return Boolean(
+          element.closest(
+            "#canvasFrame, #layerList, #alignmentTools, .right-sidebar, #fps, #frames",
+          ),
+        );
+      };
+
+      const beginUndoFromEvent = (event, label = "编辑") => {
+        if (!isUndoableProjectTarget(event.target)) return;
+        beginUndoCheckpoint(label);
+      };
+
       const normalizeMotionEffect = (effect, fallbackType = "float") => {
         const fallback = MOTION_TYPES.includes(fallbackType) ? fallbackType : "float";
         const type = MOTION_TYPES.includes(effect?.type) ? effect.type : fallback;
@@ -4922,7 +5808,7 @@
       };
 
       const ensureAssetMotionStack = (asset) => {
-        if (!asset || isParticleAsset(asset)) return [];
+        if (!asset || isEffectAsset(asset)) return [];
         if (!Array.isArray(asset.animations)) {
           const legacy = asset.animation || {};
           asset.animations =
@@ -4978,7 +5864,7 @@
       };
 
       const copyAssetMotionState = (sourceAsset, targetAsset) => {
-        if (!sourceAsset || !targetAsset || isParticleAsset(targetAsset)) return targetAsset;
+        if (!sourceAsset || !targetAsset || isEffectAsset(targetAsset)) return targetAsset;
         if (Array.isArray(sourceAsset.animations)) {
           targetAsset.animations = cloneData(sourceAsset.animations);
         } else if (sourceAsset.animation) {
@@ -5000,6 +5886,11 @@
         return isParticleAsset(asset) ? asset.effectConfig : null;
       };
 
+      const selectedSequenceEffect = () => {
+        const asset = selectedProjectAsset();
+        return isSequenceAsset(asset) ? asset.effectConfig : null;
+      };
+
       const makeDefaultSweepEffect = (assetKey) => ({
         id: `sweep_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         type: "sweep",
@@ -5007,6 +5898,7 @@
         sweepTarget: assetKey,
         sweepShape: "straight",
         sweepSpeed: 1,
+        sweepDelay: 0,
         sweepColor: "#ffffff",
         sweepWidth: 100,
         sweepFeather: 20,
@@ -5040,7 +5932,8 @@
       });
 
       const updateSweepValueLabels = () => {
-        $("sweepSpeedValue").textContent = `${Number($("sweepSpeed").value || 1).toFixed(1)}x`;
+        $("sweepSpeedValue").textContent = `${sweepLoopCount({ sweepSpeed: $("sweepSpeed").value })}圈`;
+        $("sweepDelayValue").textContent = `${sweepDelaySeconds({ sweepDelay: $("sweepDelay").value }).toFixed(2)}s`;
         $("sweepWidthValue").textContent = String(Math.round(numberOrFallback($("sweepWidth").value, 100)));
         $("sweepFeatherValue").textContent = String(Math.round(numberOrFallback($("sweepFeather").value, 20)));
         $("sweepAngleValue").textContent = `${Math.round(Number($("sweepAngle").value || 0))}°`;
@@ -5050,7 +5943,7 @@
       const syncSweepControlsFromSelected = () => {
         const asset = selectedProjectAsset();
         const effect = selectedSweepEffect();
-        const canAttachSweep = Boolean(asset && !isParticleAsset(asset));
+        const canAttachSweep = Boolean(asset && !isEffectAsset(asset));
         $("addSweepBtn").disabled = !canAttachSweep || Boolean(effect);
         $("sweepEmpty").hidden = Boolean(effect);
         $("sweepControls").hidden = !effect;
@@ -5058,8 +5951,8 @@
           $("sweepEmpty").textContent = "选择图层后可添加扫光。";
           return;
         }
-        if (isParticleAsset(asset)) {
-          $("sweepEmpty").textContent = "粒子层不支持添加扫光。";
+        if (isEffectAsset(asset)) {
+          $("sweepEmpty").textContent = "效果层不支持添加扫光。";
           return;
         }
         if (!effect) {
@@ -5071,7 +5964,8 @@
         $("sweepColorPreview").value = effect.sweepColor || "#ffffff";
         $("sweepMaterialName").textContent = effect.sweepMaterialName || "未上传";
         $("sweepMaterialClearBtn").disabled = !effect.sweepMaterialDataUrl;
-        $("sweepSpeed").value = String(effect.sweepSpeed || 1);
+        $("sweepSpeed").value = String(sweepLoopCount(effect));
+        $("sweepDelay").value = String(sweepDelaySeconds(effect));
         $("sweepWidth").value = String(numberOrFallback(effect.sweepWidth, 100));
         $("sweepFeather").value = String(numberOrFallback(effect.sweepFeather, 20));
         $("sweepAngle").value = String(effect.sweepAngle || 0);
@@ -5086,7 +5980,8 @@
         if (!effect) return;
         effect.sweepShape = $("sweepShape").value;
         effect.sweepColor = $("sweepColor").value || "#ffffff";
-        effect.sweepSpeed = Number($("sweepSpeed").value || 1);
+        effect.sweepSpeed = sweepLoopCount({ sweepSpeed: $("sweepSpeed").value });
+        effect.sweepDelay = sweepDelaySeconds({ sweepDelay: $("sweepDelay").value });
         effect.sweepWidth = numberOrFallback($("sweepWidth").value, 100);
         effect.sweepFeather = numberOrFallback($("sweepFeather").value, 20);
         effect.sweepAngle = Number($("sweepAngle").value || 0);
@@ -5112,12 +6007,17 @@
       const uploadSweepMaterial = async () => {
         const effect = selectedSweepEffect();
         if (!effect) return;
-        const material = await readMaterialFromInput("sweepMaterialInput");
-        if (!material) return;
-        effect.sweepMaterialName = material.name;
-        effect.sweepMaterialDataUrl = material.dataUrl;
-        syncSweepControlsFromSelected();
-        ensurePreviewPlayback();
+        holdUndoCheckpoint("上传扫光素材");
+        try {
+          const material = await readMaterialFromInput("sweepMaterialInput");
+          if (!material) return;
+          effect.sweepMaterialName = material.name;
+          effect.sweepMaterialDataUrl = material.dataUrl;
+          syncSweepControlsFromSelected();
+          ensurePreviewPlayback();
+        } finally {
+          commitUndoCheckpoint();
+        }
       };
 
       const clearSweepMaterial = () => {
@@ -5162,7 +6062,7 @@
       const syncGlowControlsFromSelected = () => {
         const asset = selectedProjectAsset();
         const effect = selectedGlowEffect();
-        const canAttachGlow = Boolean(asset && !isParticleAsset(asset));
+        const canAttachGlow = Boolean(asset && !isEffectAsset(asset));
         $("addGlowBtn").disabled = !canAttachGlow || Boolean(effect);
         $("glowEmpty").hidden = Boolean(effect);
         $("glowControls").hidden = !effect;
@@ -5170,8 +6070,8 @@
           $("glowEmpty").textContent = "选择图层后可添加外发光。";
           return;
         }
-        if (isParticleAsset(asset)) {
-          $("glowEmpty").textContent = "粒子层不支持添加外发光。";
+        if (isEffectAsset(asset)) {
+          $("glowEmpty").textContent = "效果层不支持添加外发光。";
           return;
         }
         if (!effect) {
@@ -5220,7 +6120,7 @@
 
       const addGlowToSelected = () => {
         const asset = selectedProjectAsset();
-        if (!asset || isParticleAsset(asset) || selectedGlowEffect()) return;
+        if (!asset || isEffectAsset(asset) || selectedGlowEffect()) return;
         ensureProjectEffects().push(makeDefaultGlowEffect(asset.key));
         syncGlowControlsFromSelected();
         ensurePreviewPlayback();
@@ -5309,7 +6209,7 @@
 
       const materialLayerOptions = () =>
         (state.package?.project?.assets || [])
-          .filter((asset) => !isParticleAsset(asset) && assetPayloadByKey(asset.key)?.dataUrl);
+          .filter((asset) => !isEffectAsset(asset) && assetPayloadByKey(asset.key)?.dataUrl);
 
       const syncParticleMaterialLayerOptions = (selectedKey = "") => {
         const select = $("particleMaterialLayerSelect");
@@ -5334,7 +6234,7 @@
         const effect = selectedParticleEffect();
         const asset = state.package?.project?.assets?.find((item) => item.key === assetKey);
         const payload = assetPayloadByKey(assetKey);
-        if (!effect || !asset || isParticleAsset(asset) || !payload?.dataUrl) return;
+        if (!effect || !asset || isEffectAsset(asset) || !payload?.dataUrl) return;
         effect.particleMaterialSourceKey = asset.key;
         effect.particleMaterialName = `图层：${asset.label || asset.key}`;
         effect.particleMaterialDataUrl = payload.dataUrl;
@@ -5435,14 +6335,19 @@
       const uploadParticleMaterial = async () => {
         const effect = selectedParticleEffect();
         if (!effect) return;
-        const material = await readMaterialFromInput("particleMaterialInput");
-        if (!material) return;
-        effect.particleMaterialName = material.name;
-        effect.particleMaterialDataUrl = material.dataUrl;
-        effect.particleMaterialSourceKey = "";
-        syncParticleControlsFromSelected();
-        renderLayers();
-        ensurePreviewPlayback();
+        holdUndoCheckpoint("上传粒子素材");
+        try {
+          const material = await readMaterialFromInput("particleMaterialInput");
+          if (!material) return;
+          effect.particleMaterialName = material.name;
+          effect.particleMaterialDataUrl = material.dataUrl;
+          effect.particleMaterialSourceKey = "";
+          syncParticleControlsFromSelected();
+          renderLayers();
+          ensurePreviewPlayback();
+        } finally {
+          commitUndoCheckpoint();
+        }
       };
 
       const clearParticleMaterial = () => {
@@ -5481,9 +6386,486 @@
 
       const removeSelectedParticleLayer = () => removeParticleLayer(state.selectedKey);
 
+      const updateSequenceValueLabels = () => {
+        $("sequenceSpeedValue").textContent = `${sequencePlaybackSpeed({ sequenceSpeed: $("sequenceSpeed").value }).toFixed(1)}x`;
+        $("sequenceOpacityValue").textContent = `${sequenceOpacityPercent({ sequenceOpacity: $("sequenceOpacity").value })}%`;
+        $("sequenceHueValue").textContent = `${Math.round(sequenceHueDegrees({ sequenceHue: $("sequenceHue").value }))}°`;
+        $("sequenceBrightnessValue").textContent = `${sequenceBrightnessPercent({ sequenceBrightness: $("sequenceBrightness").value })}%`;
+      };
+
+      const syncSequenceControlsFromSelected = () => {
+        const project = state.package?.project;
+        const asset = selectedProjectAsset();
+        const effect = selectedSequenceEffect();
+        $("sequenceLayerControls").hidden = !effect;
+        $("sequenceLayerEmpty").hidden = Boolean(effect);
+        if (!project?.canvas) {
+          $("sequenceLayerEmpty").textContent = "导入 Figma 画布后可添加序列帧。";
+          return;
+        }
+        if (!effect) {
+          $("sequenceLayerEmpty").textContent = asset
+            ? "当前选中图层不是序列帧图层。"
+            : "选择序列帧图层后可调整播放速度。";
+          return;
+        }
+        effect.sequenceSpeed = sequencePlaybackSpeed(effect);
+        effect.sequenceOpacity = sequenceOpacityPercent(effect);
+        effect.sequenceHue = sequenceHueDegrees(effect);
+        effect.sequenceBrightness = sequenceBrightnessPercent(effect);
+        $("sequenceSpeed").value = String(effect.sequenceSpeed);
+        $("sequenceOpacity").value = String(effect.sequenceOpacity);
+        $("sequenceHue").value = String(effect.sequenceHue);
+        $("sequenceBrightness").value = String(effect.sequenceBrightness);
+        updateSequenceValueLabels();
+      };
+
+      const syncSequenceFromControls = () => {
+        const effect = selectedSequenceEffect();
+        if (!effect) return;
+        effect.sequenceSpeed = sequencePlaybackSpeed({ sequenceSpeed: $("sequenceSpeed").value });
+        effect.sequenceOpacity = sequenceOpacityPercent({ sequenceOpacity: $("sequenceOpacity").value });
+        effect.sequenceHue = sequenceHueDegrees({ sequenceHue: $("sequenceHue").value });
+        effect.sequenceBrightness = sequenceBrightnessPercent({ sequenceBrightness: $("sequenceBrightness").value });
+        state.sequenceFrameEffectCache.clear();
+        updateSequenceValueLabels();
+        renderLayers();
+        renderPreview(state.previewFrame);
+        ensurePreviewPlayback();
+      };
+
+      const normalizeSequenceSet = (sequenceSet) => {
+        const id = String(sequenceSet?.id || `sequence_set_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
+        const frames = (sequenceSet?.frames || [])
+          .map((frame, index) => ({
+            key: String(frame?.key || `${id}_frame_${String(index).padStart(4, "0")}`),
+            name: String(frame?.name || `frame_${index + 1}`),
+            dataUrl: String(frame?.dataUrl || ""),
+            width: Math.max(1, Math.round(Number(frame?.width || 1))),
+            height: Math.max(1, Math.round(Number(frame?.height || 1))),
+            mimeType: String(frame?.mimeType || ""),
+          }))
+          .filter((frame) => frame.dataUrl);
+        return {
+          id,
+          name: String(sequenceSet?.name || "序列帧").trim() || "序列帧",
+          createdAt: Number(sequenceSet?.createdAt || Date.now()),
+          frames,
+        };
+      };
+
+      const mergeSequenceSetLists = (...lists) => {
+        const order = [];
+        const byId = new Map();
+        for (const list of lists) {
+          for (const item of list || []) {
+            const sequenceSet = normalizeSequenceSet(item);
+            if (!sequenceSet.frames.length) continue;
+            if (!byId.has(sequenceSet.id)) order.push(sequenceSet.id);
+            byId.set(sequenceSet.id, sequenceSet);
+          }
+        }
+        return order.map((id) => byId.get(id)).filter(Boolean);
+      };
+
+      const upsertSequenceSetInList = (list, sequenceSet) => {
+        const normalized = normalizeSequenceSet(sequenceSet);
+        if (!normalized.frames.length) return list || [];
+        const next = (list || []).slice();
+        const index = next.findIndex((item) => item.id === normalized.id);
+        if (index >= 0) {
+          next[index] = normalized;
+        } else {
+          next.push(normalized);
+        }
+        return next;
+      };
+
+      const upsertSequenceSet = (sequenceSet, project = state.package?.project) => {
+        const normalized = normalizeSequenceSet(sequenceSet);
+        if (!normalized.frames.length) return null;
+        state.sequenceLibrary = upsertSequenceSetInList(state.sequenceLibrary, normalized);
+        if (project) {
+          project.sequenceSets = upsertSequenceSetInList(ensureSequenceSets(project), normalized);
+        }
+        return normalized;
+      };
+
+      const syncSequenceLibraryIntoProject = (project = state.package?.project, { persist = false } = {}) => {
+        if (!project) return;
+        const merged = mergeSequenceSetLists(state.sequenceLibrary, project.sequenceSets || []);
+        state.sequenceLibrary = merged;
+        project.sequenceSets = cloneData(merged);
+        if (persist) {
+          void persistSequenceLibrary().catch((error) => log(`序列帧本地库保存失败: ${error.message}`));
+        }
+      };
+
+      const isEditingSequenceName = () =>
+        Boolean(
+          state.sequenceEditingSetId &&
+          document.activeElement?.classList?.contains("sequence-name-input"),
+        );
+
+      const loadSequenceLibrary = async () => {
+        const response = await requestPlugin("sequence-library-load");
+        return mergeSequenceSetLists(response.payload?.sets || []);
+      };
+
+      const persistSequenceLibrary = async () => {
+        state.sequenceLibrary = mergeSequenceSetLists(state.sequenceLibrary);
+        const response = await requestPlugin("sequence-library-save", { sets: cloneData(state.sequenceLibrary) }, 60000);
+        if (response.payload?.storageMode === "memory") {
+          log("Figma 本地存储暂不可用，序列帧库本次仅临时保存。");
+        }
+      };
+
+      const initSequenceLibrary = async () => {
+        state.sequenceLibrary = await loadSequenceLibrary();
+        state.sequenceLibraryLoaded = true;
+        syncSequenceLibraryIntoProject(state.package?.project);
+        renderSequenceList();
+        syncSequenceControlsFromSelected();
+      };
+
+      const renameSequenceSet = (setId, nextName, options = {}) => {
+        const current = sequenceSetByIdFromAny(setId);
+        if (!current) return;
+        const renamed = upsertSequenceSet({
+          ...current,
+          name: String(nextName || "").trim() || current.name || "序列帧",
+        });
+        if (!renamed) return;
+        if (options.renderList !== false) {
+          renderSequenceList();
+        }
+        renderLayers();
+        void persistSequenceLibrary().catch((error) => log(`序列帧本地库保存失败: ${error.message}`));
+      };
+
+      const isSequenceImageFile = (file) => {
+        const type = String(file?.type || "");
+        const name = String(file?.name || "");
+        return type.startsWith("image/") || /\.(png|jpe?g|webp|gif)$/i.test(name);
+      };
+
+      const sequenceFileSortKey = (file) => String(file.webkitRelativePath || file.name || "");
+
+      const openSequenceFolderPicker = () => {
+        const input = $("sequenceFolderInput");
+        if (!input) return;
+        input.value = "";
+        input.click();
+      };
+
+      const makeDefaultSequenceAsset = (sequenceSet) => {
+        const project = state.package?.project;
+        const firstFrame = sequenceSet?.frames?.[0] || {};
+        const canvasWidth = Math.max(1, Math.round(Number(project?.canvas?.width || firstFrame.width || 300)));
+        const canvasHeight = Math.max(1, Math.round(Number(project?.canvas?.height || firstFrame.height || 300)));
+        const width = Math.max(1, Math.round(Number(firstFrame.width || 120)));
+        const height = Math.max(1, Math.round(Number(firstFrame.height || 120)));
+        const fitScale = Math.min(1, (canvasWidth * 0.86) / width, (canvasHeight * 0.86) / height);
+        const scale = Math.max(0.05, Number.isFinite(fitScale) ? fitScale : 1);
+        const id = `sequence_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        const displayWidth = width * scale;
+        const displayHeight = height * scale;
+        return {
+          key: `sequence_layer_${id}`,
+          label: `${sequenceSet?.name || "序列帧"}_${id.slice(-4)}`,
+          type: "effect",
+          visible: true,
+          width,
+          height,
+          transform: {
+            x: Math.round((canvasWidth - displayWidth) / 2),
+            y: Math.round((canvasHeight - displayHeight) / 2),
+            scale,
+            scaleX: 1,
+            scaleY: 1,
+            rotate: 0,
+          },
+          animation: { type: "none", speed: 1, intensity: 1 },
+          effectConfig: {
+            id,
+            type: "sequence",
+            enabled: true,
+            sequenceSetId: sequenceSet.id,
+            sequenceSpeed: 1,
+            sequenceOpacity: 100,
+            sequenceHue: 0,
+            sequenceBrightness: 100,
+          },
+        };
+      };
+
+      const addSequenceLayerFromSet = (setId) => {
+        const project = state.package?.project;
+        const sequenceSet = sequenceSetByIdFromAny(setId, project);
+        if (!project?.canvas) {
+          log("请先同步 Figma 画板后再添加序列帧图层。");
+          return;
+        }
+        if (!sequenceSet?.frames?.length) {
+          log("这个序列帧素材为空，无法添加到画布。");
+          return;
+        }
+        upsertSequenceSet(sequenceSet, project);
+        const asset = makeDefaultSequenceAsset(sequenceSet);
+        project.assets = [...(project.assets || []), asset];
+        state.selectedKey = asset.key;
+        syncSequenceControlsFromSelected();
+        renderLayers();
+        ensurePreviewPlayback();
+        log(`已添加序列帧图层：${sequenceSet.name}。`);
+      };
+
+      const removeSequenceLayer = (assetKey = state.selectedKey) => {
+        const project = state.package?.project;
+        const asset = project?.assets?.find((item) => item.key === assetKey);
+        if (!project || !isSequenceAsset(asset)) return;
+        project.assets = (project.assets || []).filter((item) => item.key !== asset.key);
+        if (state.selectedKey === asset.key || !project.assets.some((item) => item.key === state.selectedKey)) {
+          state.selectedKey = project.assets[project.assets.length - 1]?.key || null;
+        }
+        syncSequenceControlsFromSelected();
+        renderLayers();
+      };
+
+      const removeSequenceSet = (setId) => {
+        const project = state.package?.project;
+        const sequenceSet = sequenceSetByIdFromAny(setId, project);
+        state.sequenceLibrary = state.sequenceLibrary.filter((set) => set.id !== setId);
+        const removedLayerKeys = new Set(
+          (project?.assets || [])
+            .filter((asset) => isSequenceAsset(asset) && asset.effectConfig?.sequenceSetId === setId)
+            .map((asset) => asset.key),
+        );
+        if (project) {
+          project.sequenceSets = ensureSequenceSets(project).filter((set) => set.id !== setId);
+          project.assets = (project.assets || []).filter(
+            (asset) => !(isSequenceAsset(asset) && asset.effectConfig?.sequenceSetId === setId),
+          );
+          if (removedLayerKeys.has(state.selectedKey) || !project.assets.some((asset) => asset.key === state.selectedKey)) {
+            state.selectedKey = project.assets[project.assets.length - 1]?.key || null;
+          }
+        }
+        syncSequenceControlsFromSelected();
+        renderSequenceList();
+        renderLayers();
+        void persistSequenceLibrary().catch((error) => log(`序列帧本地库保存失败: ${error.message}`));
+        log(`已删除序列帧素材：${sequenceSet?.name || "未命名"}。`);
+      };
+
+      const updateSequencePreviewThumbnails = () => {
+        if (isEditingSequenceName()) return;
+        const images = document.querySelectorAll("[data-sequence-preview]");
+        if (!images.length) return;
+        const tick = Math.floor(performance.now() / 120);
+        for (const img of images) {
+          const sequenceSet = sequenceSetByIdFromAny(img.dataset.sequencePreview || "");
+          const frames = sequenceSet?.frames || [];
+          if (!frames.length) continue;
+          const frame = frames[tick % frames.length];
+          if (frame?.dataUrl && img.src !== frame.dataUrl) {
+            img.src = frame.dataUrl;
+          }
+        }
+      };
+
+      const startSequenceListPreview = () => {
+        if (state.sequencePreviewTimer) return;
+        state.sequencePreviewTimer = window.setInterval(updateSequencePreviewThumbnails, 120);
+      };
+
+      const renderSequenceList = () => {
+        const grid = $("sequenceGrid");
+        if (!grid) return;
+        if (isEditingSequenceName()) return;
+        const sets = sequenceSetsForDisplay();
+        grid.replaceChildren();
+        for (const sequenceSet of sets) {
+          const card = document.createElement("div");
+          card.className = "sequence-card";
+
+          const preview = document.createElement("div");
+          preview.className = "sequence-preview";
+          const image = document.createElement("img");
+          image.alt = sequenceSet.name || "序列帧预览";
+          image.dataset.sequencePreview = sequenceSet.id;
+          image.src = sequenceSet.frames?.[0]?.dataUrl || "";
+          preview.appendChild(image);
+
+          const title = document.createElement("input");
+          title.className = "sequence-name-input";
+          title.type = "text";
+          title.title = sequenceSet.name || "序列帧";
+          title.value = sequenceSet.name || "序列帧";
+          title.setAttribute("aria-label", "序列帧名称");
+          let shouldCancelRename = false;
+          const commitTitleRename = () => {
+            card.classList.remove("is-editing");
+            state.sequenceEditingSetId = null;
+            if (shouldCancelRename) {
+              shouldCancelRename = false;
+              title.value = sequenceSet.name || "序列帧";
+              return;
+            }
+            const nextName = String(title.value || "").trim();
+            if (nextName && nextName !== sequenceSet.name) {
+              sequenceSet.name = nextName;
+              title.value = nextName;
+              title.title = nextName;
+              image.alt = nextName || "序列帧预览";
+              renameSequenceSet(sequenceSet.id, nextName, { renderList: false });
+            } else {
+              title.value = sequenceSet.name || "序列帧";
+            }
+          };
+          title.addEventListener("focus", () => {
+            state.sequenceEditingSetId = sequenceSet.id;
+            card.classList.add("is-editing");
+            title.select();
+          });
+          title.addEventListener("pointerdown", (event) => event.stopPropagation());
+          title.addEventListener("mousedown", (event) => event.stopPropagation());
+          title.addEventListener("click", (event) => event.stopPropagation());
+          title.addEventListener("dblclick", (event) => event.stopPropagation());
+          title.addEventListener("input", () => {
+            title.title = title.value || "序列帧";
+          });
+          title.addEventListener("keydown", (event) => {
+            event.stopPropagation();
+            if (event.key === "Enter") {
+              event.preventDefault();
+              title.blur();
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              shouldCancelRename = true;
+              title.value = sequenceSet.name || "序列帧";
+              title.blur();
+            }
+          });
+          title.addEventListener("blur", commitTitleRename);
+
+          const meta = document.createElement("div");
+          meta.className = "sequence-card-meta";
+          meta.textContent = `${sequenceSet.frames?.length || 0} 帧`;
+
+          const addLayerBtn = document.createElement("button");
+          addLayerBtn.className = "sequence-add-layer-btn";
+          addLayerBtn.type = "button";
+          addLayerBtn.textContent = "+";
+          addLayerBtn.title = "添加到画布";
+          addLayerBtn.setAttribute("aria-label", "添加序列帧图层");
+          let ignoreAddClickUntil = 0;
+          addLayerBtn.addEventListener("pointerdown", (event) => {
+            event.stopPropagation();
+            if (!isEditingSequenceName()) return;
+            event.preventDefault();
+            ignoreAddClickUntil = Date.now() + 500;
+            if (document.activeElement?.classList?.contains("sequence-name-input")) {
+              document.activeElement.blur();
+            }
+            addSequenceLayerFromSet(sequenceSet.id);
+          });
+          addLayerBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (Date.now() < ignoreAddClickUntil) {
+              ignoreAddClickUntil = 0;
+              return;
+            }
+            addSequenceLayerFromSet(sequenceSet.id);
+          });
+          preview.appendChild(addLayerBtn);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "sequence-delete-btn";
+          deleteBtn.type = "button";
+          deleteBtn.textContent = "×";
+          deleteBtn.title = "删除序列帧素材";
+          deleteBtn.setAttribute("aria-label", "删除序列帧素材");
+          deleteBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            removeSequenceSet(sequenceSet.id);
+          });
+
+          card.append(preview, title, meta, deleteBtn);
+          grid.appendChild(card);
+        }
+
+        const addCard = document.createElement("button");
+        addCard.className = "sequence-card add-card";
+        addCard.type = "button";
+        addCard.innerHTML = '<span class="sequence-add-copy"><strong>+</strong><span>添加序列帧</span></span>';
+        addCard.addEventListener("click", openSequenceFolderPicker);
+        grid.appendChild(addCard);
+        updateSequencePreviewThumbnails();
+        startSequenceListPreview();
+      };
+
+      const importSequenceFolder = async () => {
+        const input = $("sequenceFolderInput");
+        const project = state.package?.project;
+        const selectedFiles = Array.from(input?.files || []);
+        if (input) input.value = "";
+        if (!selectedFiles.length) return;
+        const files = selectedFiles
+          .filter(isSequenceImageFile)
+          .sort((a, b) => sequenceFileSortKey(a).localeCompare(sequenceFileSortKey(b), "zh-Hans-CN", { numeric: true }));
+        if (!files.length) {
+          log("这个文件夹里没有可用图片。");
+          return;
+        }
+
+        holdUndoCheckpoint("导入序列帧素材");
+        setBusy(true);
+        try {
+          const setId = `sequence_set_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+          const folderName = files[0].webkitRelativePath?.split("/")?.[0] || "序列帧";
+          const frames = [];
+          for (let index = 0; index < files.length; index += 1) {
+            const file = files[index];
+            const dataUrl = await fileToDataUrl(file);
+            const payload = {
+              key: `${setId}_frame_${String(index).padStart(4, "0")}`,
+              name: file.name || `frame_${index + 1}`,
+              dataUrl,
+              width: 1,
+              height: 1,
+              mimeType: file.type || "",
+            };
+            try {
+              const image = await loadPreviewImage(payload);
+              payload.width = Math.max(1, Math.round(Number(image.naturalWidth || image.width || 1)));
+              payload.height = Math.max(1, Math.round(Number(image.naturalHeight || image.height || 1)));
+              frames.push(payload);
+            } catch (_error) {
+              // Skip broken images in the folder instead of failing the whole import.
+            }
+          }
+          if (!frames.length) {
+            log("没有读取到有效的序列帧图片。");
+            return;
+          }
+          const sequenceSet = upsertSequenceSet({
+            id: setId,
+            name: folderName,
+            createdAt: Date.now(),
+            frames,
+          }, project);
+          await persistSequenceLibrary();
+          renderSequenceList();
+          log(`已添加序列帧素材：${sequenceSet?.name || folderName}（${frames.length} 帧）。`);
+        } finally {
+          commitUndoCheckpoint();
+          setBusy(false);
+        }
+      };
+
       const syncControlsFromSelected = () => {
         const asset = selectedProjectAsset();
-        const disabled = !asset || isParticleAsset(asset);
+        const disabled = !asset || isEffectAsset(asset);
         if (disabled) {
           state.anchorPickType = null;
           updateAnchorPickUi();
@@ -5509,6 +6891,8 @@
           syncSweepControlsFromSelected();
           syncGlowControlsFromSelected();
           syncParticleControlsFromSelected();
+          syncSequenceControlsFromSelected();
+          renderSequenceList();
           return;
         }
         const active = activeMotionEffects(asset);
@@ -5519,12 +6903,14 @@
         syncSweepControlsFromSelected();
         syncGlowControlsFromSelected();
         syncParticleControlsFromSelected();
+        syncSequenceControlsFromSelected();
+        renderSequenceList();
       };
 
       const syncSelectedFromControls = () => {
         const asset = selectedProjectAsset();
         const type = state.selectedMotionType;
-        if (!asset || isParticleAsset(asset) || !MOTION_TYPES.includes(type)) return;
+        if (!asset || isEffectAsset(asset) || !MOTION_TYPES.includes(type)) return;
         const effect = getMotionEffect(asset, type, true);
         Object.assign(effect, {
           type,
@@ -5553,7 +6939,7 @@
       const resetSelectedMotionParam = (param) => {
         const asset = selectedProjectAsset();
         const type = state.selectedMotionType;
-        if (!asset || isParticleAsset(asset) || !MOTION_TYPES.includes(type)) return;
+        if (!asset || isEffectAsset(asset) || !MOTION_TYPES.includes(type)) return;
         if (!["speed", "intensity", "distance", "angle", "scale", "phase"].includes(param)) return;
         const effect = getMotionEffect(asset, type, false);
         if (!effect) return;
@@ -5609,7 +6995,7 @@
         const previousByNodeId = new Map();
         for (const asset of previousAssets) {
           const nodeId = figmaNodeIdForAsset(asset);
-          if (nodeId && !isParticleAsset(asset)) previousByNodeId.set(nodeId, asset);
+          if (nodeId && !isEffectAsset(asset)) previousByNodeId.set(nodeId, asset);
         }
 
         const keyMap = new Map();
@@ -5626,10 +7012,11 @@
           mergedFigmaAssets.push(asset);
         }
 
-        const particleAssets = previousAssets
-          .filter((asset) => isParticleAsset(asset))
+        const effectAssets = previousAssets
+          .filter((asset) => isEffectAsset(asset))
           .map((asset) => uniquifyAssetKey(cloneData(asset), usedKeys));
-        nextPackage.project.assets = [...mergedFigmaAssets, ...particleAssets];
+        nextPackage.project.assets = [...mergedFigmaAssets, ...effectAssets];
+        nextPackage.project.sequenceSets = cloneData(previousPackage.project.sequenceSets || []);
 
         const remappedEffects = [];
         for (const effect of previousPackage.project.effects || []) {
@@ -5653,6 +7040,7 @@
         const previousSelectedNodeId = figmaNodeIdForAsset(previousSelectedAsset);
         state.package = mergeCapturedPackage(payload, previousPackage);
         ensureProjectEffects();
+        syncSequenceLibraryIntoProject(state.package.project, { persist: state.sequenceLibraryLoaded });
         const assets = state.package.project.assets || [];
         const selectedStillExists = assets.some((asset) => asset.key === state.selectedKey);
         const remappedSelection = previousSelectedNodeId
@@ -5673,8 +7061,8 @@
       };
 
       const insertSyncedAsset = (assets, asset, canvasLayerOrderNodeIds) => {
-        const particleIndex = assets.findIndex((item) => isParticleAsset(item));
-        const insertLimit = particleIndex >= 0 ? particleIndex : assets.length;
+        const effectIndex = assets.findIndex((item) => isEffectAsset(item));
+        const insertLimit = effectIndex >= 0 ? effectIndex : assets.length;
         const orderMap = new Map(
           (canvasLayerOrderNodeIds || []).map((nodeId, index) => [nodeId, index]),
         );
@@ -5777,6 +7165,7 @@
           captureSelection("manual");
           return;
         }
+        holdUndoCheckpoint("同步 Figma 图层", { includeAssetPayloads: true });
         try {
           setBusy(true);
           log("正在同步 Figma 当前选中的图层...");
@@ -5793,6 +7182,7 @@
         } catch (error) {
           log(`同步图层失败: ${error.message}`);
         } finally {
+          commitUndoCheckpoint();
           setBusy(false);
         }
       };
@@ -5821,6 +7211,7 @@
       const updateLayer = async (key) => {
         const asset = state.package?.project?.assets?.find((item) => item.key === key);
         if (!asset) return;
+        holdUndoCheckpoint("更新图层", { includeAssetPayloads: true });
         try {
           setBusy(true);
           const response = await requestPlugin("update-layer", {
@@ -5858,6 +7249,7 @@
         } catch (error) {
           log(`更新图层失败: ${error.message}`);
         } finally {
+          commitUndoCheckpoint();
           setBusy(false);
         }
       };
@@ -6573,9 +7965,10 @@
         };
       };
 
-      const makeSweepMaskedPayload = async ({ effect, image, targetGeometry, textureIndex, textureCount }) => {
+      const makeSweepMaskedPayload = async ({ effect, image, targetGeometry, textureIndex, textureCount, frameCount, fps }) => {
         const { width, height } = sweepTextureSize(targetGeometry);
-        const progress = sweepProgress(effect, textureIndex, textureCount);
+        const sampleFrame = (textureIndex / Math.max(1, textureCount)) * Math.max(1, frameCount);
+        const progress = sweepProgress(effect, sampleFrame, frameCount, fps);
         const canvas = await makeSweepMaskCanvas({
           image,
           effect,
@@ -6591,7 +7984,7 @@
         };
       };
 
-      const buildSweepMaskedPayloads = async (project, payloadByKey, frameCount) => {
+      const buildSweepMaskedPayloads = async (project, payloadByKey, frameCount, fps) => {
         const sweeps = [];
         for (const effect of activeSweepEffects(project)) {
           const target = (project.assets || []).find((asset) => asset.key === effect.sweepTarget);
@@ -6614,6 +8007,8 @@
                   targetGeometry,
                   textureIndex,
                   textureCount,
+                  frameCount,
+                  fps,
                 }),
               });
             }
@@ -6672,13 +8067,59 @@
           };
         }));
 
-      const encodeMovie = async (project, assetPayloads) => {
+      const activeSequenceAssets = (project) =>
+        (project?.assets || []).filter(
+          (asset) => isSequenceAsset(asset) && asset.visible !== false && asset.effectConfig?.enabled !== false,
+        );
+
+      const buildSequencePayloads = async (project, onProgress = null) => {
+        const payloadsByKey = new Map();
+        const sequenceAssets = activeSequenceAssets(project);
+        const totalFrames = sequenceAssets.reduce((total, asset) => {
+          const sequenceSet = sequenceSetByIdFromAny(asset.effectConfig?.sequenceSetId, project);
+          return total + (sequenceSet?.frames?.length || 0);
+        }, 0);
+        let processedFrames = 0;
+        for (const asset of sequenceAssets) {
+          const sequenceSet = sequenceSetByIdFromAny(asset.effectConfig?.sequenceSetId, project);
+          for (const frame of sequenceSet?.frames || []) {
+            if (!frame?.key || !frame?.dataUrl) continue;
+            const payloadKey = sequencePayloadKeyForFrame(asset, frame);
+            if (payloadsByKey.has(payloadKey)) {
+              processedFrames += 1;
+              if (onProgress) await onProgress(processedFrames, totalFrames);
+              continue;
+            }
+            const adjustedPayload = await processSequenceFramePayload(asset, {
+              key: frame.key,
+              dataUrl: frame.dataUrl,
+              width: Math.max(1, Math.round(Number(frame.width || asset.width || 1))),
+              height: Math.max(1, Math.round(Number(frame.height || asset.height || 1))),
+              mimeType: frame.mimeType || "",
+            });
+            const keyedPayload = {
+              ...adjustedPayload,
+              key: payloadKey,
+            };
+            const optimizedPayload = await optimizeImagePayloadForSvga(asset, keyedPayload);
+            payloadsByKey.set(payloadKey, {
+              ...optimizedPayload,
+              key: payloadKey,
+            });
+            processedFrames += 1;
+            if (onProgress) await onProgress(processedFrames, totalFrames);
+          }
+        }
+        return Array.from(payloadsByKey.values());
+      };
+
+      const encodeMovie = async (project, assetPayloads, sequencePayloads = null) => {
         const fps = Math.max(1, Math.min(60, Math.round(Number(project.exportRules?.fps || 24))));
         const frameCount = Math.max(1, Math.min(600, Math.round(Number(project.exportRules?.frames || 72))));
         const canvasWidth = Math.max(1, Math.round(Number(project.canvas?.width || 300)));
         const canvasHeight = Math.max(1, Math.round(Number(project.canvas?.height || 300)));
         const payloadByKey = new Map(assetPayloads.map((asset) => [String(asset.key), asset]));
-        const sweepPayloads = await buildSweepMaskedPayloads(project, payloadByKey, frameCount);
+        const sweepPayloads = await buildSweepMaskedPayloads(project, payloadByKey, frameCount, fps);
         const sweepPayloadsByTarget = new Map();
         for (const sweep of sweepPayloads) {
           const targetKey = sweep.target?.key;
@@ -6698,6 +8139,8 @@
         }
         const particlePayloads = await buildParticlePayloads(project, payloadByKey);
         const particlePayloadByKey = new Map(particlePayloads.map((particle) => [particle.key, particle]));
+        const resolvedSequencePayloads = sequencePayloads || await buildSequencePayloads(project);
+        const sequencePayloadByKey = new Map(resolvedSequencePayloads.map((payload) => [payload.key, payload]));
         const needsParticleContentDistribution = particlePayloads.some(
           (particle) => (particle.asset.effectConfig?.particleSystemType || "falling") === "sparkle",
         );
@@ -6790,6 +8233,39 @@
             );
           }
         };
+        const writeSequenceSprites = (asset) => {
+          const sequenceSet = sequenceSetByIdFromAny(asset.effectConfig?.sequenceSetId, project);
+          const frames = sequenceSet?.frames || [];
+          if (!frames.length) return;
+          const firstPayload = sequencePayloadByKey.get(sequencePayloadKeyForFrame(asset, frames[0])) || frames[0];
+          const baseGeometry = assetRenderGeometry(asset, firstPayload);
+          for (const sourceFrame of frames) {
+            const payload = sequencePayloadByKey.get(sequencePayloadKeyForFrame(asset, sourceFrame));
+            if (!payload?.dataUrl) continue;
+            const frameGeometry = {
+              ...baseGeometry,
+              imageWidth: payload.width,
+              imageHeight: payload.height,
+            };
+            const spriteFrames = [];
+            for (let index = 0; index < frameCount; index += 1) {
+              const activeFrame = sequenceFrameForAsset(asset, index, frameCount, project);
+              const activeFrameKey = activeFrame ? sequencePayloadKeyForFrame(asset, activeFrame) : "";
+              const matrix = motionMatrixForGeometry(asset, frameGeometry, index, frameCount);
+              spriteFrames.push({
+                alpha: activeFrameKey === payload.key && asset.visible !== false ? 1 : 0,
+                layout: { x: 0, y: 0, width: payload.width, height: payload.height },
+                transform: transformFromMatrix(matrix),
+              });
+            }
+            writer.message(4, (spriteWriter) =>
+              encodeSprite(spriteWriter, {
+                imageKey: payload.key,
+                frames: spriteFrames,
+              }),
+            );
+          }
+        };
 
         writer.string(1, "2.0");
         writer.message(2, (params) => {
@@ -6834,11 +8310,23 @@
           });
         }
 
+        for (const payload of resolvedSequencePayloads) {
+          const image = parseDataUrlBytes(payload.dataUrl);
+          writer.message(3, (entry) => {
+            entry.string(1, payload.key);
+            entry.rawBytes(2, image.bytes);
+          });
+        }
+
         for (const projectAsset of project.assets || []) {
           if (projectAsset.visible === false) continue;
           const particle = particlePayloadByKey.get(projectAsset.key);
           if (particle) {
             writeParticleSprites(particle);
+            continue;
+          }
+          if (isSequenceAsset(projectAsset)) {
+            writeSequenceSprites(projectAsset);
             continue;
           }
           const payload = payloadByKey.get(projectAsset.key);
@@ -6876,7 +8364,7 @@
           for (const sweep of sweepPayloadsByTarget.get(projectAsset.key) || []) {
             const sweepFrames = [];
             for (let index = 0; index < frameCount; index += 1) {
-              const progress = sweepProgress(sweep.effect, index, frameCount);
+              const progress = sweepProgress(sweep.effect, index, frameCount, fps);
               const fade = sweep.effect.sweepFadeEnabled ? Math.sin(progress * Math.PI) : 1;
               const textureIndex = Math.min(
                 sweep.textureCount - 1,
@@ -6990,16 +8478,27 @@
 
       const exportSvga = async () => {
         if (!state.package) throw new Error("请先导入 Figma 选区。");
+        await updateExportModal("正在导出 SVGA", "正在读取工程参数...");
         state.package.project.materialType = $("materialType").value || "figma_selection";
         state.package.project.exportRules = {
           fps: Number($("fps").value || 24),
           frames: Number($("frames").value || 72),
         };
+        await updateExportModal("正在优化图层素材", "正在压缩普通图层，控制 SVGA 文件大小...");
         const optimizedAssets = await optimizeAssetPayloadsForSvga(
           state.package.project,
           state.package.assets,
         );
-        const movieBytes = await encodeMovie(state.package.project, optimizedAssets);
+        await updateExportModal("正在更新序列帧", "正在应用透明度、色调和亮度，并优化帧图片大小...");
+        const sequencePayloads = await buildSequencePayloads(state.package.project, async (done, total) => {
+          if (!total) return;
+          if (done === total || done % 8 === 0) {
+            await updateExportModal("正在更新序列帧", `已处理 ${done}/${total} 帧，正在控制导出体积...`);
+          }
+        });
+        await updateExportModal("正在打包动画", "正在写入 SVGA 帧数据...");
+        const movieBytes = await encodeMovie(state.package.project, optimizedAssets, sequencePayloads);
+        await updateExportModal("正在压缩文件", "正在生成最终 SVGA 文件...");
         const svgaBytes = await zlibDeflate(movieBytes);
         const filename = `${safeFilename(state.package.project.materialType)}.svga`;
         downloadBytes(filename, "application/octet-stream", svgaBytes);
@@ -7244,6 +8743,50 @@
       });
 
       document.addEventListener("keydown", (event) => {
+        const action = historyShortcutAction(event);
+        if (action) {
+          if (shouldUseNativeTextUndo(event.target)) return;
+          event.preventDefault();
+          event.stopPropagation();
+          const applied = action === "redo" ? redoProjectEdit() : undoProjectEdit();
+          if (!applied) {
+            log(action === "redo" ? "没有可重做的操作。" : "没有可撤销的操作。");
+          }
+          return;
+        }
+        beginUndoFromEvent(event, "编辑");
+      }, true);
+
+      document.addEventListener("pointerdown", (event) => {
+        beginUndoFromEvent(event, "编辑");
+      }, true);
+
+      document.addEventListener("input", (event) => {
+        beginUndoFromEvent(event, "编辑参数");
+        scheduleUndoCommit();
+      }, true);
+
+      document.addEventListener("change", (event) => {
+        beginUndoFromEvent(event, "编辑参数");
+        scheduleUndoCommit();
+      }, true);
+
+      document.addEventListener("blur", (event) => {
+        beginUndoFromEvent(event, "编辑");
+        scheduleUndoCommit();
+      }, true);
+
+      document.addEventListener("click", (event) => {
+        if (!isUndoableProjectTarget(event.target)) return;
+        scheduleUndoCommit();
+      }, true);
+
+      document.addEventListener("drop", (event) => {
+        if (!isUndoableProjectTarget(event.target)) return;
+        scheduleUndoCommit(40);
+      }, true);
+
+      document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") return;
         setLicensePopoverOpen(false);
         setHelpOpen(false);
@@ -7287,6 +8830,8 @@
       window.addEventListener("pointermove", moveCanvasDrag);
       window.addEventListener("pointerup", endCanvasDrag);
       window.addEventListener("pointercancel", endCanvasDrag);
+      window.addEventListener("pointerup", () => scheduleUndoCommit(40), true);
+      window.addEventListener("pointercancel", () => scheduleUndoCommit(40), true);
 
       for (const button of document.querySelectorAll("[data-align]")) {
         button.addEventListener("click", (event) => {
@@ -7302,9 +8847,11 @@
         void (async () => {
           try {
             setBusy(true);
+            await updateExportModal("正在准备导出", "正在检查导出权限...");
             const access = await requestPlugin("license-request-export");
             renderLicenseState(access.payload);
             if (!access.allowed) {
+              setExportModal(false);
               setLicensePopoverOpen(true);
               log("免费导出次数已用完，请扫码联系获取授权码。");
               return;
@@ -7317,6 +8864,7 @@
           } catch (error) {
             log(`导出失败: ${error.message}`);
           } finally {
+            setExportModal(false);
             setBusy(false);
           }
         })();
@@ -7380,7 +8928,7 @@
           if (button.disabled) return;
           const asset = selectedProjectAsset();
           const motion = button.dataset.motion || "";
-          if (!asset || isParticleAsset(asset)) return;
+          if (!asset || isEffectAsset(asset)) return;
           if (!MOTION_TYPES.includes(motion)) return;
           state.selectedMotionType = motion;
           const effect = getMotionEffect(asset, motion, true);
@@ -7402,7 +8950,7 @@
           if (button.disabled) return;
           const asset = selectedProjectAsset();
           const motion = button.dataset.motionDelete || "";
-          if (!asset || isParticleAsset(asset) || !MOTION_TYPES.includes(motion)) return;
+          if (!asset || isEffectAsset(asset) || !MOTION_TYPES.includes(motion)) return;
           setMotionEnabled(asset, motion, false);
           if (state.anchorPickType === motion) {
             state.anchorPickType = null;
@@ -7492,7 +9040,7 @@
 
       $("addSweepBtn").addEventListener("click", addSweepToSelected);
       $("removeSweepBtn").addEventListener("click", removeSweepFromSelected);
-      for (const id of ["sweepShape", "sweepSpeed", "sweepWidth", "sweepFeather", "sweepAngle", "sweepOpacity"]) {
+      for (const id of ["sweepShape", "sweepSpeed", "sweepDelay", "sweepWidth", "sweepFeather", "sweepAngle", "sweepOpacity"]) {
         $(id).addEventListener("input", syncSweepFromControls);
       }
       $("sweepColor").addEventListener("input", () => {
@@ -7624,6 +9172,12 @@
           clearParticleMaterial();
         }
       });
+      for (const id of ["sequenceSpeed", "sequenceOpacity", "sequenceHue", "sequenceBrightness"]) {
+        $(id).addEventListener("input", syncSequenceFromControls);
+      }
+      $("sequenceFolderInput").addEventListener("change", () => {
+        void importSequenceFolder().catch((error) => log(`序列帧导入失败: ${error.message}`));
+      });
 
       window.onmessage = (event) => {
         const message = event.data.pluginMessage;
@@ -7680,6 +9234,11 @@
       }
       void refreshLicenseState().catch((error) => {
         log(`授权状态读取失败: ${error.message}`);
+      });
+      renderSequenceList();
+      void initSequenceLibrary().catch((error) => {
+        state.sequenceLibraryLoaded = true;
+        log(`序列帧本地库读取失败: ${error.message}`);
       });
       postPlugin("scan-selection");
     </script>
