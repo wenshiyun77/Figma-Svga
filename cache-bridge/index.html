@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'" />
+  <title>SVGA Editor Local Cache Bridge</title>
+</head>
+<body>
+<script>
+(() => {
+  "use strict";
+
+  const CHANNEL = "svga-editor-sequence-cache-v1";
+  const STORE = "frames";
+  const DB_VERSION = 1;
+  const MAX_BYTES = 160 * 1024 * 1024;
+  const params = new URLSearchParams(String(location.hash || "").replace(/^#/, ""));
+  const token = String(params.get("token") || "");
+  const pluginId = String(params.get("plugin") || "");
+  let databasePromise = null;
+
+  const post = (message) => {
+    parent.postMessage(Object.assign({ channel: CHANNEL, token }, message || {}), "*");
+  };
+
+  const cacheNamespace = () => {
+    if (!/^[A-Za-z0-9_-]{32,160}$/.test(token)) throw new Error("Invalid cache capability token.");
+    return token.slice(0, 96);
+  };
+
+  const dbNamePromise = Promise.resolve(`svga-editor-sequence-cache-v3-${cacheNamespace()}`);
+  let persistenceRequested = false;
+
+  const requestBestEffortPersistence = () => {
+    if (persistenceRequested) return;
+    persistenceRequested = true;
+    void (async () => {
+      try {
+        if (navigator.storage && typeof navigator.storage.persist === "function") {
+          await navigator.storage.persist();
+        }
+      } catch (_error) {
+      }
+    })();
+  };
+
+  const openDatabase = async () => {
+    if (!/^[A-Za-z0-9_-]{32,160}$/.test(token)) throw new Error("Invalid cache capability token.");
+    if (pluginId !== "1648649590830419001") throw new Error("Invalid plugin id.");
+    if (typeof indexedDB === "undefined") throw new Error("IndexedDB is unavailable.");
+    if (databasePromise) return databasePromise;
+    databasePromise = new Promise(async (resolve, reject) => {
+      try {
+        const dbName = await dbNamePromise;
+        const request = indexedDB.open(dbName, DB_VERSION);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(STORE)) {
+            const store = db.createObjectStore(STORE, { keyPath: "key" });
+            store.createIndex("lastAccessed", "lastAccessed");
+            store.createIndex("assetId", "assetId");
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error("IndexedDB open failed."));
+        request.onblocked = () => reject(new Error("IndexedDB open was blocked."));
+      } catch (error) {
+        reject(error);
+      }
+    });
+    return databasePromise;
+  };
+
+  const requestStore = async (mode, action) => {
+    const db = await openDatabase();
+    return await new Promise((resolve, reject) => {
+      let settled = false;
+      try {
+        const transaction = db.transaction(STORE, mode);
+        const store = transaction.objectStore(STORE);
+        const request = action(store);
+        request.onsuccess = () => {
+          settled = true;
+          resolve(request.result === undefined ? true : request.result);
+        };
+        request.onerror = () => {
+          settled = true;
+          reject(request.error || new Error("IndexedDB request failed."));
+        };
+        transaction.onabort = () => {
+          if (!settled) reject(transaction.error || new Error("IndexedDB transaction aborted."));
+        };
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const trim = async () => {
+    const rows = await requestStore("readonly", (store) => store.getAll());
+    const list = Array.isArray(rows) ? rows : [];
+    let totalBytes = list.reduce((sum, row) => sum + Math.max(0, Number(row && row.byteSize || 0)), 0);
+    if (totalBytes <= MAX_BYTES) return { totalBytes, removed: 0 };
+    list.sort((left, right) => Number(left && left.lastAccessed || 0) - Number(right && right.lastAccessed || 0));
+    let removed = 0;
+    for (const row of list) {
+      if (totalBytes <= MAX_BYTES) break;
+      await requestStore("readwrite", (store) => store.delete(row.key));
+      totalBytes -= Math.max(0, Number(row && row.byteSize || 0));
+      removed += 1;
+    }
+    return { totalBytes: Math.max(0, totalBytes), removed };
+  };
+
+  const handle = async (operation, payload) => {
+    if (operation === "ping") {
+      await openDatabase();
+      requestBestEffortPersistence();
+      return { indexedDb: true, maxBytes: MAX_BYTES };
+    }
+
+    if (operation === "get") {
+      const key = String(payload && payload.key || "");
+      if (!key) return { found: false };
+      const row = await requestStore("readonly", (store) => store.get(key));
+      if (!row || !(row.blob instanceof Blob) || !row.blob.size) return { found: false };
+      void requestStore("readwrite", (store) => store.put(Object.assign({}, row, { lastAccessed: Date.now() }))).catch(() => {});
+      return { found: true, blob: row.blob, byteSize: row.blob.size };
+    }
+
+    if (operation === "put") {
+      const key = String(payload && payload.key || "");
+      const blob = payload && payload.blob;
+      const metadata = payload && payload.metadata && typeof payload.metadata === "object" ? payload.metadata : {};
+      if (!key || !(blob instanceof Blob) || !blob.size) throw new Error("Invalid cache payload.");
+      await requestStore("readwrite", (store) => store.put({
+        key,
+        blob,
+        byteSize: blob.size,
+        assetId: String(metadata.assetId || ""),
+        contentVersion: String(metadata.contentVersion || ""),
+        lastAccessed: Date.now(),
+      }));
+      const trimmed = await trim();
+      return { stored: true, byteSize: blob.size, totalBytes: trimmed.totalBytes };
+    }
+
+    if (operation === "deleteAsset") {
+      const assetId = String(payload && payload.assetId || "");
+      if (!assetId) return { deleted: false };
+      const rows = await requestStore("readonly", (store) => store.getAll());
+      let count = 0;
+      for (const row of Array.isArray(rows) ? rows : []) {
+        if (String(row && row.assetId || "") !== assetId) continue;
+        await requestStore("readwrite", (store) => store.delete(row.key));
+        count += 1;
+      }
+      return { deleted: true, count };
+    }
+
+    if (operation === "clear") {
+      await requestStore("readwrite", (store) => store.clear());
+      return { cleared: true };
+    }
+
+    throw new Error("Unsupported cache operation.");
+  };
+
+  window.addEventListener("message", (event) => {
+    const message = event.data;
+    if (!message || message.channel !== CHANNEL || String(message.token || "") !== token) return;
+    const requestId = String(message.requestId || "");
+    if (!requestId) return;
+    void handle(String(message.operation || ""), message.payload || {})
+      .then((payload) => post({ requestId, ok: true, payload }))
+      .catch((error) => post({ requestId, ok: false, error: String(error && error.message || error || "Cache bridge error") }));
+  });
+
+  void openDatabase()
+    .then(() => post({ type: "ready" }))
+    .catch((error) => post({ type: "ready", ok: false, error: String(error && error.message || error) }));
+})();
+</script>
+</body>
+</html>
