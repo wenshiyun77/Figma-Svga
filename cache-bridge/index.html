@@ -15,6 +15,7 @@
   const STORE = "frames";
   const DB_VERSION = 1;
   const MAX_BYTES = 160 * 1024 * 1024;
+  const HEALTH_KEY = "__svga_cache_health_v1__";
   const params = new URLSearchParams(String(location.hash || "").replace(/^#/, ""));
   const token = String(params.get("token") || "");
   const pluginId = String(params.get("plugin") || "");
@@ -117,7 +118,29 @@
     if (operation === "ping") {
       await openDatabase();
       requestBestEffortPersistence();
-      return { indexedDb: true, maxBytes: MAX_BYTES };
+      const rows = await requestStore("readonly", (store) => store.getAll());
+      const list = Array.isArray(rows) ? rows : [];
+      const priorHealth = list.find((row) => row && row.key === HEALTH_KEY) || null;
+      const cacheRows = list.filter((row) => row && row.key !== HEALTH_KEY);
+      const totalBytes = cacheRows.reduce((sum, row) => sum + Math.max(0, Number(row && row.byteSize || 0)), 0);
+      const health = {
+        key: HEALTH_KEY,
+        byteSize: 0,
+        assetId: "",
+        contentVersion: "health",
+        lastAccessed: Date.now(),
+        launchCount: Math.max(0, Number(priorHealth && priorHealth.launchCount || 0)) + 1,
+        firstSeenAt: Math.max(0, Number(priorHealth && priorHealth.firstSeenAt || 0)) || Date.now(),
+      };
+      await requestStore("readwrite", (store) => store.put(health));
+      return {
+        indexedDb: true,
+        maxBytes: MAX_BYTES,
+        entryCount: cacheRows.length,
+        totalBytes,
+        launchCount: health.launchCount,
+        persistentMarkerSeen: Boolean(priorHealth),
+      };
     }
 
     if (operation === "get") {
