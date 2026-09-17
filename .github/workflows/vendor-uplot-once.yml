@@ -1,0 +1,29 @@
+name: Vendor uPlot once
+on:
+  push:
+    paths:
+      - '.github/workflows/vendor-uplot-once.yml'
+permissions:
+  contents: write
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pinned uPlot assets
+        run: |
+          set -euo pipefail
+          mkdir -p cache-bridge/admin/vendor/uplot
+          curl -fsSL https://raw.githubusercontent.com/leeoniya/uPlot/v1.6.32/dist/uPlot.iife.min.js -o cache-bridge/admin/vendor/uplot/uPlot.iife.min.js
+          curl -fsSL https://raw.githubusercontent.com/leeoniya/uPlot/v1.6.32/dist/uPlot.min.css -o cache-bridge/admin/vendor/uplot/uPlot.min.css
+          curl -fsSL https://raw.githubusercontent.com/leeoniya/uPlot/v1.6.32/LICENSE -o cache-bridge/admin/vendor/uplot/LICENSE
+          test -s cache-bridge/admin/vendor/uplot/uPlot.iife.min.js
+          test -s cache-bridge/admin/vendor/uplot/uPlot.min.css
+      - name: Commit vendored assets and remove one-time workflow
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/vendor-uplot-once.yml
+          git add cache-bridge/admin/vendor/uplot
+          git commit -m "chore: vendor uPlot 1.6.32 for admin charts"
+          git push
