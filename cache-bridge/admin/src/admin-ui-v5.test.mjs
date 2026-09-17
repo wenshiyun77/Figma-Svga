@@ -22,18 +22,43 @@ test('admin entry loads local uPlot and v5 growth UI', () => {
   assert.doesNotMatch(html, /growth-trend-v4\.(?:css|mjs)/);
 });
 
-test('material cards are denser and preview images upscale within a compact complete-fit region', () => {
+test('material cards are denser and previews fully use a compact region', () => {
   const css = read('./material-density-v4.css');
   assert.match(css, /minmax\(210px,1fr\)/);
   assert.match(css, /\.preview\{[^}]*height:96px/);
+  assert.match(css, /\.preview\{[^}]*aspect-ratio:auto/);
   assert.match(css, /\.preview img\{[^}]*width:100%[^}]*height:100%[^}]*object-fit:contain/);
+  assert.match(css, /\.card \.btn\{[^}]*min-height:28px/);
 });
 
-test('growth modal reuses icon-only close control', () => {
+test('growth v5 is wired to real admin growth data and the history summary card', () => {
+  const js = read('./growth-trend-v5.mjs');
+  assert.match(js, /svga_admin_user_growth/);
+  assert.match(js, /Asia\/Shanghai/);
+  assert.match(js, /MutationObserver/);
+  assert.match(js, /历史用户/);
+  assert.match(js, /openGrowthChart/);
+  assert.match(js, /class="tool-button icon-only growth-close"/);
+  assert.match(js, /data-range="7"/);
+  assert.match(js, /data-range="30"/);
+  assert.match(js, /data-range="90"/);
+  assert.match(js, /data-range="all"/);
+  assert.match(js, /data-range="custom"/);
+  assert.match(js, /type="date"/);
+  assert.match(js, /每日新增/);
+  assert.match(js, /用户总数/);
+  assert.match(js, /window\.uPlot/);
+  assert.match(js, /growth-tooltip/);
+});
+
+test('growth chart presents standard axes, grid and polished modal controls', () => {
   const css = read('./growth-trend-v5.css');
   const js = read('./growth-trend-v5.mjs');
   assert.match(css, /\.tool-button\.icon-only/);
-  assert.match(js, /class="tool-button icon-only growth-close"/);
-  assert.match(js, /data-range="30"/);
-  assert.match(js, /window\.uPlot/);
+  assert.match(css, /\.growth-tooltip/);
+  assert.match(css, /\.growth-custom/);
+  assert.match(js, /label:'日期'/);
+  assert.match(js, /label:'人数'/);
+  assert.match(js, /grid:/);
+  assert.match(js, /setCursor/);
 });
