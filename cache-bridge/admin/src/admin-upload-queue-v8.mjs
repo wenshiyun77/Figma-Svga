@@ -187,7 +187,10 @@ function enhance(){
   if(!input||!button)return;
 
   // Wait until existing admin-upload-v7 has installed its normal upload handler.
-  if(input.dataset.uploadV7!=='1')return;
+  if(input.dataset.uploadV7!=='1'){
+  setTimeout(schedule,60);
+  return;
+}
 
   ensureUi();
   renderQueue();
@@ -222,7 +225,13 @@ const schedule=()=>{
   raf=requestAnimationFrame(enhance);
 };
 
-new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true});
+new MutationObserver(schedule)
+.observe(document.documentElement,{
+  subtree:true,
+  childList:true,
+  attributes:true,
+  attributeFilter:['data-upload-v7']
+});
 document.addEventListener('click',event=>{
   if(event.target?.closest?.('[data-filter-category],#officialTab,#personalTab'))queueMicrotask(renderQueue);
 },true);
@@ -233,4 +242,4 @@ if(document.readyState==='loading'){
   schedule();
 }
 
-window.__svgaAdminUploadQueueVersion='8';
+window.__svgaAdminUploadQueueVersion='8.1';
