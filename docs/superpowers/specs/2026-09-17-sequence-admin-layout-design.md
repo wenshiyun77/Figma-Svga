@@ -41,6 +41,14 @@ Improve official sequence-material administration, synchronize category order in
 - Preserve existing button IDs and behavior; only change placement and compact styling.
 - Remove the current 54px center `stage-toolbar`; the canvas/stage begins immediately below the global title bar.
 
+### Reuse-config deletion semantics
+- Deleting an item from the Reuse Config list deletes only the reusable saved-config/template record.
+- Any effect that was already applied to the current canvas must remain visually and structurally unchanged after that saved config is deleted.
+- Deletion must not remove canvas layers, clear motion/effect parameters, reset transforms, restore an older canvas snapshot, or invoke the Clear Config behavior.
+- After deletion, the current canvas state becomes independent of that saved config: it remains editable and must continue to save/export normally, but the deleted config can no longer be selected for reuse.
+- Runtime canvas/project state must not hold a destructive ownership relationship to a saved-config list entry. Applying/reusing a config should materialize/copy its values into the current project state rather than making the canvas depend on the continued existence of the saved template.
+- Regression path: save config -> reuse/apply it to a canvas -> capture current project/effect state -> delete the saved config -> assert canvas visual/project/effect state is unchanged -> verify later edit/save/export still works.
+
 ### Sequence-parameter bar
 - Move all sequence animation parameters out of the right-side sequence-material panel.
 - Create a new compact parameter region immediately above the bottom canvas toolbar shown in the reference screenshot.
