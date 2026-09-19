@@ -1,0 +1,97 @@
+/*
+ * Admin user-list PRO button
+ * Visual parameters synchronized to the plugin-side PRO badge.
+ * Applies only to .proBtn[data-on="1"]; inactive PRO remains unchanged.
+ */
+
+.proBtn[data-on="1"]{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:max-content;
+  min-width:0;
+  min-height:18px;
+  height:18px;
+  overflow:hidden;
+  padding:0 6px;
+  border:1px solid rgba(246,196,83,.42);
+  border-radius:6px;
+  color:transparent !important;
+  background:rgba(246,196,83,.09) !important;
+  box-shadow:none !important;
+  text-shadow:none !important;
+  font-size:9px;
+  line-height:1;
+  font-weight:750;
+  letter-spacing:.2px;
+  text-transform:none;
+  white-space:nowrap;
+}
+
+.proBtn[data-on="1"]::after{
+  content:"已开通PRO";
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 6px;
+  pointer-events:none;
+
+  color:#edc676;
+  font:inherit;
+  font-weight:750;
+  letter-spacing:.2px;
+
+  background:linear-gradient(
+    110deg,
+    #c18b35 0%,
+    #c18b35 42%,
+    #f4d992 47%,
+    #fffdf1 50%,
+    #f0ce80 53%,
+    #ba822b 58%,
+    #ba822b 100%
+  );
+  background-size:320% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+
+  animation:svga-admin-plugin-pro-sweep 2.8s linear infinite;
+  will-change:background-position;
+}
+
+.proBtn[data-on="1"]:hover:not(:disabled){
+  border-color:rgba(246,196,83,.58);
+  background:rgba(246,196,83,.13) !important;
+}
+
+.proBtn[data-on="0"]{
+  min-height:18px;
+  height:18px;
+  padding:0 6px;
+  border-radius:6px;
+  color:rgba(255,255,255,.62) !important;
+  border-color:var(--border) !important;
+  background:rgba(255,255,255,.045) !important;
+  box-shadow:none !important;
+  text-shadow:none !important;
+  font-size:9px;
+  line-height:1;
+  text-transform:none;
+  white-space:nowrap;
+}
+
+@keyframes svga-admin-plugin-pro-sweep{
+  from{background-position:130% 50%}
+  to{background-position:-30% 50%}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .proBtn[data-on="1"]::after{
+    animation:none;
+    background-position:50% 50%;
+  }
+}
