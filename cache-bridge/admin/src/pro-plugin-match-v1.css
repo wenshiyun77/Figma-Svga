@@ -11,8 +11,8 @@
   justify-content:center;
   width:max-content;
   min-width:0;
-  min-height:18px;
-  height:18px;
+  min-height:36px;
+  height:36px;
   overflow:hidden;
   padding:0 6px;
   border:1px solid rgba(246,196,83,.42);
@@ -69,8 +69,8 @@
 }
 
 .proBtn[data-on="0"]{
-  min-height:18px;
-  height:18px;
+  min-height:36px;
+  height:36px;
   padding:0 6px;
   border-radius:6px;
   color:rgba(255,255,255,.62) !important;
