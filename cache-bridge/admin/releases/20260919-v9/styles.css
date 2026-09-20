@@ -1,0 +1,16 @@
+@import url('./base.css');
+@import url('./preview.css');
+@import url('./material.css');
+@import url('./official.css');
+
+/* Release-owned controls that are not allowed to drift across patch files. */
+#uploadQueueSummary{max-width:min(46vw,560px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#uploadQueueStart[hidden],#uploadQueueClear[hidden],#uploadQueueSummary[hidden]{display:none}
+
+.proBtn{height:30px;min-height:30px;align-self:start;margin-top:2px;padding:0 6px;border-radius:6px;font-size:9px;line-height:1;font-weight:750;white-space:nowrap}
+.proBtn[data-on="0"]{color:#8b5cf6!important;border-color:rgba(139,92,246,.58)!important;background:rgba(139,92,246,.10)!important;box-shadow:inset 0 0 0 1px rgba(139,92,246,.05)!important;text-shadow:none!important}
+.proBtn[data-on="0"]:hover:not(:disabled){color:#a78bfa!important;border-color:rgba(167,139,250,.78)!important;background:rgba(139,92,246,.16)!important}
+.proBtn[data-on="1"]{position:relative;isolation:isolate;overflow:hidden;color:#edc676!important;border-color:rgba(237,198,118,.54)!important;background:rgba(237,198,118,.10)!important;box-shadow:none!important;text-shadow:none!important}
+.proBtn[data-on="1"]::after{content:"已开通PRO";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 6px;color:#edc676;background:linear-gradient(110deg,#c18b35 0%,#c18b35 42%,#f4d992 47%,#fffdf1 50%,#f0ce80 53%,#ba822b 58%,#ba822b 100%);background-size:320% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:svga-admin-plugin-pro-sweep 2.8s linear infinite;will-change:background-position;pointer-events:none}
+@keyframes svga-admin-plugin-pro-sweep{from{background-position:130% 50%}to{background-position:-30% 50%}}
+@media (prefers-reduced-motion:reduce){.proBtn[data-on="1"]::after{animation:none;background-position:50% 50%}}
