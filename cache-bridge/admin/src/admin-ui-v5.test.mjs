@@ -15,10 +15,10 @@ test('growth rows normalize numeric values', () => {
 
 test('admin entry loads local uPlot and v5 growth UI', () => {
   const html = read('../index.html');
-  assert.match(html, /releases\/20260919-v9\/vendor\/uPlot\.min\.css/);
-  assert.match(html, /releases\/20260919-v9\/vendor\/uPlot\.iife\.min\.js/);
-  assert.match(html, /releases\/20260919-v9\/growth\.css/);
-  assert.match(html, /releases\/20260919-v9\/growth\.mjs/);
+  assert.match(html, /releases\/20260920-v10\/vendor\/uPlot\.min\.css/);
+  assert.match(html, /releases\/20260920-v10\/vendor\/uPlot\.iife\.min\.js/);
+  assert.match(html, /releases\/20260920-v10\/growth\.css/);
+  assert.match(html, /releases\/20260920-v10\/growth\.mjs/);
   assert.doesNotMatch(html, /growth-trend-v4\.(?:css|mjs)/);
 });
 
@@ -32,7 +32,7 @@ test('material cards are denser and previews fully use a compact region', () => 
 });
 
 test('growth v5 is wired to real admin growth data and the history summary card', () => {
-  const js = read('../releases/20260919-v9/growth.mjs');
+  const js = read('../releases/20260920-v10/growth.mjs');
   assert.match(js, /svga_admin_user_growth/);
   assert.match(js, /Asia\/Shanghai/);
   assert.match(js, /MutationObserver/);
@@ -52,8 +52,8 @@ test('growth v5 is wired to real admin growth data and the history summary card'
 });
 
 test('growth chart presents standard axes, grid and polished modal controls', () => {
-  const css = read('../releases/20260919-v9/growth.css');
-  const js = read('../releases/20260919-v9/growth.mjs');
+  const css = read('../releases/20260920-v10/growth.css');
+  const js = read('../releases/20260920-v10/growth.mjs');
   assert.match(css, /\.tool-button\.icon-only/);
   assert.match(css, /\.growth-tooltip/);
   assert.match(css, /\.growth-custom/);
