@@ -1,0 +1,26 @@
+@import url('./base.css');
+@import url('./preview.css');
+@import url('./material.css');
+@import url('./official.css');
+
+/* Release-owned controls that are not allowed to drift across patch files. */
+#uploadQueueSummary{max-width:min(46vw,560px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#uploadQueueStart[hidden],#uploadQueueClear[hidden],#uploadQueueSummary[hidden]{display:none}
+
+.proButtons{display:flex;flex-direction:column;align-self:center;gap:5px}
+.proBtn{height:30px;min-height:30px;margin:0;padding:0 6px;border-radius:6px;font-size:9px;line-height:1;font-weight:750;white-space:nowrap}
+.proBtn::before{content:none!important;display:none!important;animation:none!important}
+.proBtn[data-on="0"]{color:#8f95a3!important;border-color:rgba(143,149,163,.38)!important;background:rgba(143,149,163,.07)!important;box-shadow:inset 0 0 0 1px rgba(143,149,163,.025)!important;text-shadow:none!important}
+.proBtn[data-on="0"]:hover:not(:disabled){color:#b8bdc8!important;border-color:rgba(184,189,200,.52)!important;background:rgba(143,149,163,.12)!important}
+.proBtn[data-on="1"]{position:relative;isolation:isolate;overflow:hidden;color:#edc676!important;border-color:rgba(237,198,118,.54)!important;background:rgba(237,198,118,.10)!important;box-shadow:none!important;text-shadow:none!important}
+.proBtn[data-on="1"]::after{content:attr(data-label);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 6px;color:#edc676;background:linear-gradient(110deg,#c18b35 0%,#c18b35 42%,#f4d992 47%,#fffdf1 50%,#f0ce80 53%,#ba822b 58%,#ba822b 100%);background-size:320% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:svga-admin-plugin-pro-sweep 2.8s linear infinite;will-change:background-position;pointer-events:none}
+.pro-meta{margin-top:3px;color:rgba(237,198,118,.76)}
+.proDialogBackdrop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.58);backdrop-filter:blur(5px)}
+.proDialogBackdrop[hidden]{display:none}
+.proDialog{width:min(340px,calc(100vw - 32px));display:grid;gap:12px;padding:18px;border:1px solid rgba(237,198,118,.24);border-radius:13px;background:#111218;box-shadow:0 22px 70px rgba(0,0,0,.55)}
+.proDialog h2,.proDialog p{margin:0}.proDialog h2{font-size:16px}.proDialog p{min-height:34px}
+.proMonthStepper{display:grid;grid-template-columns:38px 54px 38px;align-items:center;justify-content:center;gap:8px}.proMonthStepper[hidden]{display:none}.proMonthStepper .btn{height:32px;min-height:32px;padding:0}.proMonthStepper strong{text-align:center;font-size:17px}
+.proDialogActions{display:flex;justify-content:flex-end;gap:8px}.proDialogActions .btn[hidden]{display:none}
+@keyframes svga-admin-plugin-pro-sweep{from{background-position:130% 50%}to{background-position:-30% 50%}}
+@media (prefers-reduced-motion:reduce){.proBtn[data-on="1"]::after{animation:none;background-position:50% 50%}}
+@media(max-width:760px){.user>.proButtons{grid-column:1/-1;flex-direction:row;justify-content:flex-end}}
