@@ -8,9 +8,9 @@ const exists = rel => fs.existsSync(new URL(rel, import.meta.url));
 test('admin entry selects one immutable v11 release', () => {
   const html = read('../index.html');
 
-  assert.match(html, /window\.__SVGA_ADMIN_BUILD__="20260928-v11"/);
-  assert.match(html, /\.\/releases\/20260928-v11\/app\.mjs/);
-  assert.match(html, /\.\/releases\/20260928-v11\/styles\.css/);
+  assert.match(html, /window\.__SVGA_ADMIN_BUILD__="20260929-v12"/);
+  assert.match(html, /\.\/releases\/20260929-v12\/app\.mjs/);
+  assert.match(html, /\.\/releases\/20260929-v12\/styles\.css/);
   assert.doesNotMatch(
     html,
     /official-materials-v6|official-materials-stable-v7|admin-upload-v7|admin-upload-queue-v8/,
@@ -18,7 +18,7 @@ test('admin entry selects one immutable v11 release', () => {
   assert.doesNotMatch(html, /\?v=/);
   const runtimeRefs = [...html.matchAll(/(?:href|src)="([^"]+)"/g)].map(match => match[1]);
   assert.equal(runtimeRefs.length, 6);
-  assert.equal(runtimeRefs.every(ref => ref.startsWith('./releases/20260928-v11/')), true);
+  assert.equal(runtimeRefs.every(ref => ref.startsWith('./releases/20260929-v12/')), true);
 });
 
 test('v10 release keeps every runtime dependency in its own directory', () => {
