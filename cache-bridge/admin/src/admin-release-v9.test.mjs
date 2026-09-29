@@ -17,8 +17,9 @@ test('admin entry selects one immutable v11 release', () => {
   );
   assert.doesNotMatch(html, /\?v=/);
   const runtimeRefs = [...html.matchAll(/(?:href|src)="([^"]+)"/g)].map(match => match[1]);
-  assert.equal(runtimeRefs.length, 6);
-  assert.equal(runtimeRefs.every(ref => ref.startsWith('./releases/20260929-v12/')), true);
+  assert.equal(runtimeRefs.length, 7);
+  assert.equal(runtimeRefs.slice(0, 6).every(ref => ref.startsWith('./releases/20260929-v12/')), true);
+  assert.equal(runtimeRefs[6], './patches/20260929-displacement-frame-count.mjs');
 });
 
 test('v10 release keeps every runtime dependency in its own directory', () => {

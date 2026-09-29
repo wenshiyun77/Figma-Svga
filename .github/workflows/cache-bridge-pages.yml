@@ -33,7 +33,7 @@ jobs:
           node-version: 22
 
       - name: Run admin release tests
-        run: node --test cache-bridge/admin/src/admin-ui-v5.test.mjs cache-bridge/admin/src/admin-release-v9.test.mjs cache-bridge/admin/src/admin-release-v11.test.mjs
+        run: node --test cache-bridge/admin/src/admin-ui-v5.test.mjs cache-bridge/admin/src/admin-release-v9.test.mjs cache-bridge/admin/src/admin-release-v11.test.mjs cache-bridge/admin/src/admin-displacement-frame-count-patch.test.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
