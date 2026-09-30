@@ -15,10 +15,10 @@ test('growth rows normalize numeric values', () => {
 
 test('admin entry loads local uPlot and v5 growth UI', () => {
   const html = read('../index.html');
-  assert.match(html, /releases\/20260930-v14\/vendor\/uPlot\.min\.css/);
-  assert.match(html, /releases\/20260930-v14\/vendor\/uPlot\.iife\.min\.js/);
-  assert.match(html, /releases\/20260930-v14\/growth\.css/);
-  assert.match(html, /releases\/20260930-v14\/growth\.mjs/);
+  assert.match(html, /releases\/20260930-v15\/vendor\/uPlot\.min\.css/);
+  assert.match(html, /releases\/20260930-v15\/vendor\/uPlot\.iife\.min\.js/);
+  assert.match(html, /releases\/20260930-v15\/growth\.css/);
+  assert.match(html, /releases\/20260930-v15\/growth\.mjs/);
   assert.doesNotMatch(html, /growth-trend-v4\.(?:css|mjs)/);
 });
 
