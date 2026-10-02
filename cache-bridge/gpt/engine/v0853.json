@@ -1,0 +1,14 @@
+{
+  "engineVersion": "0.8.53-gpt.1",
+  "sourceVersion": "0.8.53",
+  "files": {
+    "css": "v0853.css",
+    "body": "v0853.body.html",
+    "engine": "v0853.engine.js"
+  },
+  "sha256": {
+    "css": "8d63503239938bf2a93d580d118dec1d9a4d876a003f3eb6665fce56fc729163",
+    "body": "e00b66ad1ade7e77935bbf8d6eaee8f763e0f2f9aa4443612155b9302e42aa0c",
+    "engine": "de62ce49cdab7392480e146cec5aeab6b409c19deef9d992f4f8f9e1c5fadbb0"
+  }
+}

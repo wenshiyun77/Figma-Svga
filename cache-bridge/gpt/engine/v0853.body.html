@@ -1,0 +1,1655 @@
+
+    <main class="app editor-shell">
+
+      <section class="editor-layout">
+        <aside class="sidebar left-sidebar">
+          <div class="sidebar-section layer-list-header">
+            <div class="section-title">
+              <div class="section-title-main"><strong>图层列表</strong></div>
+              <button id="captureBtn" class="layer-list-resync" type="button" title="重新同步" aria-label="重新同步">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.9 6.7A6.4 6.4 0 0 0 5.1 4.8L3.2 6.7"/><path d="M4.1 13.3a6.4 6.4 0 0 0 10.8 1.9l1.9-1.9"/><path d="M3.2 3.9v2.8H6"/><path d="M16.8 16.1v-2.8H14"/></svg>
+              </button>
+            </div>
+          </div>
+<div id="layerList" class="layers">
+            <div class="empty">选中 Figma 画布后打开插件会自动同步图层</div>
+          </div>
+          <div id="previewModeNotice" hidden style="color:#ff626b;padding:8px 12px;font-size:12px;flex-shrink:0">当前为未选中 Figma 画布时的预览模式，无法保存配置。</div>
+          <div class="left-user-footer">
+            <div class="left-user-identity"><div class="brand">
+          <div class="brand-mark" aria-hidden="true"><img src="data:image/png;base64,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" alt="" /></div>
+          <div class="brand-copy">
+            <div id="topbarUserNameRow" class="topbar-user-name-row">
+              <h1 id="topbarUserName" class="brand-title">Figma 用户</h1>
+              <span id="topbarProSlot"><div id="topbarProMenu" class="help-menu">
+            <button id="helpBtn" class="tool-button pro-button" type="button"
+              title="开通 PRO" aria-label="开通 PRO" aria-expanded="false" aria-controls="helpPopover" data-pro="false">
+              <span id="topbarProLabel" class="pro-wordmark">开通PRO</span>
+            </button>
+            
+          </div></span>
+            </div>
+            <button id="topbarUserId" class="topbar-user-id" type="button" title="点击复制用户 ID">ID：读取中...</button>
+          </div>
+        </div></div>
+            <div class="left-user-actions"><button id="adminPanelBtn" class="tool-button" type="button" title="打开管理后台" aria-label="打开管理后台" hidden disabled>
+            <span>管理后台</span>
+          </button><button id="feedbackBtn" class="tool-button icon-only" type="button" title="评分与反馈" aria-label="评分与反馈" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 4h16v12H9l-5 4V4Z" stroke-width="2" stroke-linejoin="round"/><path d="M8 8h8M8 12h5" stroke-width="2"/></svg></button></div>
+          </div>
+          <div id="layerContextMenu" class="layer-context-menu" hidden>
+            <button data-layer-effect-action="copy" type="button">复制效果</button>
+            <button data-layer-effect-action="paste" type="button">粘贴效果</button>
+            <button data-layer-effect-action="reset" type="button">重制效果</button>
+            <button data-layer-effect-action="mirror" type="button" hidden>创建镜像</button>
+          </div>
+          <div id="sequenceContextMenu" class="layer-context-menu sequence-context-menu" aria-label="我的序列帧操作" hidden>
+            <button id="sequenceDownloadBtn" type="button">下载到本地</button>
+          </div>
+          <svg id="sequenceParentLinkOverlay" class="sequence-parent-link-overlay" aria-hidden="true" hidden>
+            <path id="sequenceParentLinkShadow" class="sequence-parent-link-shadow"></path>
+            <path id="sequenceParentLinkPath" class="sequence-parent-link-path"></path>
+            <rect id="sequenceParentLinkTarget" class="sequence-parent-link-target" rx="11" ry="11" hidden></rect>
+          </svg>
+        </aside>
+
+        <section class="stage">
+          <div class="stage-canvas-summary" aria-label="画布信息">
+            <div class="stage-canvas-summary-main"><span>画布名称</span><strong id="canvasNameValue">未导入</strong></div>
+            <div class="stage-canvas-summary-meta"><span>图层数 <strong id="canvasLayerValue">0 层</strong></span><span>画布宽高 <strong id="canvasSizeValue">-</strong></span></div>
+          </div>
+          <div id="currentMaterialActions" class="stage-canvas-config-actions" aria-label="画布配置">
+            <button id="saveConfigBtn" class="save-config-button compact-config-button" type="button" disabled>保存配置</button>
+            <button id="reuseConfigBtn" class="save-config-button reuse-config-button compact-config-button" type="button" disabled>复用配置</button>
+            <button id="clearConfigBtn" class="tool-button compact-config-button" type="button" disabled>清空配置</button>
+          </div>
+          <div id="stageViewport" class="stage-viewport">
+            <div id="stageCanvasWorld" class="stage-canvas-world">
+              <div id="canvasFrame" class="canvas-frame">
+              <canvas id="previewCanvas" class="preview-canvas"></canvas>
+              <svg id="particleGuidePathOverlay" class="particle-guide-path-overlay" aria-hidden="true" hidden>
+                <path id="particleGuidePathLine" class="particle-guide-path-line"></path>
+                <g id="particleGuidePathHandles"></g>
+                <g id="particleGuidePathPoints"></g>
+              </svg>
+              <svg id="sequenceAreaSubtractOverlay" class="particle-guide-path-overlay sequence-area-subtract-overlay" aria-hidden="true" hidden>
+                <path id="sequenceAreaSubtractFill" class="sequence-area-subtract-fill"></path>
+                <path id="sequenceAreaSubtractLine" class="particle-guide-path-line"></path>
+                <g id="sequenceAreaSubtractHandles"></g>
+                <g id="sequenceAreaSubtractPoints"></g>
+              </svg>
+              <div id="lightingSourceMarker" class="lighting-source-marker" aria-hidden="true" title="拖动调整光源位置" hidden>
+                <span id="lightingSourceDirection" class="lighting-source-direction"></span>
+              </div>
+              <div id="canvasInteraction" class="canvas-interaction" hidden>
+                <div id="selectionBox" class="selection-box">
+                  <div class="selection-border"></div>
+                  <div class="selection-handle nw" data-drag-mode="scale"></div>
+                  <div class="selection-handle ne" data-drag-mode="scale"></div>
+                  <div class="selection-handle se" data-drag-mode="scale"></div>
+                  <div class="selection-handle sw" data-drag-mode="scale"></div>
+                  <div class="selection-side-handle n" data-drag-mode="resize-y" data-resize-dir="-1"></div>
+                  <div class="selection-side-handle e" data-drag-mode="resize-x" data-resize-dir="1"></div>
+                  <div class="selection-side-handle s" data-drag-mode="resize-y" data-resize-dir="1"></div>
+                  <div class="selection-side-handle w" data-drag-mode="resize-x" data-resize-dir="-1"></div>
+                  <div class="rotation-stem"></div>
+                  <div class="rotation-handle" data-drag-mode="rotate"></div>
+                  <div id="motionAnchorMarker" class="motion-anchor-marker" hidden></div>
+                  <div id="displacementOpacityControl" class="displacement-opacity-control" hidden>
+                    <div id="displacementOpacityLine" class="displacement-opacity-line"></div>
+                    <button id="displacementOpacityZeroHandle" class="displacement-opacity-handle zero" data-drag-mode="displacement-opacity-start" type="button" title="置换透明度 0%">0</button>
+                    <button id="displacementOpacityFullHandle" class="displacement-opacity-handle full" data-drag-mode="displacement-opacity-end" type="button" title="置换透明度 100%">100</button>
+                  </div>
+                </div>
+              </div>
+                <div id="previewEmpty" class="preview-empty">等待导入</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="stageDisplacementHint" class="stage-operation-hint" hidden>
+            <span>拖动 0 / 100 控制点，按透明度渐变控制置换强弱。</span>
+          </div>
+          <div id="stageParticleGuidePathHint" class="stage-operation-hint" hidden>
+            <span>钢笔模式：点击添加，按住拖动拉出曲线；双击或 Enter 完成，Backspace 撤点，Esc 取消。</span>
+          </div>
+          <div id="stageSequenceAreaSubtractHint" class="stage-operation-hint" hidden>
+            <span>区域删减钢笔：点击描点，按住拖动拉出曲线；双击或 Enter 闭合区域，区域内的序列帧会被移除，Esc 取消。</span>
+          </div>
+          <div id="stageLightingHint" class="stage-operation-hint" hidden>
+            <span>在画布中点击一个位置放置光源；按 Esc 取消。</span>
+          </div>
+
+          <div id="displacementLayerSettings" class="sequence-stage-parameter-bar displacement-stage-parameter-bar" hidden>
+              <div class="section-title">
+                <div class="displacement-title-row">
+                  <div class="section-title-main">
+                    <strong>置换动效</strong>
+                  </div>
+                  <div class="displacement-title-actions">
+                    <button id="displacementInsideToggle" class="displacement-preview-toggle displacement-inside-toggle" type="button" aria-pressed="false">Inside</button>
+                    <button id="displacementAlphaToggle" class="displacement-preview-toggle displacement-alpha-toggle" type="button" aria-pressed="false">Alpha</button>
+                    <button id="displacementGrayToggle" class="displacement-preview-toggle displacement-gray-toggle" type="button" aria-pressed="false">灰度</button>
+                  </div>
+                </div>
+              </div>
+              <div id="displacementEmpty" class="sweep-empty">选择图层后可添加置换。</div>
+              <div id="displacementControls" class="sweep-controls" hidden>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="displacementStrengthX">水平强度 <span id="displacementStrengthXValue">12</span></label>
+                    <input id="displacementStrengthX" type="range" min="-120" max="120" step="1" value="12" />
+                  </div>
+                  <div class="field">
+                    <label for="displacementStrengthY">垂直强度 <span id="displacementStrengthYValue">0</span></label>
+                    <input id="displacementStrengthY" type="range" min="-120" max="120" step="1" value="0" />
+                  </div>
+                  <div class="field">
+                    <label for="displacementWavelength">波长 <span id="displacementWavelengthValue">1.0x</span></label>
+                    <input id="displacementWavelength" type="range" min="0.2" max="8" step="0.1" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="displacementSpeed">速度 <span id="displacementSpeedValue">1.0x</span></label>
+                    <input id="displacementSpeed" type="range" min="0.1" max="4" step="0.1" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="displacementAngle">角度 <span id="displacementAngleValue">0°</span></label>
+                    <input id="displacementAngle" type="range" min="-180" max="180" step="1" value="0" />
+                  </div>
+                  <div id="displacementHighlightField" class="field" hidden>
+                    <label for="displacementHighlightBrightness">亮面加亮 <span id="displacementHighlightBrightnessValue">100%</span></label>
+                    <input id="displacementHighlightBrightness" type="range" min="0" max="400" step="1" value="100" />
+                  </div>
+                </div>
+                <div class="displacement-actions">
+                  <button id="removeDisplacementBtn" type="button">移除置换</button>
+                </div>
+              </div>
+          </div>
+          <div id="sequenceLayerSettings" class="sequence-layer-settings sequence-stage-parameter-bar" hidden>
+          <div class="section-title">
+            <div class="section-title-main">
+              <strong>序列帧动画</strong>
+            </div>
+          </div>
+          <div id="sequenceLayerEmpty" class="sweep-empty" hidden>选择序列帧图层后可调整播放速度。</div>
+          <div id="sequenceLayerControls" class="sweep-controls" hidden>
+            <div class="sequence-compact-grid">
+              <div class="field">
+                <label for="sequenceSpeed">播放速度 <span id="sequenceSpeedValue">1.0x</span></label>
+                <input id="sequenceSpeed" type="range" min="0.1" max="5" step="0.1" value="1" />
+              </div>
+              <div class="field">
+                <label for="sequenceDelay">延后时间 <span id="sequenceDelayValue">0.00s</span></label>
+                <input id="sequenceDelay" type="range" min="0" max="5" step="0.05" value="0" />
+              </div>
+              <div class="field">
+                <label for="sequenceOpacity">透明度 <span id="sequenceOpacityValue">100%</span></label>
+                <input id="sequenceOpacity" type="range" min="0" max="100" step="1" value="100" />
+              </div>
+              <div class="field">
+                <label for="sequenceHue">色调 <span id="sequenceHueValue">0°</span></label>
+                <input id="sequenceHue" type="range" min="-180" max="180" step="1" value="0" />
+              </div>
+              <div class="field">
+                <label for="sequenceBrightness">亮度 <span id="sequenceBrightnessValue">100%</span></label>
+                <input id="sequenceBrightness" type="range" min="20" max="200" step="1" value="100" />
+              </div>
+              <div class="field">
+                <label for="sequenceLoopGap">循环间隔 <span id="sequenceLoopGapValue">0.00s</span></label>
+                <input id="sequenceLoopGap" type="range" min="0" max="2" step="0.05" value="0" />
+              </div>
+              <div class="sequence-mode-row">
+                <div class="field playback-mode-field">
+                  <label for="sequenceLoopToggle">播放模式</label>
+                  <button id="sequenceLoopToggle" class="playback-mode-toggle" type="button" aria-pressed="false">循环播放</button>
+                </div>
+                <div class="field playback-mode-field">
+                  <label for="sequenceMaskToggle">图层遮罩</label>
+                  <button id="sequenceMaskToggle" class="playback-mode-toggle" type="button" aria-pressed="false">关闭</button>
+                </div>
+                <div class="field playback-mode-field">
+                  <label for="sequenceAreaSubtractBtn">区域删减</label>
+                  <button id="sequenceAreaSubtractBtn" class="playback-mode-toggle sequence-area-subtract-button" type="button" aria-pressed="false">绘制区域</button>
+                </div>
+              </div>
+              <div id="sequenceMaskOptions" class="sequence-mask-options" hidden>
+                <div class="field">
+                  <label for="sequenceMaskLayerSelect">遮罩图层</label>
+                  <select id="sequenceMaskLayerSelect" class="sequence-mask-layer-select" aria-label="选择遮罩图层" hidden>
+                    <option value="">选择图层</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="sequenceMaskBlendMode">混合模式</label>
+                  <select id="sequenceMaskBlendMode" class="sequence-mask-blend-select" aria-label="选择序列帧与遮罩图层的混合模式">
+                    <option value="normal">普通（仅遮罩）</option>
+                    <option value="lighter">加亮</option>
+                    <option value="overlay">叠加</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="playbar">
+            <div class="playbar-inner">
+              <div class="bg-switcher" aria-label="预览背景">
+                <button class="swatch checkered" data-bg="checkered" type="button" title="浅色棋盘格"></button>
+                <button class="swatch checkered-dark active" data-bg="checkered-dark" type="button" title="深色棋盘格"></button>
+                <button class="swatch black" data-bg="black" type="button" title="黑色背景"></button>
+                <button class="swatch white" data-bg="white" type="button" title="白色背景"></button>
+              </div>
+              <div id="alignmentTools" class="align-tools" hidden aria-label="对齐工具">
+                <button class="align-button" data-align="left" type="button" title="左对齐" aria-label="左对齐">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M6 4v16" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M10 7h8" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M10 12h5" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M10 17h10" stroke-width="2.2" stroke-linecap="round" />
+                  </svg>
+                </button>
+                <button class="align-button" data-align="center-h" type="button" title="水平居中" aria-label="水平居中">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 4v16" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M8 7h8" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M6 12h12" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M9 17h6" stroke-width="2.2" stroke-linecap="round" />
+                  </svg>
+                </button>
+                <button class="align-button" data-align="right" type="button" title="右对齐" aria-label="右对齐">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M18 4v16" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M6 7h8" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M9 12h5" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M4 17h10" stroke-width="2.2" stroke-linecap="round" />
+                  </svg>
+                </button>
+                <button class="align-button" data-align="top" type="button" title="顶部对齐" aria-label="顶部对齐">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 6h16" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M7 10v8" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M12 10v5" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M17 10v10" stroke-width="2.2" stroke-linecap="round" />
+                  </svg>
+                </button>
+                <button class="align-button" data-align="center-v" type="button" title="垂直居中" aria-label="垂直居中">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 12h16" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M7 8v8" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M12 6v12" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M17 9v6" stroke-width="2.2" stroke-linecap="round" />
+                  </svg>
+                </button>
+                <button class="align-button" data-align="bottom" type="button" title="底部对齐" aria-label="底部对齐">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 18h16" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M7 6v8" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M12 9v5" stroke-width="2.2" stroke-linecap="round" />
+                    <path d="M17 4v10" stroke-width="2.2" stroke-linecap="round" />
+                  </svg>
+                </button>
+              </div>
+              <button id="playPreviewBtn" class="play-button" type="button" title="播放预览">▶</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="sidebar right-sidebar">
+          <div class="inspector-scroll">
+            <div class="inspector-card">
+              <div class="section-title">
+                <div class="section-title-main">
+                  <strong>图层动效</strong>
+                </div>
+              </div>
+              <div id="mirrorNotice" class="mirror-notice" hidden>
+                <div class="mirror-notice-title">镜像图层</div>
+                <div id="mirrorNoticeBody" class="mirror-notice-body">当前图层是镜像图层，不支持调整。</div>
+              </div>
+              <div id="motionTabs" class="motion-tabs" role="tablist" aria-label="图层动效分类">
+                <button id="motionTabBase" class="motion-tab active" data-motion-tab="base" type="button" role="tab" aria-selected="true" aria-controls="motionBasePanel" tabindex="0">
+                  <span class="motion-tab-icon" aria-hidden="true" data-motion-icon="base">
+                    <svg viewBox="0 0 24 24"><circle class="motion-icon-base-core" cx="12" cy="12" r="2.4"/><g class="motion-icon-base-arrow-up"><path d="M12 3v5"/><path d="m9.5 5.5 2.5-2.5 2.5 2.5"/></g><g class="motion-icon-base-arrow-right"><path d="M16 12h5"/><path d="m18.5 9.5 2.5 2.5-2.5 2.5"/></g><g class="motion-icon-base-arrow-down"><path d="M12 16v5"/><path d="m9.5 18.5 2.5 2.5 2.5-2.5"/></g><g class="motion-icon-base-arrow-left"><path d="M3 12h5"/><path d="m5.5 9.5-2.5 2.5 2.5 2.5"/></g></svg>
+                  </span>
+                  <span class="motion-tab-label">基础动效</span>
+                </button>
+                <button id="motionTabSweep" class="motion-tab" data-motion-tab="sweep" type="button" role="tab" aria-selected="false" aria-controls="motionSweepPanel" tabindex="-1">
+                  <span class="motion-tab-icon" aria-hidden="true" data-motion-icon="sweep">
+                    <svg viewBox="0 0 24 24"><defs><clipPath id="motionTabSweepClip"><rect x="3.5" y="5" width="17" height="14" rx="3" fill="white" stroke="none"/></clipPath></defs><rect x="3.5" y="5" width="17" height="14" rx="3"/><g clip-path="url(#motionTabSweepClip)"><g class="motion-icon-sweep-beams"><path class="motion-icon-sweep-left-beam" d="m7 17 5.2-10"/><path class="motion-icon-sweep-right-beam" d="m11.8 17 5.2-10"/></g></g><path class="motion-icon-sweep-spark" d="m16.8 4.2.5-1.5.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5Z"/></svg>
+                  </span>
+                  <span class="motion-tab-label">扫光</span>
+                  <span id="sweepLockBadge" class="motion-tab-lock" aria-hidden="true">
+                    <svg viewBox="0 0 16 16"><path d="M4.5 7V5.4a3.5 3.5 0 0 1 7 0V7"/><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M8 10v1.5"/></svg>
+                  </span>
+                </button>
+                <button id="motionTabGlow" class="motion-tab" data-motion-tab="glow" type="button" role="tab" aria-selected="false" aria-controls="motionGlowPanel" tabindex="-1">
+                  <span class="motion-tab-icon" aria-hidden="true" data-motion-icon="glow">
+                    <svg viewBox="0 0 24 24"><g class="motion-icon-glow-whole motion-icon-glow-assembly"><circle class="motion-icon-glow-core" cx="12" cy="12" r="3.5"/><g class="motion-icon-glow-rays"><g class="motion-icon-glow-axis motion-icon-glow-axis-one"><path class="motion-icon-glow-segment motion-icon-glow-segment-north" d="M12 2.8v3"/><path class="motion-icon-glow-segment motion-icon-glow-segment-south" d="M12 18.2v3"/></g><g class="motion-icon-glow-axis motion-icon-glow-axis-two"><path class="motion-icon-glow-segment motion-icon-glow-segment-west" d="M2.8 12h3"/><path class="motion-icon-glow-segment motion-icon-glow-segment-east" d="M18.2 12h3"/></g><g class="motion-icon-glow-axis motion-icon-glow-axis-three"><path class="motion-icon-glow-segment motion-icon-glow-segment-north-west" d="M5.5 5.5l2.1 2.1"/><path class="motion-icon-glow-segment motion-icon-glow-segment-south-east" d="M16.4 16.4l2.1 2.1"/></g><g class="motion-icon-glow-axis motion-icon-glow-axis-four"><path class="motion-icon-glow-segment motion-icon-glow-segment-north-east" d="M18.5 5.5l-2.1 2.1"/><path class="motion-icon-glow-segment motion-icon-glow-segment-south-west" d="M7.6 16.4l-2.1 2.1"/></g></g></g></svg>
+                  </span>
+                  <span class="motion-tab-label">发光</span>
+                  <span id="glowLockBadge" class="motion-tab-lock" aria-hidden="true">
+                    <svg viewBox="0 0 16 16"><path d="M4.5 7V5.4a3.5 3.5 0 0 1 7 0V7"/><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M8 10v1.5"/></svg>
+                  </span>
+                </button>
+                <button id="motionTabLighting" class="motion-tab" data-motion-tab="lighting" type="button" role="tab" aria-selected="false" aria-controls="motionLightingPanel" tabindex="-1">
+                  <span class="motion-tab-icon" aria-hidden="true" data-motion-icon="lighting">
+                    <svg viewBox="0 0 24 24"><path class="motion-icon-lighting-aperture" d="M5 8v8"/><g class="motion-icon-lighting-beams"><g><path class="motion-icon-lighting-beam-base" d="M8.5 10 20 6.5"/><path class="motion-icon-lighting-beam-flow motion-icon-lighting-beam-flow-one" pathLength="100" d="M8.5 10 20 6.5"/></g><g><path class="motion-icon-lighting-beam-base" d="M8.5 12H21"/><path class="motion-icon-lighting-beam-flow motion-icon-lighting-beam-flow-two" pathLength="100" d="M8.5 12H21"/></g><g><path class="motion-icon-lighting-beam-base" d="M8.5 14 20 17.5"/><path class="motion-icon-lighting-beam-flow motion-icon-lighting-beam-flow-three" pathLength="100" d="M8.5 14 20 17.5"/></g></g></svg>
+                  </span>
+                  <span class="motion-tab-label">光照</span>
+                  <span id="lightingLockBadge" class="motion-tab-lock" aria-hidden="true">
+                    <svg viewBox="0 0 16 16"><path d="M4.5 7V5.4a3.5 3.5 0 0 1 7 0V7"/><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M8 10v1.5"/></svg>
+                  </span>
+                </button>
+                <button id="motionTabParticle" class="motion-tab" data-motion-tab="particle" type="button" role="tab" aria-selected="false" aria-controls="motionParticlePanel" tabindex="-1">
+                  <span class="motion-tab-icon" aria-hidden="true" data-motion-icon="particle">
+                    <svg viewBox="0 0 24 24"><circle class="motion-icon-particle-one" cx="7" cy="15.5" r="2.2"/><circle class="motion-icon-particle-two" cx="14.5" cy="17.5" r="1.4"/><circle class="motion-icon-particle-three" cx="16.5" cy="7.5" r="2"/><path class="motion-icon-particle-spark" d="m7.5 4 .7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7L7.5 4Z"/></svg>
+                  </span>
+                  <span class="motion-tab-label">粒子</span>
+                  <span id="particleLockBadge" class="motion-tab-lock" aria-hidden="true">
+                    <svg viewBox="0 0 16 16"><path d="M4.5 7V5.4a3.5 3.5 0 0 1 7 0V7"/><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M8 10v1.5"/></svg>
+                  </span>
+                </button>
+                <button id="motionTabSequence" class="motion-tab" data-motion-tab="sequence" type="button" role="tab" aria-selected="false" aria-controls="motionSequencePanel" tabindex="-1">
+                  <span class="motion-tab-icon" aria-hidden="true" data-motion-icon="sequence">
+                    <svg viewBox="0 0 24 24"><rect class="motion-icon-sequence-front" x="6" y="6" width="13" height="12" rx="2"/><path class="motion-icon-sequence-back" d="M4 15.5V7a3 3 0 0 1 3-3h9.5"/><path class="motion-icon-sequence-play" d="m11 10 4 2.5-4 2.5v-5Z"/></svg>
+                  </span>
+                  <span class="motion-tab-label">序列帧</span>
+                </button>
+                <button id="motionTabDisplacement" class="motion-tab" data-motion-tab="displacement" type="button" role="tab" aria-selected="false" aria-controls="motionDisplacementPanel" tabindex="-1">
+                  <span class="motion-tab-icon" aria-hidden="true" data-motion-icon="displacement">
+                    <svg viewBox="0 0 24 24"><g class="motion-icon-displacement-wave-one"><path class="motion-icon-displacement-base" d="M3 7.5c2.2-2 4.2-2 6.4 0s4.2 2 6.4 0 3.7-2 5.2-1"/><path class="motion-icon-displacement-trim motion-icon-displacement-trim-one" pathLength="100" d="M3 7.5c2.2-2 4.2-2 6.4 0s4.2 2 6.4 0 3.7-2 5.2-1"/></g><g class="motion-icon-displacement-wave-two"><path class="motion-icon-displacement-base" d="M3 12c2.2-2 4.2-2 6.4 0s4.2 2 6.4 0 3.7-2 5.2-1"/><path class="motion-icon-displacement-trim motion-icon-displacement-trim-two" pathLength="100" d="M3 12c2.2-2 4.2-2 6.4 0s4.2 2 6.4 0 3.7-2 5.2-1"/></g><g class="motion-icon-displacement-wave-three"><path class="motion-icon-displacement-base" d="M3 16.5c2.2-2 4.2-2 6.4 0s4.2 2 6.4 0 3.7-2 5.2-1"/><path class="motion-icon-displacement-trim motion-icon-displacement-trim-three" pathLength="100" d="M3 16.5c2.2-2 4.2-2 6.4 0s4.2 2 6.4 0 3.7-2 5.2-1"/></g></svg>
+                  </span>
+                  <span class="motion-tab-label">置换</span>
+                  <span id="displacementLockBadge" class="motion-tab-lock" aria-hidden="true">
+                    <svg viewBox="0 0 16 16"><path d="M4.5 7V5.4a3.5 3.5 0 0 1 7 0V7"/><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M8 10v1.5"/></svg>
+                  </span>
+                </button>
+              </div>
+              <div id="motionBasePanel" class="motion-tab-panel" data-motion-panel="base" role="tabpanel" aria-labelledby="motionTabBase">
+              <div class="inspector-subtitle">
+                <span>变换参数</span>
+                <button id="resetTransformBtn" class="reset-button icon-reset-button" type="button" disabled title="重置变换" aria-label="重置变换">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 5v5h5"/></svg>
+                </button>
+              </div>
+              <div class="transform-grid">
+                <div class="field">
+                  <label for="transformX">位置 X <span id="transformXValue">0</span></label>
+                  <input id="transformX" type="range" min="-2000" max="4000" step="1" value="0" disabled />
+                </div>
+                <div class="field">
+                  <label for="transformY">位置 Y <span id="transformYValue">0</span></label>
+                  <input id="transformY" type="range" min="-2000" max="4000" step="1" value="0" disabled />
+                </div>
+                <div class="field">
+                  <label for="transformScale">缩放 <span id="transformScaleValue">1.00x</span></label>
+                  <input id="transformScale" type="range" min="0.05" max="5" step="0.01" value="1" disabled />
+                </div>
+                <div class="field">
+                  <label for="transformRotate">旋转 <span id="transformRotateValue">0°</span></label>
+                  <input id="transformRotate" type="range" min="-180" max="180" step="1" value="0" disabled />
+                </div>
+              </div>
+              <div class="inspector-subtitle">
+                <span>基础动效</span>
+              </div>
+              <select id="animationType" class="motion-select" disabled>
+                <option value="none">无动画</option>
+                <option value="float">上下浮动</option>
+                <option value="swing">左右摇摆</option>
+                <option value="pulse">呼吸缩放</option>
+                <option value="spin">旋转</option>
+                <option value="fade">渐隐</option>
+              </select>
+              <div id="motionOptions" class="motion-options" aria-label="图层动效">
+                <div class="motion-option-wrap">
+                  <button class="motion-option" data-motion="float" type="button" title="上下浮动" aria-label="上下浮动" disabled>
+                    浮动
+                  </button>
+                  <button class="motion-delete-btn" data-motion-delete="float" type="button" title="删除上下浮动" aria-label="删除上下浮动" hidden>
+                    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 3l6 6"/><path d="M9 3L3 9"/></svg>
+                  </button>
+                </div>
+                <div class="motion-option-wrap">
+                  <button class="motion-option" data-motion="swing" type="button" title="左右摇摆" aria-label="左右摇摆" disabled>
+                    摇摆
+                  </button>
+                  <button class="motion-delete-btn" data-motion-delete="swing" type="button" title="删除左右摇摆" aria-label="删除左右摇摆" hidden>
+                    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 3l6 6"/><path d="M9 3L3 9"/></svg>
+                  </button>
+                </div>
+                <div class="motion-option-wrap">
+                  <button class="motion-option" data-motion="pulse" type="button" title="呼吸缩放" aria-label="呼吸缩放" disabled>
+                    缩放
+                  </button>
+                  <button class="motion-delete-btn" data-motion-delete="pulse" type="button" title="删除呼吸缩放" aria-label="删除呼吸缩放" hidden>
+                    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 3l6 6"/><path d="M9 3L3 9"/></svg>
+                  </button>
+                </div>
+                <div class="motion-option-wrap">
+                  <button class="motion-option" data-motion="spin" type="button" title="旋转" aria-label="旋转" disabled>
+                    旋转
+                  </button>
+                  <button class="motion-delete-btn" data-motion-delete="spin" type="button" title="删除旋转" aria-label="删除旋转" hidden>
+                    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 3l6 6"/><path d="M9 3L3 9"/></svg>
+                  </button>
+                </div>
+                <div class="motion-option-wrap">
+                  <button class="motion-option" data-motion="fade" type="button" disabled>渐隐
+                    <svg class="motion-option-lock" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 7V5.4a3.5 3.5 0 0 1 7 0V7"/><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M8 10v1.5"/></svg>
+                  </button>
+                  <button class="motion-delete-btn" data-motion-delete="fade" type="button" aria-label="删除渐隐" hidden>×</button>
+                </div>
+              </div>
+              <div id="motionControlPanel" class="motion-control-panel" hidden>
+                <div id="fadeOptions" class="fade-compact-selects" hidden>
+                  <div class="field"><label for="fadeMode">渐隐方式</label>
+                    <select id="fadeMode"><option value="in">淡入</option><option value="out">淡出</option><option value="inOut">显隐循环</option></select></div>
+                  <div class="field"><label for="fadeStyle">视觉样式</label>
+                    <select id="fadeStyle"><option value="soft">柔和</option><option value="scatter">碎片</option><option value="rise">微尘</option></select></div>
+                  <div class="field"><label for="fadeDuration">时长</label>
+                    <select id="fadeDuration"><option value="3">3s</option><option value="6">6s</option><option value="9">9s</option></select></div>
+                  <div class="field fade-delay-field"><label for="fadeDelay">延后时间 <span id="fadeDelayValue">0.00s</span></label>
+                    <input id="fadeDelay" type="range" min="0" max="2" step="0.05" value="0" /></div>
+                  <div id="fadeParticleOptions" class="fade-compact-selects" hidden>
+                    <div class="fade-particle-heading"><strong>粒子变化</strong><span>碎片 / 微尘</span></div>
+                    <div class="field"><label for="fadeParticleSize">粒子大小 <span id="fadeParticleSizeValue">100%</span></label>
+                      <input id="fadeParticleSize" type="range" min="20" max="250" step="5" value="100" /></div>
+                    <div class="field"><label for="fadeParticleOpacity">透明度变化 <span id="fadeParticleOpacityValue">100%</span></label>
+                      <input id="fadeParticleOpacity" type="range" min="0" max="100" step="5" value="100" /></div>
+                    <div class="field"><label for="fadeParticleRandom">整体随机 <span id="fadeParticleRandomValue">100%</span></label>
+                      <input id="fadeParticleRandom" type="range" min="0" max="100" step="5" value="100" /></div>
+                    <div class="fade-continuous-row"><label for="fadeContinuous">持续向外扩散</label>
+                      <input id="fadeContinuous" type="checkbox" role="switch" /></div>
+                  </div>
+                </div>
+                <div id="motionSpeedField" class="field resettable">
+                  <label for="speed">速度 <span id="speedValue">1.0</span></label>
+                  <input id="speed" type="range" min="0.1" max="5" step="0.1" value="1" disabled />
+                  <button class="param-reset-btn" data-motion-param-reset="speed" type="button" title="重置速度" aria-label="重置速度" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 5v5h5"/></svg>
+                  </button>
+                </div>
+                <div id="intensityField" class="field resettable">
+                  <label for="intensity">强度 <span id="intensityValue">1.0</span></label>
+                  <input id="intensity" type="range" min="0.1" max="5" step="0.1" value="1" disabled />
+                  <button class="param-reset-btn" data-motion-param-reset="intensity" type="button" title="重置强度" aria-label="重置强度" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 5v5h5"/></svg>
+                  </button>
+                </div>
+                <div id="motionDistanceField" class="field resettable">
+                  <label id="motionDistanceLabel" for="motionDistance">位移 <span id="motionDistanceValue">20</span></label>
+                  <input id="motionDistance" type="range" min="0" max="160" step="1" value="20" disabled />
+                  <button class="param-reset-btn" data-motion-param-reset="distance" type="button" title="重置位移" aria-label="重置位移" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 5v5h5"/></svg>
+                  </button>
+                </div>
+                <div id="motionAngleField" class="field resettable">
+                  <label id="motionAngleLabel" for="motionAngle">方向 <span id="motionAngleValue">90°</span></label>
+                  <input id="motionAngle" type="range" min="-180" max="180" step="1" value="90" disabled />
+                  <button class="param-reset-btn" data-motion-param-reset="angle" type="button" title="重置角度" aria-label="重置角度" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 5v5h5"/></svg>
+                  </button>
+                </div>
+                <div id="motionScaleField" class="field resettable">
+                  <label for="motionScale">缩放幅度 <span id="motionScaleValue">10%</span></label>
+                  <input id="motionScale" type="range" min="0" max="60" step="1" value="10" disabled />
+                  <button class="param-reset-btn" data-motion-param-reset="scale" type="button" title="重置缩放幅度" aria-label="重置缩放幅度" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 5v5h5"/></svg>
+                  </button>
+                </div>
+                <div id="motionPhaseField" class="field resettable">
+                  <label for="motionPhase">错峰 <span id="motionPhaseValue">0%</span></label>
+                  <input id="motionPhase" type="range" min="0" max="100" step="1" value="0" disabled />
+                  <button class="param-reset-btn" data-motion-param-reset="phase" type="button" title="重置错峰" aria-label="重置错峰" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 5v5h5"/></svg>
+                  </button>
+                </div>
+                <div id="motionLoopField" class="field playback-mode-field">
+                  <label for="motionLoopToggle">播放模式</label>
+                  <button id="motionLoopToggle" class="playback-mode-toggle" type="button" disabled aria-pressed="false">循环播放</button>
+                </div>
+                <div id="motionAnchorField" class="motion-anchor-field" hidden>
+                  <div class="motion-anchor-copy">
+                    <span>锚点</span>
+                    <strong id="motionAnchorValue">50% / 50%</strong>
+                  </div>
+                  <button id="motionAnchorCenterBtn" type="button" disabled>居中</button>
+                  <button id="motionAnchorPickBtn" type="button" disabled>画布选点</button>
+                </div>
+              </div>
+              </div>
+              <div id="motionSweepPanel" class="motion-tab-panel" data-motion-panel="sweep" role="tabpanel" aria-labelledby="motionTabSweep" hidden>
+              <div class="section-title">
+                <div class="section-title-main">
+                  <strong>高级扫光特效</strong>
+                </div>
+                <div id="sweepAddActions" class="sweep-header-actions">
+                  <div class="sweep-mode-wrap">
+                    <button id="addHardSweepBtn" class="sweep-header-button" data-sweep-mode="hard" type="button" disabled>硬切扫光</button>
+                    <button id="clearHardSweepBtn" class="sweep-mode-delete-btn" type="button" title="移除硬切扫光" aria-label="移除硬切扫光" hidden>×</button>
+                  </div>
+                  <div class="sweep-mode-wrap">
+                    <button id="addSoftSweepBtn" class="sweep-header-button" data-sweep-mode="soft" type="button" disabled>柔和扫光</button>
+                    <button id="clearSoftSweepBtn" class="sweep-mode-delete-btn" type="button" title="移除柔和扫光" aria-label="移除柔和扫光" hidden>×</button>
+                  </div>
+                </div>
+              </div>
+              <div id="sweepEmpty" class="sweep-empty">选择图层后可添加扫光。</div>
+              <div id="sweepControls" class="sweep-controls" hidden>
+                <div class="sweep-shape-field">
+                  <label>扫光形状</label>
+                  <input id="sweepShape" type="hidden" value="straight" />
+                  <div id="sweepShapeOptions" class="sweep-shape-options" role="radiogroup" aria-label="扫光形状">
+                    <button class="sweep-shape-option active" data-sweep-shape="straight" type="button" role="radio" aria-checked="true">直线</button>
+                    <button class="sweep-shape-option" data-sweep-shape="curve" type="button" role="radio" aria-checked="false">弧形</button>
+                    <button class="sweep-shape-option" data-sweep-shape="centerCircle" type="button" role="radio" aria-checked="false">中心圆</button>
+                    <button class="sweep-shape-option" data-sweep-shape="centerFlow" type="button" role="radio" aria-checked="false">中心流光</button>
+                    <div class="sweep-shape-option-wrap">
+                      <button id="sweepCustomShapeBtn" class="sweep-shape-option" data-sweep-shape="custom" type="button" role="radio" aria-checked="false">自定义+</button>
+                      <button id="sweepCustomShapeTileDelete" class="sweep-custom-shape-tile-delete" type="button" title="删除自定义形状" aria-label="删除自定义形状" hidden>×</button>
+                    </div>
+                  </div>
+                </div>
+                <div id="sweepCenterField" class="motion-anchor-field" hidden>
+                  <div class="motion-anchor-copy">
+                    <span>中心点</span>
+                    <strong id="sweepCenterValue">50% / 50%</strong>
+                  </div>
+                  <button id="sweepCenterResetBtn" type="button">居中</button>
+                  <button id="sweepCenterPickBtn" type="button">画布选点</button>
+                </div>
+                <div class="sweep-parameter-grid">
+                  <div class="field color-field">
+                    <label for="sweepColor">扫光颜色</label>
+                    <input id="sweepColor" type="color" value="#ffffff" />
+                  </div>
+                  <div class="field">
+                    <label for="sweepSpeed">扫光速度 <span id="sweepSpeedValue">1.0x</span></label>
+                    <input id="sweepSpeed" type="range" min="1" max="6" step="0.1" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="sweepDelay">延后时间 <span id="sweepDelayValue">0.00s</span></label>
+                    <input id="sweepDelay" type="range" min="0" max="5" step="0.05" value="0" />
+                  </div>
+                  <div class="field">
+                    <label for="sweepWidth">扫光粗细 <span id="sweepWidthValue">88</span></label>
+                    <input id="sweepWidth" type="range" min="8" max="500" step="1" value="88" />
+                  </div>
+                  <div id="sweepFeatherField" class="field">
+                    <label for="sweepFeather">扫光羽化 <span id="sweepFeatherValue">10</span></label>
+                    <input id="sweepFeather" type="range" min="0" max="160" step="1" value="10" />
+                  </div>
+                  <div id="sweepIntensityField" class="field" hidden>
+                    <label for="sweepIntensity">扫光强度 <span id="sweepIntensityValue">40%</span></label>
+                    <input id="sweepIntensity" type="range" min="0" max="5" step="0.05" value="2" />
+                  </div>
+                  <div class="field">
+                    <label for="sweepAngle">扫光角度 <span id="sweepAngleValue">30°</span></label>
+                    <input id="sweepAngle" type="range" min="-180" max="180" step="1" value="30" />
+                  </div>
+                  <div class="field">
+                    <label for="sweepOpacity">扫光透明度 <span id="sweepOpacityValue">1.00</span></label>
+                    <input id="sweepOpacity" type="range" min="0" max="1" step="0.01" value="1" />
+                  </div>
+                </div>
+                <div class="sweep-actions">
+                  <button id="sweepBlendBtn" type="button">混合: 普通</button>
+                  <button id="sweepFadeBtn" type="button">渐隐: 关</button>
+                  <button id="sweepSparkleBtn" type="button">颗粒闪耀: 关</button>
+                  <button id="sweepContourFlowBtn" type="button" aria-pressed="false">1px流光: 关</button>
+                  <button id="sweepContourStarsBtn" type="button" aria-pressed="false">4角星: 关</button>
+                </div>
+                <div id="sweepFadeDurationField" class="field" hidden>
+                  <label for="sweepFadeDuration">渐隐时长 <span id="sweepFadeDurationValue">3.00s</span></label>
+                  <input id="sweepFadeDuration" type="range" min="0" max="3" step="0.05" value="3" />
+                </div>
+              </div>
+              </div>
+              <div id="motionGlowPanel" class="motion-tab-panel" data-motion-panel="glow" role="tabpanel" aria-labelledby="motionTabGlow" hidden>
+              <div class="section-title">
+                <div class="section-title-main">
+                  <strong>外轮廓发光</strong>
+                </div>
+                <button id="addGlowBtn" class="sweep-header-button" type="button" disabled>添加发光</button>
+              </div>
+              <div id="glowEmpty" class="sweep-empty">选择图层后可添加外发光。</div>
+              <div id="glowControls" class="sweep-controls" hidden>
+                <div class="particle-color-row">
+                  <div class="field">
+                    <label for="glowColorMode">颜色模式</label>
+                    <select id="glowColorMode">
+                      <option value="solid">纯色</option>
+                      <option value="linearGradient">线性渐变</option>
+                      <option value="quadrantGradient">象限渐变</option>
+                    </select>
+                  </div>
+                  <div class="field color-field">
+                    <label for="glowColor">主颜色</label>
+                    <input id="glowColor" type="color" value="#ffffff" />
+                  </div>
+                  <div id="glowSecondaryColorField" class="field color-field" hidden>
+                    <label for="glowSecondaryColor">渐变辅色</label>
+                    <input id="glowSecondaryColor" type="color" value="#6d5dfc" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowFeather">光线粗细 <span id="glowFeatherValue">32</span></label>
+                    <input id="glowFeather" type="range" min="2" max="180" step="1" value="32" />
+                  </div>
+                  <div class="field">
+                    <label for="glowStrength">发光强度 <span id="glowStrengthValue">1.25</span></label>
+                    <input id="glowStrength" type="range" min="0.05" max="2.4" step="0.05" value="1.25" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowOpacityRandomness">随机透明度 <span id="glowOpacityRandomnessValue">0.35</span></label>
+                    <input id="glowOpacityRandomness" type="range" min="0" max="1" step="0.05" value="0.35" />
+                  </div>
+                  <div class="field">
+                    <label for="glowScaleRandomness">闪烁缩放 <span id="glowScaleRandomnessValue">0.18</span></label>
+                    <input id="glowScaleRandomness" type="range" min="0" max="0.6" step="0.01" value="0.18" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowRayCount">光线数量 <span id="glowRayCountValue">22</span></label>
+                    <input id="glowRayCount" type="range" min="0" max="64" step="1" value="22" />
+                  </div>
+                  <div class="field">
+                    <label for="glowRayLength">光线长度 <span id="glowRayLengthValue">25%</span></label>
+                    <input id="glowRayLength" type="range" min="0.08" max="0.9" step="0.01" value="0.25" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowStarInnerCorner">星光内拐角 <span id="glowStarInnerCornerValue">28%</span></label>
+                    <input id="glowStarInnerCorner" type="range" min="0.08" max="0.48" step="0.01" value="0.28" />
+                  </div>
+                  <div class="field">
+                    <label for="glowStarRayLength">星芒长度 <span id="glowStarRayLengthValue">32%</span></label>
+                    <input id="glowStarRayLength" type="range" min="0.12" max="0.72" step="0.01" value="0.32" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowSpeed">闪烁速度 <span id="glowSpeedValue">1.0x</span></label>
+                    <input id="glowSpeed" type="range" min="0.1" max="6" step="0.1" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="glowNearBoost">轮廓亮度 <span id="glowNearBoostValue">4.20</span></label>
+                    <input id="glowNearBoost" type="range" min="0.6" max="5" step="0.05" value="4.2" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowStartOffset">起点偏移 <span id="glowStartOffsetValue">-6px</span></label>
+                    <input id="glowStartOffset" type="range" min="-80" max="120" step="1" value="-6" />
+                  </div>
+                  <div class="field">
+                    <label for="glowInnerEdgeWidth">内光范围 <span id="glowInnerEdgeWidthValue">1px</span></label>
+                    <input id="glowInnerEdgeWidth" type="range" min="0" max="120" step="1" value="1" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowAuraRange">底光范围 <span id="glowAuraRangeValue">10%</span></label>
+                    <input id="glowAuraRange" type="range" min="0.05" max="0.5" step="0.01" value="0.1" />
+                  </div>
+                  <div class="field">
+                    <label for="glowRayRandomSeed">排列随机 <span id="glowRayRandomSeedValue">0</span></label>
+                    <input id="glowRayRandomSeed" type="range" min="0" max="100" step="1" value="0" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowParticleSize">粒子大小 <span id="glowParticleSizeValue">1.25x</span></label>
+                    <input id="glowParticleSize" type="range" min="0.4" max="4" step="0.05" value="1.25" />
+                  </div>
+                  <div class="field">
+                    <label for="glowParticleLife">粒子生命周期 <span id="glowParticleLifeValue">70%</span></label>
+                    <input id="glowParticleLife" type="range" min="0.2" max="1" step="0.05" value="0.7" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label for="glowParticleSpeed">粒子速度 <span id="glowParticleSpeedValue">1.2x</span></label>
+                    <input id="glowParticleSpeed" type="range" min="0.2" max="4" step="0.1" value="1.2" />
+                  </div>
+                  <div class="field">
+                    <label for="glowParticleRandomness">粒子随机 <span id="glowParticleRandomnessValue">0.65</span></label>
+                    <input id="glowParticleRandomness" type="range" min="0" max="1" step="0.05" value="0.65" />
+                  </div>
+                </div>
+                <div class="sweep-actions">
+                  <button id="glowBlendBtn" type="button">混合: 滤色</button>
+                  <button id="glowPulseBtn" type="button">动态闪烁: 开</button>
+                </div>
+                <button id="removeGlowBtn" type="button">移除发光</button>
+              </div>
+              </div>
+              <div id="motionLightingPanel" class="motion-tab-panel" data-motion-panel="lighting" role="tabpanel" aria-labelledby="motionTabLighting" hidden>
+              <div class="section-title">
+                <div class="section-title-main">
+                  <strong>丁达尔光照</strong>
+                </div>
+                <div class="sweep-header-actions lighting-header-actions">
+                  <button id="addPointLightingBtn" class="sweep-header-button" type="button" disabled>自定义光源</button>
+                  <button id="addLayerLightingBtn" class="sweep-header-button" type="button" disabled>图层光源</button>
+                </div>
+              </div>
+              <div id="lightingEmpty" class="sweep-empty">导入 Figma 画布后，可添加自定义光源或图层光源。</div>
+              <div id="lightingControls" class="sweep-controls" hidden>
+                <div id="lightingPointSourceControls">
+                  <div class="motion-anchor-field">
+                    <div class="motion-anchor-copy">
+                      <span>光源点</span>
+                      <strong id="lightingSourceValue">50% / 10%</strong>
+                    </div>
+                    <button id="lightingSourcePickBtn" type="button">重新选点</button>
+                  </div>
+                  <div class="lighting-coordinate-grid" aria-label="光源点坐标">
+                    <label class="lighting-coordinate-field" for="lightingSourceXInput">
+                      <span>X 坐标</span>
+                      <span class="lighting-coordinate-input">
+                        <input id="lightingSourceXInput" type="number" min="0" max="100" step="0.1" value="50" inputmode="decimal" />
+                        <span>%</span>
+                      </span>
+                    </label>
+                    <label class="lighting-coordinate-field" for="lightingSourceYInput">
+                      <span>Y 坐标</span>
+                      <span class="lighting-coordinate-input">
+                        <input id="lightingSourceYInput" type="number" min="0" max="100" step="0.1" value="10" inputmode="decimal" />
+                        <span>%</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+                <div id="lightingLayerSourceControls" class="lighting-layer-source-controls" hidden>
+                  <div class="field">
+                    <label for="lightingTargetSelect">光源图层</label>
+                    <select id="lightingTargetSelect"></select>
+                  </div>
+                  <div class="lighting-source-help">光线从图层透明轮廓向外发射；粗细会根据图层尺寸自动适配。</div>
+                </div>
+                <div class="sweep-parameter-grid">
+                  <div class="field">
+                    <label for="lightingBeamCount">光片数量 <span id="lightingBeamCountValue">5</span></label>
+                    <input id="lightingBeamCount" type="range" min="1" max="32" step="1" value="5" />
+                  </div>
+                  <div class="field">
+                    <label for="lightingThickness">光芒粗细 <span id="lightingThicknessValue">200%</span></label>
+                    <input id="lightingThickness" type="range" min="0.2" max="12" step="0.05" value="2" />
+                  </div>
+                  <div class="field">
+                    <label for="lightingLength">照射长度 <span id="lightingLengthValue">750px</span></label>
+                    <input id="lightingLength" type="range" min="0.1" max="2" step="0.001" value="1.453" />
+                  </div>
+                  <div id="lightingDirectionField" class="field">
+                    <label for="lightingDirection">照射方向 <span id="lightingDirectionValue">118°</span></label>
+                    <input id="lightingDirection" type="range" min="-180" max="180" step="1" value="118" />
+                  </div>
+                  <div id="lightingSpreadField" class="field">
+                    <label for="lightingSpread">扩散角度 <span id="lightingSpreadValue">45°</span></label>
+                    <input id="lightingSpread" type="range" min="0" max="120" step="1" value="45" />
+                  </div>
+                  <div id="lightingScaleRandomnessField" class="field" hidden>
+                    <label for="lightingScaleRandomness">随机缩放 <span id="lightingScaleRandomnessValue">35%</span></label>
+                    <input id="lightingScaleRandomness" type="range" min="0" max="1" step="0.01" value="0.35" />
+                  </div>
+                  <div id="lightingRotationTurnsField" class="field" hidden>
+                    <label for="lightingRotationTurns">3秒旋转 <span id="lightingRotationTurnsValue">1/10圈 · 36°</span></label>
+                    <input id="lightingRotationTurns" type="range" min="0" max="3" step="1" value="1" />
+                  </div>
+                  <div class="field">
+                    <label for="lightingFalloff">衰减曲线</label>
+                    <select id="lightingFalloff">
+                      <option value="smooth">平滑衰减</option>
+                      <option value="linear">线性衰减</option>
+                      <option value="quadratic">平方衰减</option>
+                      <option value="exponential">指数衰减</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="lightingBlur">虚化程度 <span id="lightingBlurValue">60%</span></label>
+                    <input id="lightingBlur" type="range" min="0" max="1" step="0.01" value="0.6" />
+                  </div>
+                  <div class="field">
+                    <label for="lightingOpacity">光照强度 <span id="lightingOpacityValue">62%</span></label>
+                    <input id="lightingOpacity" type="range" min="0" max="1" step="0.01" value="0.62" />
+                  </div>
+                </div>
+                <div id="lightingPointMotionSection">
+                  <div class="inspector-subtitle lighting-motion-title">
+                    <span>自然动态</span>
+                    <button id="lightingMotionToggle" class="lighting-motion-toggle active" type="button" aria-pressed="true">动态: 开</button>
+                  </div>
+                  <div id="lightingMotionGrid" class="sweep-parameter-grid lighting-motion-grid">
+                    <div class="field">
+                      <label for="lightingMotionSpeed">动态速度 <span id="lightingMotionSpeedValue">1.00x</span></label>
+                      <input id="lightingMotionSpeed" type="range" min="0.25" max="3" step="0.05" value="1" />
+                    </div>
+                    <div class="field">
+                      <label for="lightingSway">摆动幅度 <span id="lightingSwayValue">3.0°</span></label>
+                      <input id="lightingSway" type="range" min="0" max="12" step="0.1" value="3" />
+                    </div>
+                    <div class="field">
+                      <label for="lightingFlow">衰减幅度 <span id="lightingFlowValue">100%</span></label>
+                      <input id="lightingFlow" type="range" min="0" max="1" step="0.01" value="1" title="同步控制每片光的透明度与等比尺寸循环变化" />
+                    </div>
+                  </div>
+                </div>
+                <div id="lightingLayerHighlightSection" hidden>
+                  <div class="inspector-subtitle lighting-motion-title"><span>元素高亮</span></div>
+                  <div class="sweep-parameter-grid lighting-motion-grid">
+                    <div class="field">
+                      <label for="lightingElementBrightness">亮度 <span id="lightingElementBrightnessValue">140%</span></label>
+                      <input id="lightingElementBrightness" type="range" min="0" max="2" step="0.01" value="1.4" />
+                    </div>
+                    <div class="field">
+                      <label for="lightingElementFlicker">闪烁幅度 <span id="lightingElementFlickerValue">35%</span></label>
+                      <input id="lightingElementFlicker" type="range" min="0" max="1" step="0.01" value="0.35" />
+                    </div>
+                  </div>
+                </div>
+                <div class="particle-color-row">
+                  <div class="field color-field">
+                    <label for="lightingStartColor">近端颜色</label>
+                    <input id="lightingStartColor" type="color" value="#fff4d6" />
+                  </div>
+                  <div class="field color-field">
+                    <label for="lightingEndColor">远端颜色</label>
+                    <input id="lightingEndColor" type="color" value="#d9b07a" />
+                  </div>
+                </div>
+                <button id="removeLightingBtn" type="button">移除光照</button>
+              </div>
+              </div>
+              <div id="motionParticlePanel" class="motion-tab-panel" data-motion-panel="particle" role="tabpanel" aria-labelledby="motionTabParticle" hidden>
+              <div class="section-title">
+                <div class="section-title-main">
+                  <strong>粒子特效</strong>
+                </div>
+                <button id="addParticleBtn" class="sweep-header-button" type="button" disabled>添加粒子</button>
+              </div>
+              <div id="particleEmpty" class="sweep-empty">导入 Figma 画布后可添加粒子层。</div>
+              <div id="particleControls" class="particle-controls" hidden>
+                <div class="particle-config-card particle-motion-card">
+                  <div class="particle-config-header">
+                    <span class="particle-config-title">动态形式</span>
+                    <span class="particle-config-hint">选择后立即预览</span>
+                  </div>
+                  <input id="particleSystemType" type="hidden" value="falling" />
+                  <div id="particleSystemOptions" class="particle-system-options" role="radiogroup" aria-label="粒子动态形式">
+                    <div class="particle-system-option-wrap">
+                      <button class="particle-system-option active" data-particle-system="falling" type="button" role="radio" aria-checked="true">飘落</button>
+                      <button class="particle-system-delete-btn" data-particle-system-delete="falling" type="button" title="删除当前粒子层" aria-label="删除当前飘落粒子层">×</button>
+                    </div>
+                    <div class="particle-system-option-wrap">
+                      <button class="particle-system-option" data-particle-system="emission" type="button" role="radio" aria-checked="false">发射</button>
+                      <button class="particle-system-delete-btn" data-particle-system-delete="emission" type="button" title="删除当前粒子层" aria-label="删除当前发射粒子层" hidden>×</button>
+                    </div>
+                    <div class="particle-system-option-wrap">
+                      <button class="particle-system-option" data-particle-system="flame" type="button" role="radio" aria-checked="false">火焰升腾</button>
+                      <button class="particle-system-delete-btn" data-particle-system-delete="flame" type="button" title="删除当前粒子层" aria-label="删除当前火焰粒子层" hidden>×</button>
+                    </div>
+                    <div class="particle-system-option-wrap">
+                      <button class="particle-system-option" data-particle-system="wave" type="button" role="radio" aria-checked="false">波浪游动</button>
+                      <button class="particle-system-delete-btn" data-particle-system-delete="wave" type="button" title="删除当前粒子层" aria-label="删除当前波浪粒子层" hidden>×</button>
+                    </div>
+                    <div class="particle-system-option-wrap">
+                      <button class="particle-system-option" data-particle-system="vortex" type="button" role="radio" aria-checked="false">漩涡聚合</button>
+                      <button class="particle-system-delete-btn" data-particle-system-delete="vortex" type="button" title="删除当前粒子层" aria-label="删除当前漩涡粒子层" hidden>×</button>
+                    </div>
+                    <div class="particle-system-option-wrap">
+                      <button class="particle-system-option" data-particle-system="sparkle" type="button" role="radio" aria-checked="false">闪烁星星</button>
+                      <button class="particle-system-delete-btn" data-particle-system-delete="sparkle" type="button" title="删除当前粒子层" aria-label="删除当前闪烁粒子层" hidden>×</button>
+                    </div>
+                  </div>
+                  <div id="particleSparkleAppearanceField" class="particle-sparkle-appearance-field" hidden>
+                    <input id="particleSparkleAppearanceMode" type="hidden" value="random" />
+                    <div class="particle-sparkle-appearance-row">
+                      <span class="particle-sparkle-appearance-label">出现方式</span>
+                      <div class="particle-sparkle-appearance-options" role="radiogroup" aria-label="闪烁星星出现方式">
+                        <button class="particle-sparkle-appearance-option active" data-particle-sparkle-appearance="random" type="button" role="radio" aria-checked="true">随机出现</button>
+                        <button class="particle-sparkle-appearance-option" data-particle-sparkle-appearance="sweep" type="button" role="radio" aria-checked="false">定向扫过</button>
+                      </div>
+                    </div>
+                    <div id="particleSparkleSweepAngleField" class="field particle-sparkle-sweep-angle-field" hidden>
+                      <label for="particleSparkleSweepAngle">扫过方向 <span id="particleSparkleSweepAngleValue">0°</span></label>
+                      <input id="particleSparkleSweepAngle" type="range" min="0" max="360" step="1" value="0" title="0° 从左向右，90° 从上向下" />
+                    </div>
+                  </div>
+                  <div id="particleInterferenceField" class="grid-2 particle-interference-field" hidden>
+                    <div class="field">
+                      <label for="particleFieldStrength">场强度 <span id="particleFieldStrengthValue">45%</span></label>
+                      <input id="particleFieldStrength" type="range" min="0" max="1" step="0.01" value="0.45" title="控制相邻粒子之间的干扰力度；0% 时关闭" />
+                    </div>
+                    <div class="field">
+                      <label for="particleFieldRadius">影响范围 <span id="particleFieldRadiusValue">22%</span></label>
+                      <input id="particleFieldRadius" type="range" min="0.05" max="0.6" step="0.01" value="0.22" title="控制粒子能够影响到周围多大范围内的相邻粒子" />
+                    </div>
+                  </div>
+                  <div id="particleEmissionSourceField" class="field particle-emission-source-field">
+                    <label for="particleEmissionSourceKey">从图层发射（可选）</label>
+                    <select id="particleEmissionSourceKey" aria-label="选择粒子发射图层">
+                      <option value="">不使用 · 保持当前方式</option>
+                    </select>
+                    <div id="particleSparkleLayerAreaField" class="field particle-sparkle-layer-area-field" hidden>
+                      <label for="particleSparkleLayerAreaScale">显示区域 <span id="particleSparkleLayerAreaScaleValue">100%</span></label>
+                      <input id="particleSparkleLayerAreaScale" type="range" min="0.25" max="2" step="0.01" value="1" aria-label="等比调整闪烁星星粒子显示区域" title="以绑定图层中心为基准，等比例缩放粒子的显示区域" />
+                    </div>
+                  </div>
+                  <div id="particleGuidePathField" class="particle-guide-path-field" hidden>
+                    <div class="particle-guide-path-header">
+                      <span>自定义牵引路径（可选）</span>
+                      <span id="particleGuidePathStatus" class="particle-guide-path-status" role="status" aria-live="polite">未绘制</span>
+                    </div>
+                    <div class="particle-guide-path-actions">
+                      <button id="particleGuidePathDrawBtn" class="particle-guide-path-draw" type="button">绘制路径</button>
+                      <button id="particleGuidePathClearBtn" class="particle-guide-path-clear" type="button" disabled>清除</button>
+                      <button id="particleGuidePathVisibilityBtn" class="particle-guide-path-visibility" type="button" aria-pressed="false" disabled>隐藏</button>
+                    </div>
+                  </div>
+                  <div id="particleSystemPanel" class="grid-2 particle-system-parameters" hidden>
+                    <div id="emissionOriginXField" class="field">
+                      <label for="emissionOriginX">X 起点 <span id="emissionOriginXValue">50%</span></label>
+                      <input id="emissionOriginX" type="range" min="0" max="1" step="0.01" value="0.5" />
+                    </div>
+                    <div id="emissionOriginYField" class="field">
+                      <label for="emissionOriginY">Y 起点 <span id="emissionOriginYValue">50%</span></label>
+                      <input id="emissionOriginY" type="range" min="0" max="1" step="0.01" value="0.5" />
+                    </div>
+                    <div id="particleEmissionVectorGrid" class="particle-emission-vector-grid">
+                      <div class="field">
+                        <label for="emissionAngle">发射角度 <span id="emissionAngleValue">270°</span></label>
+                        <input id="emissionAngle" type="range" min="0" max="360" step="1" value="270" />
+                      </div>
+                      <div class="field">
+                        <label for="emissionSpread">扩散角 <span id="emissionSpreadValue">45°</span></label>
+                        <input id="emissionSpread" type="range" min="0" max="360" step="1" value="45" />
+                      </div>
+                      <div id="emissionSpreadRangeField" class="field particle-emission-range-field" hidden>
+                        <label for="emissionSpreadRange">扩散范围 <span id="emissionSpreadRangeValue">20%</span></label>
+                        <input id="emissionSpreadRange" type="range" min="0" max="1" step="0.001" value="0.5848035476" title="调整横向扩散通道宽度，支持极窄范围且不改变扩散角" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="particle-config-card particle-element-card">
+                  <div class="particle-config-header">
+                    <span class="particle-config-title">粒子元素</span>
+                    <button id="particleRandomSeedButton" class="particle-random-seed-button" type="button" title="重新随机粒子排列" aria-label="重新随机粒子排列">
+                      <svg viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M2.5 4h1.7c3.7 0 3.6 8 7.4 8h1.9" />
+                        <path d="m11.5 10 2 2-2 2" />
+                        <path d="M2.5 12h1.7c1.7 0 2.6-1.7 3.4-3.5C8.5 6.3 9.4 4 11.6 4h1.9" />
+                        <path d="m11.5 2 2 2-2 2" />
+                      </svg>
+                      <span>种子随机</span>
+                    </button>
+                  </div>
+                  <div class="particle-appearance-row">
+                    <div class="field">
+                      <label for="particleShape">粒子样式</label>
+                      <select id="particleShape">
+                        <option id="particleShapeSnowOption" value="snow">雪花</option>
+                        <option id="particleShapePolygonOption" value="polygon" hidden disabled>多边形</option>
+                        <option value="star">星星</option>
+                        <option value="flash">闪光</option>
+                        <option value="circle">圆点</option>
+                      </select>
+                    </div>
+                    <div class="particle-color-swatch">
+                      <input id="particleColor" type="color" value="#ffffff" aria-label="粒子颜色" title="粒子颜色" />
+                    </div>
+                    <div class="particle-material-anchor">
+                      <button id="particleMaterialToggleBtn" class="particle-material-toggle" type="button" aria-expanded="false" aria-controls="particleMaterialPopover">
+                        <span id="particleMaterialToggleLabel" class="particle-material-toggle-label">自定义+</span>
+                      </button>
+                      <button id="particleMaterialClearBtn" class="particle-material-clear-btn" type="button" aria-label="清除当前粒子素材" title="清除当前粒子素材" hidden>×</button>
+                      <div id="particleMaterialPopover" class="particle-material-popover" role="dialog" aria-label="自定义粒子素材" hidden>
+                        <div class="particle-material-popover-header">
+                          <span>自定义粒子素材</span>
+                        </div>
+                        <span id="particleMaterialName" hidden></span>
+                        <input id="particleMaterialInput" type="file" accept="image/*" hidden />
+                        <div class="particle-material-popover-actions">
+                          <button id="particleMaterialUploadBtn" class="material-action-button" type="button">上传素材 <span class="material-action-plus">+</span></button>
+                          <select id="particleMaterialLayerSelect" class="material-layer-select" aria-label="选择图层素材">
+                            <option value="">选择图层素材</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <input id="particleColorMode" type="hidden" value="solid" />
+                  <input id="particleSecondaryColor" type="hidden" value="#000000" />
+                  <div id="particleStarControls" class="grid-2 particle-star-controls" hidden>
+                    <div id="particleStarPointsField" class="field">
+                      <label for="particleStarPoints">星星角数量 <span id="particleStarPointsValue">5</span></label>
+                      <input id="particleStarPoints" type="range" min="3" max="12" step="1" value="5" />
+                    </div>
+                    <div id="particleStarInnerField" class="field">
+                      <label for="particleStarInnerRadius">星星内拐角 <span id="particleStarInnerRadiusValue">0.50</span></label>
+                      <input id="particleStarInnerRadius" type="range" min="0.12" max="0.85" step="0.01" value="0.5" />
+                    </div>
+                  </div>
+                  <div id="particleSparkleStyleGrid" class="particle-sparkle-style-grid" hidden>
+                    <div id="particlePolygonSidesField" class="field" hidden>
+                      <label for="particlePolygonSides">多边形边数 <span id="particlePolygonSidesValue">6</span></label>
+                      <input id="particlePolygonSides" type="range" min="3" max="12" step="1" value="6" />
+                    </div>
+                    <div class="field">
+                      <label for="particleGlowSize">发光大小 <span id="particleGlowSizeValue">75%</span></label>
+                      <input id="particleGlowSize" type="range" min="0" max="2" step="0.05" value="0.75" />
+                    </div>
+                    <div class="field">
+                      <label for="particleGlowStrength">发光强度 <span id="particleGlowStrengthValue">60%</span></label>
+                      <input id="particleGlowStrength" type="range" min="0" max="1" step="0.05" value="0.6" />
+                    </div>
+                  </div>
+                  <div id="particlePrimaryGrid" class="particle-primary-grid">
+                    <div class="field">
+                      <label for="particleCount">粒子数量 <span id="particleCountValue">30</span></label>
+                      <input id="particleCount" type="range" min="4" max="180" step="1" value="30" />
+                    </div>
+                    <div class="field">
+                      <label for="particleSize">粒子大小 <span id="particleSizeValue">8</span></label>
+                      <input id="particleSize" type="range" min="4" max="120" step="1" value="8" />
+                    </div>
+                    <div id="particleFeatherField" class="field" hidden>
+                      <label for="particleFeather">羽化 <span id="particleFeatherValue">0px</span></label>
+                      <input id="particleFeather" type="range" min="0" max="20" step="0.1" value="0" />
+                    </div>
+                  </div>
+                  <div class="grid-2">
+                    <div class="field">
+                      <label for="particleSpeed">速度 <span id="particleSpeedValue">1.0</span></label>
+                      <input id="particleSpeed" type="range" min="0.1" max="10" step="0.1" value="1" />
+                    </div>
+                    <div class="field">
+                      <label for="particleRandomness">随机 <span id="particleRandomnessValue">0.5</span></label>
+                      <input id="particleRandomness" type="range" min="0" max="1" step="0.05" value="0.5" title="同时扩大速度、亮度、大小、生命周期与闪烁差异" />
+                    </div>
+                  </div>
+                  <div class="particle-variance-grid">
+                    <div class="field">
+                      <label for="particleLifeSpan">生命周期 <span id="particleLifeSpanValue">1.00</span></label>
+                      <input id="particleLifeSpan" type="range" min="0.1" max="1" step="0.05" value="1" />
+                    </div>
+                    <div class="field">
+                      <label for="particleDecay">衰减 <span id="particleDecayValue">0.20</span></label>
+                      <input id="particleDecay" type="range" min="0" max="1" step="0.05" value="0.2" />
+                    </div>
+                    <div class="field">
+                      <label for="particleFlickerFrequency">闪烁频率 <span id="particleFlickerFrequencyValue">1.0x</span></label>
+                      <input id="particleFlickerFrequency" type="range" min="0" max="6" step="0.1" value="1" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </div>
+              <div id="motionSequencePanel" class="motion-tab-panel" data-motion-panel="sequence" role="tabpanel" aria-labelledby="motionTabSequence" hidden>
+              <div id="sequenceLibraryLoadingOverlay" class="sequence-library-loading-overlay" data-state="loading" aria-live="polite" aria-busy="true" hidden>
+                <div class="sequence-library-loading-card">
+                  <div class="sequence-library-loading-head">
+                    <span class="sequence-library-loading-spinner" aria-hidden="true"></span>
+                    <strong id="sequenceLibraryLoadingTitle" class="sequence-library-loading-title">正在加载序列帧素材</strong>
+                  </div>
+                  <div id="sequenceLibraryLoadingDetail" class="sequence-library-loading-detail">正在读取后台素材列表…</div>
+                  <div class="sequence-library-progress-track" aria-hidden="true">
+                    <span id="sequenceLibraryProgressBar" class="sequence-library-progress-bar"></span>
+                  </div>
+                  <div class="sequence-library-progress-meta">
+                    <span id="sequenceLibraryProgressCount">0 / 0 帧</span>
+                    <span id="sequenceLibraryProgressPercent">0%</span>
+                  </div>
+                  <button id="sequenceLibraryRetryBtn" class="sequence-library-retry" type="button" hidden>重试加载</button>
+                </div>
+              </div>
+              <div class="sequence-library-section">
+                <div class="sequence-library-toolbar">
+                  <div class="sequence-library-tabs" role="tablist" aria-label="序列帧素材类型">
+                    <button id="sequenceLibraryOfficialTab" class="sequence-library-tab active" type="button" role="tab" aria-selected="true" aria-controls="sequenceGrid"><span>官方</span><small class="sequence-tab-note">每月上新</small></button>
+                    <button id="sequenceLibraryMineTab" class="sequence-library-tab" type="button" role="tab" aria-selected="false" aria-controls="sequenceGrid">我的</button>
+                  </div>
+                  <div id="sequenceOfficialCategoryBar" class="sequence-official-category-bar" role="tablist" aria-label="官方素材分类"></div>
+                  <div id="personalSequenceQuota" class="personal-sequence-quota" data-full="false" hidden>
+                    <div class="personal-sequence-quota-head">
+                      <span>我的素材容量</span>
+                      <strong id="personalSequenceQuotaText">0 B / 10 MB</strong>
+                    </div>
+                    <div class="personal-sequence-quota-track" role="progressbar" aria-label="我的素材容量" aria-valuemin="0" aria-valuemax="10485760" aria-valuenow="0">
+                      <span id="personalSequenceQuotaBar" class="personal-sequence-quota-bar"></span>
+                    </div>
+                  </div>
+                </div>
+                <div id="sequenceGrid" class="sequence-grid" aria-label="序列帧动画列表"></div>
+                <input id="sequenceFolderInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" webkitdirectory directory multiple hidden />
+              </div>
+              </div>
+              <div id="motionDisplacementPanel" class="motion-tab-panel" data-motion-panel="displacement" role="tabpanel" aria-labelledby="motionTabDisplacement" hidden>
+              <div id="displacementLibraryOverlay" class="sequence-library-loading-overlay" aria-live="polite" hidden>
+                <div class="sequence-library-loading-card">
+                  <div class="sequence-library-loading-head"><span class="sequence-library-loading-spinner" aria-hidden="true"></span><strong>正在加载置换素材</strong></div>
+                  <div id="displacementLibraryStatus" class="sequence-library-loading-detail">正在读取后台素材列表…</div>
+                  <button id="displacementLibraryRetry" class="sequence-library-retry" type="button" hidden>重试加载</button>
+                  <button id="displacementLibraryContinue" class="sequence-library-retry" type="button" hidden>继续使用内置效果</button>
+                </div>
+              </div>
+              <div class="section-title displacement-title-row"><strong>置换素材</strong><button id="displacementPreviewToggle" class="displacement-preview-toggle" type="button" aria-pressed="false">预览</button></div>
+              <div id="displacementGrid" class="sequence-grid displacement-grid" aria-label="置换预设列表"></div>
+              </div>
+            </div>
+          </div>
+          <div class="right-action-footer">
+            <div class="project-settings-menu">
+            <button
+              id="projectSettingsBtn"
+              class="tool-button icon-only"
+              type="button"
+              title="SVGA 与预览设置"
+              aria-label="SVGA 与预览设置"
+              aria-expanded="false"
+              aria-controls="projectSettingsPopover"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z" stroke-width="2" />
+                <path d="M19.2 13.2c.1-.4.1-.8.1-1.2s0-.8-.1-1.2l2-1.5-2-3.4-2.4 1a8.3 8.3 0 0 0-2-1.2L14.5 3h-5l-.4 2.7c-.7.3-1.4.7-2 1.2l-2.4-1-2 3.4 2 1.5c-.1.4-.1.8-.1 1.2s0 .8.1 1.2l-2 1.5 2 3.4 2.4-1c.6.5 1.3.9 2 1.2l.4 2.7h5l.4-2.7c.7-.3 1.4-.7 2-1.2l2.4 1 2-3.4-2.1-1.5Z" stroke-width="1.8" stroke-linejoin="round" />
+              </svg>
+            </button>
+            <div id="projectSettingsPopover" class="project-settings-popover" hidden>
+              <div class="project-settings-title">
+                <strong>SVGA 与预览设置</strong><button id="windowCloseBtn" type="button" aria-label="关闭插件" style="width:auto;height:28px;min-height:0;padding:3px 9px">退出插件</button>
+                <button id="projectSettingsCloseBtn" class="tool-button icon-only" type="button" title="收起 SVGA 与预览设置" aria-label="收起 SVGA 与预览设置">×</button>
+              </div>
+              <div class="project-settings-grid">
+                <div class="field">
+                  <label for="materialType">类型</label>
+                  <input id="materialType" value="figma_selection" />
+                </div>
+                <div class="field">
+                  <label for="exportScale">导出尺寸</label>
+                  <div class="export-size-control">
+                    <input id="exportScale" value="1x" placeholder="1x / 200w / 120h" autocomplete="off" />
+                    <button id="exportSizeMenuBtn" class="export-size-toggle" type="button" aria-label="展开导出尺寸选项">⌄</button>
+                    <div id="exportSizeMenu" class="export-size-menu-list" hidden>
+                      <button class="export-size-option" type="button" data-export-size-option="0.5x">0.5x</button>
+                      <button class="export-size-option" type="button" data-export-size-option="1x">1x</button>
+                      <button class="export-size-option" type="button" data-export-size-option="2x">2x</button>
+                      <button class="export-size-option" type="button" data-export-size-option="3x">3x</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="fps">帧率</label>
+                  <input id="fps" type="number" min="1" max="60" value="24" />
+                </div>
+                <div class="field">
+                  <label for="exportDuration">时长</label>
+                  <select id="exportDuration">
+                    <option value="3">3s</option>
+                    <option value="6">6s</option>
+                    <option value="9">9s</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="svgaQuality">素材画质</label>
+                  <select id="svgaQuality">
+                    <option value="low">低</option>
+                    <option value="medium">中</option>
+                    <option value="high">高</option>
+                  </select>
+                </div>
+              </div>
+            
+              <div class="project-settings-license-slot"><div class="license-menu">
+          <button id="licenseToggleBtn" class="license-compact" type="button" aria-expanded="false" aria-controls="licensePopover">
+            <span>
+              免费导出
+              <strong id="freeCount">10 / 10</strong>
+            </span>
+            <span>
+              授权状态
+              <strong id="activationState">未激活</strong>
+            </span>
+          </button>
+          <span id="licenseState" class="license-state-hidden">读取中</span>
+          <div id="licensePopover" class="license-popover" hidden>
+            <div class="license-popover-title">
+              <strong id="licensePopoverTitle">联系作者</strong>
+              <button id="licenseCloseBtn" class="tool-button icon-only" type="button" title="关闭">×</button>
+            </div>
+            <div id="contactPanel" class="contact-panel">
+              <img id="contactQr" alt="联系二维码" />
+              <div class="contact-copy">
+                <strong id="contactPanelTitle">联系作者</strong>
+                <span id="contactPanelDescription">备注"SVGA编辑器"</span>
+              </div>
+            </div>
+            <div id="installationIdField" class="field" hidden>
+              <label for="installationId">授权识别码</label>
+              <div class="code-row">
+                <div id="installationId" class="install-id">-</div>
+                <button id="copyInstallIdBtn" type="button">复制</button>
+              </div>
+              <div id="copyInstallIdStatus" class="copy-status" role="status" aria-live="polite"></div>
+            </div>
+            <div id="licenseExpiryField" class="field" hidden>
+              <label>有效期</label>
+              <div class="license-expiry-row">
+                <div id="licenseExpiryValue" class="install-id">-</div>
+                <button id="renewLicenseBtn" class="renew-license-button" type="button">续期</button>
+              </div>
+            </div>
+            <div id="licenseCodeField" class="field" hidden>
+              <div class="license-code-header">
+                <label for="licenseCode">授权码</label>
+                <button id="clearLicenseCodeBtn" class="clear-code-button" type="button">清空</button>
+              </div>
+              <textarea id="licenseCode" spellcheck="false" placeholder="L..."></textarea>
+              <div id="licenseActivationStatus" class="copy-status" role="status" aria-live="polite"></div>
+            </div>
+            <button id="activateLicenseBtn" type="button" hidden>激活授权码</button>
+          </div>
+        </div></div>
+            </div>
+          </div>
+            <div class="export-other-menu">
+            <button
+              id="exportOtherBtn"
+              class="tool-button"
+              type="button"
+              disabled
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="exportOtherMenu"
+            >
+              <span>导出其他格式</span>
+              <svg class="export-other-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m7 9.5 5 5 5-5" />
+              </svg>
+            </button>
+            <div id="exportOtherMenu" class="export-format-menu" role="menu" aria-label="导出其他格式" tabindex="-1" hidden>
+              <div id="exportOtherProNote" class="export-format-pro-note" hidden>PRO 功能 · 开通后可选择格式导出</div>
+              <div class="export-format-row" role="none">
+                <button class="export-format-action" type="button" role="menuitem" tabindex="-1" data-export-format="webp">
+                  <span>WebP</span>
+                  <small data-export-summary="webp">1x · 24fps · 36%</small>
+                </button>
+                <button class="export-format-settings-button" type="button" role="menuitem" tabindex="-1" data-export-settings="webp" aria-label="WebP 导出设置">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="M19.2 13.2c.1-.4.1-.8.1-1.2s0-.8-.1-1.2l2-1.5-2-3.4-2.4 1a8.3 8.3 0 0 0-2-1.2L14.5 3h-5l-.4 2.7c-.7.3-1.4.7-2 1.2l-2.4-1-2 3.4 2 1.5c-.1.4-.1.8-.1 1.2s0 .8.1 1.2l-2 1.5 2 3.4 2.4-1c.6.5 1.3.9 2 1.2l.4 2.7h5l.4-2.7c.7-.3 1.4-.7 2-1.2l2.4 1 2-3.4-2.1-1.5Z"/></svg>
+                </button>
+              </div>
+              <div class="export-format-row" role="none">
+                <button class="export-format-action" type="button" role="menuitem" tabindex="-1" data-export-format="gif">
+                  <span>GIF</span>
+                  <small data-export-summary="gif">1x · 24fps · 平衡</small>
+                </button>
+                <button class="export-format-settings-button" type="button" role="menuitem" tabindex="-1" data-export-settings="gif" aria-label="GIF 导出设置">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="M19.2 13.2c.1-.4.1-.8.1-1.2s0-.8-.1-1.2l2-1.5-2-3.4-2.4 1a8.3 8.3 0 0 0-2-1.2L14.5 3h-5l-.4 2.7c-.7.3-1.4.7-2 1.2l-2.4-1-2 3.4 2 1.5c-.1.4-.1.8-.1 1.2s0 .8.1 1.2l-2 1.5 2 3.4 2.4-1c.6.5 1.3.9 2 1.2l.4 2.7h5l.4-2.7c.7-.3 1.4-.7 2-1.2l2.4 1 2-3.4-2.1-1.5Z"/></svg>
+                </button>
+              </div>
+              <div class="export-format-row" role="none">
+                <button class="export-format-action" type="button" role="menuitem" tabindex="-1" data-export-format="lottie">
+                  <span>Lottie JSON</span>
+                  <small data-export-summary="lottie">1x · 24fps · 已压缩</small>
+                </button>
+                <button class="export-format-settings-button" type="button" role="menuitem" tabindex="-1" data-export-settings="lottie" aria-label="Lottie JSON 导出设置">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="M19.2 13.2c.1-.4.1-.8.1-1.2s0-.8-.1-1.2l2-1.5-2-3.4-2.4 1a8.3 8.3 0 0 0-2-1.2L14.5 3h-5l-.4 2.7c-.7.3-1.4.7-2 1.2l-2.4-1-2 3.4 2 1.5c-.1.4-.1.8-.1 1.2s0 .8.1 1.2l-2 1.5 2 3.4 2.4-1c.6.5 1.3.9 2 1.2l.4 2.7h5l.4-2.7c.7-.3 1.4-.7 2-1.2l2.4 1 2-3.4-2.1-1.5Z"/></svg>
+                </button>
+              </div>
+              <div class="export-format-row" role="none">
+                <button class="export-format-action" type="button" role="menuitem" tabindex="-1" data-export-format="webm">
+                  <span>WebM</span>
+                  <small data-export-summary="webm">1x · 24fps · 80%</small>
+                </button>
+                <button class="export-format-settings-button" type="button" role="menuitem" tabindex="-1" data-export-settings="webm" aria-label="WebM 导出设置">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="M19.2 13.2c.1-.4.1-.8.1-1.2s0-.8-.1-1.2l2-1.5-2-3.4-2.4 1a8.3 8.3 0 0 0-2-1.2L14.5 3h-5l-.4 2.7c-.7.3-1.4.7-2 1.2l-2.4-1-2 3.4 2 1.5c-.1.4-.1.8-.1 1.2s0 .8.1 1.2l-2 1.5 2 3.4 2.4-1c.6.5 1.3.9 2 1.2l.4 2.7h5l.4-2.7c.7-.3 1.4-.7 2-1.2l2.4 1 2-3.4-2.1-1.5Z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+            <button id="exportSvgaBtn" class="tool-button primary" type="button" disabled>导出 SVGA</button>
+          </div>
+        </aside>
+      </section>
+      <div id="resizeHandle" class="resize-handle" title="拖拽调整插件窗口"></div>
+    </main>
+
+    <div id="helpPopover" class="help-popover pro-contact-popover" role="dialog" aria-labelledby="proContactTitle" hidden>
+              <div class="help-title">
+                <strong id="proContactTitle">联系作者</strong>
+                <button id="helpCloseBtn" class="tool-button icon-only" type="button" title="关闭" aria-label="关闭">×</button>
+              </div>
+              <div class="pro-contact-body">
+                <img id="proContactImage" alt="开通PRO说明" />
+              </div>
+              <div id="proMemberBody" class="pro-member-body" hidden>
+                <div id="proRating" class="pro-rating" role="radiogroup" aria-label="产品评分">
+                  <button type="button" data-rating="1" role="radio" aria-checked="false" aria-label="1星">★</button>
+                  <button type="button" data-rating="2" role="radio" aria-checked="false" aria-label="2星">★</button>
+                  <button type="button" data-rating="3" role="radio" aria-checked="false" aria-label="3星">★</button>
+                  <button type="button" data-rating="4" role="radio" aria-checked="false" aria-label="4星">★</button>
+                  <button type="button" data-rating="5" role="radio" aria-checked="false" aria-label="5星">★</button>
+                </div>
+                <textarea id="proFeedbackInput" class="pro-feedback-input" maxlength="2000" placeholder="输入产品使用反馈和产品建议"></textarea>
+                <div class="pro-feedback-actions">
+                  <span id="proFeedbackStatus" class="pro-feedback-status" role="status" aria-live="polite"></span>
+                  <button id="proFeedbackSubmitBtn" class="primary" type="button">提交</button>
+                </div>
+                <div id="proFeedbackConversation" class="pro-feedback-conversation" aria-label="反馈沟通记录"></div>
+              </div>
+            </div>
+
+    <section id="sweepCustomShapeDialog" class="sweep-custom-shape-dialog" role="dialog" aria-modal="true" aria-labelledby="sweepCustomShapeTitle" hidden>
+      <div class="sweep-custom-shape-card">
+        <div class="sweep-custom-shape-header">
+          <div class="sweep-custom-shape-heading">
+            <strong id="sweepCustomShapeTitle">自定义形状</strong>
+            <span id="sweepMaterialName">未添加</span>
+          </div>
+          <div class="sweep-custom-shape-header-actions">
+            <button id="sweepMaterialClearBtn" class="sweep-custom-shape-icon danger" type="button" title="删除自定义形状" aria-label="删除自定义形状" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
+            </button>
+            <button id="sweepCustomShapeCloseBtn" class="sweep-custom-shape-icon" type="button" title="关闭" aria-label="关闭">×</button>
+          </div>
+        </div>
+        <div class="sweep-custom-shape-preview">
+          <img id="sweepCustomShapePreview" alt="" hidden />
+          <svg id="sweepCustomShapeGuide" class="sweep-custom-shape-guide" preserveAspectRatio="xMidYMid meet" aria-hidden="true" hidden>
+            <defs>
+              <marker id="sweepCustomShapeArrowHead" markerWidth="8.32" markerHeight="8.32" refX="7.04" refY="4.16" orient="auto" markerUnits="strokeWidth">
+                <path d="M0 0.72L7.6 4.16L0 7.6Z" fill="#ff554d"></path>
+              </marker>
+            </defs>
+            <line id="sweepCustomShapeAxis" class="sweep-custom-shape-axis"></line>
+            <g id="sweepCustomShapeArrowRunner" transform="translate(0 0)">
+              <animateTransform id="sweepCustomShapeArrowMotion" attributeName="transform" type="translate" from="0 0" to="0 0" dur="1.65s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines="0.35 0 0.2 1"></animateTransform>
+              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.16;0.78;1" dur="1.65s" repeatCount="indefinite"></animate>
+              <line id="sweepCustomShapeArrow" class="sweep-custom-shape-arrow" x2="0" y1="0" y2="0" marker-end="url(#sweepCustomShapeArrowHead)"></line>
+            </g>
+          </svg>
+          <span id="sweepCustomShapePreviewEmpty">未添加</span>
+        </div>
+        <input id="sweepMaterialInput" type="file" accept=".svg,image/svg+xml" hidden />
+        <div class="sweep-custom-shape-actions">
+          <button id="sweepMaterialUploadBtn" type="button">上传 SVG</button>
+          <select id="sweepMaterialLayerSelect" class="material-layer-select" aria-label="矢量图层">
+            <option value="">选择矢量图层</option>
+          </select>
+        </div>
+        <div id="sweepCustomShapeAngleField" class="sweep-custom-shape-angle" hidden>
+          <label for="sweepCustomShapeAngle">扫光角度 <strong id="sweepCustomShapeAngleValue">0°</strong></label>
+          <input id="sweepCustomShapeAngle" type="range" min="-180" max="180" step="1" value="0" />
+        </div>
+        <button id="sweepCustomShapeConfirmBtn" class="sweep-custom-shape-confirm primary" type="button" disabled>确定</button>
+      </div>
+    </section>
+
+    <section id="reuseConfigDialog" class="reuse-config-dialog" role="dialog" aria-modal="false" aria-labelledby="reuseConfigTitle" hidden>
+      <div class="reuse-config-header">
+        <div class="reuse-config-heading">
+          <strong id="reuseConfigTitle">复用画板配置</strong>
+        </div>
+        <button id="reuseConfigCloseBtn" class="reuse-config-close" type="button" title="关闭" aria-label="关闭复用配置">×</button>
+      </div>
+      <div id="reuseConfigList" class="reuse-config-list" aria-live="polite"></div>
+    </section>
+
+    <section
+      id="exportFormatSettingsDialog"
+      class="export-format-settings-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="exportFormatSettingsTitle"
+      aria-describedby="exportFormatSettingsDescription"
+      hidden
+    >
+      <form id="exportFormatSettingsForm" class="export-format-settings-card" novalidate>
+        <header class="export-format-settings-header">
+          <div class="export-format-settings-heading">
+            <strong id="exportFormatSettingsTitle">WebP 导出设置</strong>
+            <p id="exportFormatSettingsDescription">参数仅应用于 WebP，不影响其他格式。</p>
+          </div>
+          <button id="exportFormatSettingsCloseBtn" class="export-format-settings-close" type="button" aria-label="关闭导出设置">×</button>
+        </header>
+        <div class="export-format-settings-grid">
+          <div class="field">
+            <label for="exportProfileSize">导出尺寸</label>
+            <input id="exportProfileSize" value="1x" placeholder="1x / 200w / 120h" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="exportProfileFps">帧率</label>
+            <input id="exportProfileFps" type="number" min="1" max="60" step="1" value="24" />
+          </div>
+          <div class="field" data-profile-field="quality">
+            <label for="exportProfileQuality">
+              画质
+              <output id="exportProfileQualityValue" for="exportProfileQuality">36%</output>
+            </label>
+            <input id="exportProfileQuality" type="range" min="1" max="100" step="1" value="36" />
+          </div>
+          <div class="field" data-profile-field="gif-compression" hidden>
+            <label for="exportProfileGifCompression">压缩</label>
+            <select id="exportProfileGifCompression">
+              <option value="small">较小文件</option>
+              <option value="balanced" selected>平衡</option>
+              <option value="quality">高质量</option>
+            </select>
+          </div>
+          <label class="export-format-checkbox" data-profile-field="loop">
+            <input id="exportProfileLoop" type="checkbox" checked />
+            无限循环（关闭后单次播放）
+          </label>
+          <label class="export-format-checkbox" data-profile-field="minify" hidden>
+            <input id="exportProfileMinify" type="checkbox" checked />
+            压缩 JSON
+          </label>
+        </div>
+        <p id="exportFormatSettingsNote" class="export-format-settings-note">动态 WebP 会按完整工程时间线渲染并压缩。</p>
+        <div id="exportFormatSettingsError" class="export-format-settings-error" role="alert" aria-live="polite"></div>
+        <footer class="export-format-settings-actions">
+          <button id="exportFormatSettingsResetBtn" type="button">恢复默认</button>
+          <span aria-hidden="true"></span>
+          <button id="exportFormatSettingsCancelBtn" type="button">取消</button>
+          <button class="primary" type="submit">确定</button>
+        </footer>
+      </form>
+    </section>
+
+    <section
+      id="lightingUnlockDialog"
+      class="lighting-unlock-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lightingUnlockTitle"
+      hidden
+    >
+      <form id="lightingUnlockForm" class="lighting-unlock-card" novalidate>
+        <header class="lighting-unlock-heading">
+          <span class="lighting-unlock-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3"/><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M12 14v3"/></svg>
+          </span>
+          <span class="lighting-unlock-title">
+            <strong id="lightingUnlockTitle">解锁光照动效</strong>
+          </span>
+          <button id="lightingUnlockCloseBtn" class="lighting-unlock-close" type="button" aria-label="关闭解锁弹窗">×</button>
+        </header>
+        <div class="lighting-unlock-field">
+          <input id="lightingUnlockCode" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="神秘代码" placeholder="请输入神秘代码" />
+        </div>
+        <div id="lightingUnlockError" class="lighting-unlock-error" role="alert" aria-live="polite"></div>
+        <footer class="lighting-unlock-actions">
+          <button id="lightingUnlockConfirmBtn" class="lighting-unlock-confirm" type="submit">永久解锁</button>
+        </footer>
+      </form>
+    </section>
+
+    <section
+      id="adminPanelDialog"
+      class="admin-panel-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="adminPanelTitle"
+      hidden
+    >
+      <div class="admin-panel-card">
+        <header class="admin-panel-heading">
+          <span>
+            <strong id="adminPanelTitle">SVGA Editor 管理后台</strong>
+            <span id="adminPanelIdentity" class="admin-panel-subtitle"></span>
+          </span>
+          <span class="admin-panel-heading-actions">
+            <button id="adminPanelCloseBtn" class="tool-button icon-only" type="button" aria-label="关闭管理后台">×</button>
+          </span>
+        </header>
+
+        <div id="adminLoginView" class="admin-panel-view">
+          <form id="adminLoginForm" class="admin-login-form" novalidate>
+            <label>
+              管理员账号
+              <input id="adminEmail" type="email" value="wenshiyun77@gmail.com" readonly />
+            </label>
+            <label>
+              管理员密码
+              <input id="adminPassword" type="password" autocomplete="current-password" placeholder="输入后台密码" />
+            </label>
+            <div id="adminLoginError" class="lighting-unlock-error" role="alert" aria-live="polite"></div>
+            <button id="adminLoginBtn" class="primary" type="submit">登录并绑定当前 Figma 账号</button>
+            <button id="adminSignupBtn" type="button">首次使用：创建管理员账号</button>
+            <p class="admin-panel-subtitle">首次登录成功后，当前 Figma 用户 ID 会与管理员邮箱绑定。以后只有该账号显示“管理后台”入口。</p>
+          </form>
+        </div>
+
+        <div id="adminDashboardView" class="admin-panel-view" hidden>
+          <nav class="admin-dashboard-tabs" aria-label="后台管理分类">
+            <button id="adminUsersTab" class="admin-dashboard-tab active" type="button" data-admin-section="users" aria-selected="true">用户数据</button>
+            <button id="adminMaterialsTab" class="admin-dashboard-tab" type="button" data-admin-section="materials" aria-selected="false">素材管理</button>
+            <button id="adminFeedbackTab" class="admin-dashboard-tab" type="button" data-admin-section="feedback" aria-selected="false">用户反馈</button>
+          </nav>
+          <section id="adminUsersPane" class="admin-dashboard-pane">
+            <div id="adminUsersOverview" class="admin-users-overview">
+              <div class="admin-panel-summary">
+                <button id="adminDailyUsersSummaryBtn" class="admin-summary-card admin-summary-card-button" type="button" aria-pressed="false" title="进入当日用户列表"><span>当日用户 · 查看</span><strong id="adminDailyUsers">0</strong></button>
+                <div class="admin-summary-card"><span>当日打开</span><strong id="adminDailyOpens">0</strong></div>
+                <button id="adminHistoryUsersSummaryBtn" class="admin-summary-card admin-summary-card-button" type="button" aria-pressed="false" title="进入历史用户列表"><span>历史用户 · 查看</span><strong id="adminTotalUsers">0</strong></button>
+                <button id="adminProSummaryBtn" class="admin-summary-card admin-summary-card-button" type="button" aria-pressed="false" title="进入 PRO 用户列表"><span>PRO 人数 · 查看</span><strong id="adminProUsers">0</strong></button>
+              </div>
+              <form id="adminUserSearchForm" class="admin-panel-toolbar">
+                <input id="adminUserSearch" type="search" autocomplete="off" placeholder="搜索全部历史用户：昵称、用户 ID 或编号（如 #1000）" />
+                <input id="adminUsageDate" type="date" aria-label="使用日期" />
+                <button id="adminUserRefreshBtn" type="submit">搜索 / 刷新</button>
+              </form>
+              <div id="adminPanelStatus" class="admin-panel-status" role="status" aria-live="polite"></div>
+              <div id="adminUserList" class="admin-user-list"></div>
+              <button id="adminUserLoadMoreBtn" class="admin-user-load-more" type="button" hidden>加载更多</button>
+            </div>
+            <section id="adminUsersSecondaryPage" class="admin-users-secondary-page" aria-labelledby="adminUsersSecondaryPageTitle" hidden>
+              <header class="admin-secondary-page-heading">
+                <button id="adminUsersSecondaryBackBtn" class="admin-secondary-back-btn" type="button">← 返回</button>
+                <div class="admin-secondary-page-title">
+                  <strong id="adminUsersSecondaryPageTitle">用户列表</strong>
+                  <span id="adminUsersSecondaryPageCount">0 人</span>
+                </div>
+              </header>
+              <div id="adminUsersSecondaryPageStatus" class="admin-panel-status" role="status" aria-live="polite"></div>
+              <div id="adminUsersSecondaryList" class="admin-user-list"></div>
+              <button id="adminUsersSecondaryLoadMoreBtn" class="admin-user-load-more" type="button" hidden>加载更多</button>
+            </section>
+          </section>
+          <section id="adminMaterialsPane" class="admin-dashboard-pane" hidden>
+            <section class="admin-sequence-panel">
+              <div class="admin-sequence-heading">
+                <strong>官方序列帧素材</strong>
+                <button id="adminSequenceUploadBtn" type="button">批量上传文件夹</button>
+                <input id="adminSequenceFolderInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" webkitdirectory directory multiple hidden />
+              </div>
+              <div class="admin-sequence-category-manager">
+                <div id="adminSequenceCategoryList" class="admin-sequence-category-list" aria-label="素材标签列表"></div>
+              </div>
+              <div class="admin-panel-subtitle">选择一个包含多个素材子文件夹的总文件夹；每个一级子文件夹会作为一套官方素材上传。</div>
+              <div id="adminSequenceStatus" class="admin-panel-status" role="status" aria-live="polite"></div>
+              <div id="adminSequenceList" class="admin-sequence-list"></div>
+            </section>
+            <section class="admin-sequence-panel">
+              <div class="admin-sequence-heading">
+                <strong>置换素材</strong>
+                <button id="adminDisplacementUploadBtn" type="button">批量上传文件夹</button>
+                <input id="adminDisplacementFolderInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" webkitdirectory directory multiple hidden />
+              </div>
+              <div id="adminDisplacementStatus" class="admin-panel-status" role="status" aria-live="polite"></div>
+              <div id="adminDisplacementList" class="admin-sequence-list"></div>
+            </section>
+            <section class="admin-sequence-panel">
+              <div class="admin-sequence-heading">
+                <strong>用户上传素材与容量</strong>
+                <button id="adminPersonalSequenceRefreshBtn" type="button">刷新</button>
+              </div>
+              <input id="adminPersonalSequenceSearch" type="search" autocomplete="off" placeholder="搜索用户、Figma ID 或素材名称" />
+              <div id="adminPersonalSequenceStatus" class="admin-panel-status" role="status" aria-live="polite"></div>
+              <div id="adminPersonalSequenceList" class="admin-sequence-list"></div>
+            </section>
+          </section>
+          <section id="adminFeedbackPane" class="admin-dashboard-pane" hidden>
+            <div id="adminFeedbackOverview">
+              <form id="adminFeedbackSearchForm" class="admin-panel-toolbar">
+                <input id="adminFeedbackSearch" type="search" autocomplete="off" placeholder="搜索昵称、用户 ID 或反馈内容" />
+                <span></span>
+                <button id="adminFeedbackRefreshBtn" type="submit">搜索 / 刷新</button>
+              </form>
+              <div id="adminFeedbackStatus" class="admin-panel-status" role="status" aria-live="polite"></div>
+              <div id="adminFeedbackList" class="admin-feedback-list"></div>
+            </div>
+            <section id="adminFeedbackThreadPage" class="admin-feedback-thread-page" hidden>
+              <header class="admin-secondary-page-heading">
+                <button id="adminFeedbackBackBtn" class="admin-secondary-back-btn" type="button">← 返回</button>
+                <div class="admin-secondary-page-title">
+                  <strong id="adminFeedbackThreadTitle">用户反馈</strong>
+                  <span id="adminFeedbackThreadRating"></span>
+                </div>
+              </header>
+              <div id="adminFeedbackThreadMeta" class="admin-feedback-thread-meta"></div>
+              <div id="adminFeedbackConversation" class="admin-feedback-conversation"></div>
+              <div class="admin-feedback-reply">
+                <textarea id="adminFeedbackReplyInput" maxlength="2000" placeholder="回复用户"></textarea>
+                <button id="adminFeedbackReplyBtn" class="primary" type="button">发送回复</button>
+                <div id="adminFeedbackReplyStatus" class="admin-panel-status" role="status" aria-live="polite"></div>
+              </div>
+            </section>
+          </section>
+          <footer class="admin-panel-actions">
+            <button id="adminLogoutBtn" type="button">退出后台</button>
+          </footer>
+        </div>
+      </div>
+    </section>
+
+    <div id="exportModal" class="export-modal" role="status" aria-live="polite" hidden>
+      <div class="export-modal-card">
+        <div class="export-modal-spinner" aria-hidden="true"></div>
+        <div id="exportModalTitle" class="export-modal-title">正在导出 SVGA</div>
+        <div id="exportModalDetail" class="export-modal-detail">正在准备素材，请稍候...</div>
+        <div id="exportModalProgress" class="export-modal-progress" hidden aria-hidden="true">
+          <span id="exportModalProgressBar"></span>
+        </div>
+      </div>
+    </div>
+    <div id="renewLicenseDialog" class="license-renew-modal" role="dialog" aria-modal="true" aria-labelledby="renewLicenseTitle" hidden>
+      <div class="license-renew-card">
+        <div id="renewLicenseTitle" class="license-renew-title">续期授权</div>
+        <textarea id="renewLicenseCode" spellcheck="false" placeholder="L..."></textarea>
+        <div id="renewLicenseStatus" class="copy-status" role="status" aria-live="polite"></div>
+        <div class="license-renew-actions">
+          <button id="renewLicenseCancelBtn" type="button">取消</button>
+          <button id="renewLicenseConfirmBtn" type="button">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <dialog id="unsavedCloseDialog" style="color:#eee;background:#202127;border:1px solid #555;border-radius:14px;max-width:360px;padding:22px">
+<strong>关闭插件？</strong><p id="unsavedCloseMessage"></p><div style="display:flex;justify-content:flex-end;gap:12px"><button id="cancelCloseBtn" type="button">继续编辑</button><button id="confirmCloseBtn" type="button">不保存并退出</button></div></dialog>
