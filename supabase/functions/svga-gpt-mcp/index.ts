@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createMcpHandler, McpServer } from "npm:@modelcontextprotocol/server@2.2.0";
 import * as z from "npm:zod@4.6.5";
 
-const VERSION = "0.1.0";
+const VERSION = "0.1.2";
 const PROJECT_ORIGIN = "https://nepilrihisogontdkcqi.supabase.co";
 const FUNCTION_BASE = `${PROJECT_ORIGIN}/functions/v1/svga-gpt-mcp`;
 const STATIC_ORIGIN = "https://wenshiyun77.github.io";
@@ -167,7 +167,7 @@ function makeServer() {
 
   server.registerResource(
     "svga-editor-ui",
-    "ui://svga-editor/editor-v1.html",
+    "ui://svga-editor/editor-v2.html",
     { title: "SVGA Editor", description: "Interactive animation preview and export controls.", mimeType: "text/html;profile=mcp-app" },
     async (uri) => ({
       contents: [{
@@ -178,10 +178,10 @@ function makeServer() {
           ui: {
             prefersBorder: true,
             domain: STATIC_ORIGIN,
-            csp: { connectDomains: [PROJECT_ORIGIN], resourceDomains: [STATIC_ORIGIN] },
+            csp: { connectDomains: [PROJECT_ORIGIN, STATIC_ORIGIN], resourceDomains: [STATIC_ORIGIN] },
           },
           "openai/ui": { availableDisplayModes: ["inline", "fullscreen"] },
-          "openai/widgetDescription": "Preview an uploaded design asset with a looping effect and export it as SVGA, GIF, or animated WebP.",
+          "openai/widgetDescription": "SVGA Editor using the same v0.8.53 animation rendering engine as the Figma plugin, with native preview and SVGA/GIF/WebP export.",
         },
       }],
     }),
@@ -197,7 +197,7 @@ function makeServer() {
       annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false, idempotentHint: false },
       _meta: {
         "openai/fileParams": ["file"],
-        ui: { resourceUri: "ui://svga-editor/editor-v1.html", visibility: ["model", "app"] },
+        ui: { resourceUri: "ui://svga-editor/editor-v2.html", visibility: ["model", "app"] },
         "openai/toolInvocation/invoking": "Preparing animation editor...",
         "openai/toolInvocation/invoked": "Animation editor ready",
       },
@@ -247,7 +247,7 @@ function makeServer() {
       outputSchema: OutputSchema,
       annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false, idempotentHint: true },
       _meta: {
-        ui: { resourceUri: "ui://svga-editor/editor-v1.html", visibility: ["model", "app"] },
+        ui: { resourceUri: "ui://svga-editor/editor-v2.html", visibility: ["model", "app"] },
         "openai/toolInvocation/invoking": "Updating animation settings...",
         "openai/toolInvocation/invoked": "Animation settings updated",
       },
