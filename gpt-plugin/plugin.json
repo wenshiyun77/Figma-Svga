@@ -1,0 +1,108 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "svga-editor",
+  "version": "0.1.0",
+  "description": "Animate user-provided image assets in ChatGPT and export SVGA, GIF, and animated WebP files.",
+  "author": {
+    "name": "SVGA Editor",
+    "url": "https://wenshiyun77.github.io/Figma-Svga/gpt/"
+  },
+  "homepage": "https://wenshiyun77.github.io/Figma-Svga/gpt/",
+  "repository": "https://github.com/wenshiyun77/Figma-Svga",
+  "keywords": [
+    "svga",
+    "animation",
+    "gif",
+    "webp",
+    "motion",
+    "design"
+  ],
+  "extensions": {
+    "com": {
+      "openai": {
+        "interface": {
+          "displayName": "SVGA Editor",
+          "shortDescription": "Animate assets, export files",
+          "longDescription": "Upload an image asset and add a short looping animation directly in ChatGPT. Choose fade, pulse, float, shine, glow, particles, or a combined VIP effect, refine the settings in an embedded preview, and export SVGA, GIF, or animated WebP. The first release focuses on short transparent design assets, limits browser-side rendering to a 640px maximum edge for predictable performance, and uses the first decoded frame of animated input files.",
+          "developerName": "SVGA Editor",
+          "category": "Productivity",
+          "capabilities": [
+            "Animate image assets",
+            "Preview animation",
+            "Export SVGA",
+            "Export GIF",
+            "Export WebP"
+          ],
+          "websiteURL": "https://wenshiyun77.github.io/Figma-Svga/gpt/",
+          "supportURL": "https://wenshiyun77.github.io/Figma-Svga/gpt/support.html",
+          "privacyPolicyURL": "https://wenshiyun77.github.io/Figma-Svga/gpt/privacy.html",
+          "termsOfServiceURL": "https://wenshiyun77.github.io/Figma-Svga/gpt/terms.html",
+          "defaultPrompt": [
+            "Add a premium gold shine and particles to this image and export all formats.",
+            "Make this asset pulse softly for 3 seconds and export SVGA and WebP.",
+            "Add a clean glow animation to this image and export a GIF."
+          ],
+          "brandColor": "#8A6828",
+          "brandColorDark": "#E3B64D",
+          "composerIcon": "./assets/icon.svg",
+          "logo": "./assets/logo.svg"
+        },
+        "review": {
+          "test_cases": {
+            "positive": [
+              {
+                "description": "Generate the default premium animation from an attached image.",
+                "prompt": "Give this image a premium gold shine and subtle particles. Export SVGA, GIF, and WebP.",
+                "tools_triggered": "create_animation",
+                "expected_behavior": "Create an interactive looping animation preview and expose SVGA, GIF, and animated WebP export controls."
+              },
+              {
+                "description": "Generate a simple fade animation.",
+                "prompt": "Make this image fade in and out smoothly for 3 seconds and export a GIF.",
+                "tools_triggered": "create_animation",
+                "expected_behavior": "Open the animation editor with the fade preset and allow GIF export."
+              },
+              {
+                "description": "Generate a shine animation.",
+                "prompt": "Add a clean diagonal gold shine to this image. Export SVGA and WebP only.",
+                "tools_triggered": "create_animation",
+                "expected_behavior": "Open the animation editor with a shine preset and the requested export formats."
+              },
+              {
+                "description": "Generate a glow animation.",
+                "prompt": "Add a soft glow animation to this image and export all supported formats.",
+                "tools_triggered": "create_animation",
+                "expected_behavior": "Open a looping glow preview with SVGA, GIF, and WebP export controls."
+              },
+              {
+                "description": "Refine an existing animation.",
+                "prompt": "Make the effect softer and change it to a 3 second pulse.",
+                "tools_triggered": "update_animation",
+                "expected_behavior": "Update the current job settings and refresh the interactive editor."
+              }
+            ],
+            "negative": [
+              {
+                "description": "Unsupported long video editing request.",
+                "prompt": "Edit this two-minute MP4 video and add subtitles."
+              },
+              {
+                "description": "Unsupported 3D rendering request.",
+                "prompt": "Render this GLB model into a rotating 3D product video."
+              },
+              {
+                "description": "Unsupported private-network fetch request.",
+                "prompt": "Download a file from my private network URL and return its contents."
+              }
+            ]
+          },
+          "commerce": false,
+          "commerce_description": "The initial release does not sell products or process payments."
+        },
+        "publication": {
+          "release_notes": "Initial public MVP: uploaded image animation with interactive preview and SVGA, GIF, and animated WebP export."
+        }
+      }
+    }
+  }
+}
