@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-const app=fs.readFileSync(new URL('../releases/20261003-v18/app.mjs',import.meta.url),'utf8');
+const app=fs.readFileSync(new URL('../releases/20261003-v19/app.mjs',import.meta.url),'utf8');
 const between=(a,b)=>app.slice(app.indexOf(a),app.indexOf(b,app.indexOf(a)));
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -12,9 +12,16 @@ test('statistics columns exclude dates, escape identity and expose all lifetime 
  assert.equal(columns.length,12);
  assert.deepEqual(Array.from(columns.filter(c=>['webp','gif','lottie','webm','pag'].includes(c.key)),c=>c.key),['webp','gif','lottie','webm','pag']);
  assert.ok(columns.every(c=>c.type!=='date'));
- assert.match(row,/&lt;script&gt;/);assert.match(row,/&lt;img&gt;/);assert.match(row,/>25<\/td>/);
+ assert.match(row,/&lt;script&gt;/);assert.doesNotMatch(row,/&lt;img&gt;/);assert.match(row,/<small>—<\/small>/);assert.match(row,/>25<\/td>/);
  const card=vm.runInNewContext(between('function userCard(','function applyProButtonState(')+';userCard',{num:v=>Number(v||0),esc,bj:()=>'-',normalizeAdminSubscription:()=>({plan:'none'}),avatarMarkup:()=>'',proMetaMarkup:()=>''})({figmaUserId:'x',totalOpenCount:100,openRank:3,pagExportCount:2},0);
  assert.doesNotMatch(card,/累计|排名/);assert.match(card,/当日打开/);assert.match(card,/PAG/);
+});
+test('ranking identity secondary line shows Beijing login date instead of user ID',()=>{
+ const cell=vm.runInNewContext(between('const bj=','const fmtBytes=')+between('function statisticsCell(','function statisticsRow(')+';statisticsCell',{num:v=>Number(v||0),esc});
+ const column={type:'user',field:'displayName'};
+ assert.equal(cell({displayName:'用户',figmaUserId:'private-id',lastOpenedAt:'2026-10-03T09:05:00Z'},column),'<strong>用户</strong><small>2026/10/03 17:05</small>');
+ assert.equal(cell({displayName:'用户',lastLoginAt:'2026-10-02T23:03:00Z',lastOpenedAt:'2026-10-03T09:05:00Z'},column),'<strong>用户</strong><small>2026/10/03 07:03</small>');
+ assert.equal(cell({displayName:'用户',figmaUserId:'private-id'},column),'<strong>用户</strong><small>—</small>');
 });
 function harness(initial=[]){
  const pending=[],status={textContent:''},panel={querySelector:()=>true};

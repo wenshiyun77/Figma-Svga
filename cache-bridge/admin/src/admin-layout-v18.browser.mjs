@@ -36,6 +36,7 @@ const users = Array.from({ length: 112 }, (_, i) => ({
   lastOpenedAt:'2026-10-03T09:00:00Z', pluginVersion:'0.8.69',
   subscription:{ plan:'trial', startedAt:'2026-10-01T09:19:00Z', expiresAt:'2026-10-08T09:19:00Z', daysRemaining:6 }
 }));
+users[111].lastLoginAt='2026-10-02T00:01:00Z';delete users[110].lastOpenedAt;
 const sorted = data => [...users].sort((a,b) => {
   const av=a[fields[data.sort]], bv=b[fields[data.sort]];
   return (typeof av === 'number' ? av-bv : String(av).localeCompare(String(bv))) * (data.sortDirection === 'asc' ? 1 : -1);
@@ -95,6 +96,7 @@ try {
   await page.locator('[data-mode="statistics"]').click();
   await page.waitForFunction(()=>document.querySelectorAll('.statistics-table tbody tr').length===50);
   assert.equal(await page.locator('thead th').count(),13,'date columns removed');
+  assert.deepEqual(await page.locator('tbody tr td:nth-child(3) small').allTextContents().then(v=>v.slice(0,2)),['2026/10/02 08:01','—'],'ranking name metadata shows last login time, fallback and empty marker');
   const headerText = await page.locator('thead').innerText();
   assert.ok(!headerText.includes('首次使用')&&!headerText.includes('最近打开'));
   await page.evaluate(()=>{window.qaScroll=document.querySelector('.statistics-scroll');window.qaTable=document.querySelector('.statistics-table');qaScroll.scrollLeft=160;qaScroll.scrollTop=380;});
