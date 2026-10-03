@@ -5,12 +5,12 @@ import fs from "node:fs";
 const read = (relativePath) => fs.readFileSync(new URL(relativePath, import.meta.url), "utf8");
 const exists = (relativePath) => fs.existsSync(new URL(relativePath, import.meta.url));
 
-test("admin entry selects the immutable 20260930-v15 release", () => {
+test("admin entry selects the immutable 20261003-v16 release", () => {
   const html = read("../index.html");
 
-  assert.match(html, /window\.__SVGA_ADMIN_BUILD__="20260930-v15"/);
-  assert.match(html, /\.\/releases\/20260930-v15\/app\.mjs/);
-  assert.match(html, /\.\/releases\/20260930-v15\/styles\.css/);
+  assert.match(html, /window\.__SVGA_ADMIN_BUILD__="20261003-v16"/);
+  assert.match(html, /\.\/releases\/20261003-v16\/app\.mjs/);
+  assert.match(html, /\.\/releases\/20261003-v16\/styles\.css/);
   assert.doesNotMatch(html, /releases\/20260920-v10/);
 });
 
