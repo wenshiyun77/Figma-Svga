@@ -378,12 +378,17 @@ const adminUsers = async (body: Record<string, unknown>) => {
   const onlineSince = new Date(Date.now() - 90_000).toISOString();
   const nowIso = new Date().toISOString();
 
-  const sort = ["opens", "exports"].includes(String(body.sort)) ? String(body.sort) : "default";
+  const statistics = body.statistics === true;
+  const statisticsSorts = ["opens", "exports", "figmaImports", "sequenceImports", "svga", "webp", "gif", "lottie", "webm", "pag", "number", "name", "firstSeen", "lastOpened"];
+  const sort = (statistics ? statisticsSorts : ["opens", "exports"]).includes(String(body.sort))
+    ? String(body.sort) : statistics ? "opens" : "default";
+  const sortDirection = body.sortDirection === "asc" ? "asc" : "desc";
   const [summaryResult, pageResult] = await Promise.all([
     service.rpc("svga_admin_dashboard_summary", { p_date: date, p_online_since: onlineSince }),
-    service.rpc("svga_admin_user_usage_page", {
+    service.rpc(statistics ? "svga_admin_user_statistics_page" : "svga_admin_user_usage_page", {
       p_date: date, p_online_since: onlineSince, p_mode: effectiveMode,
       p_query: query, p_pro_only: proOnly, p_sort: sort,
+      ...(statistics ? { p_sort_direction: sortDirection } : {}),
       p_offset: offset, p_limit: limit,
     }),
   ]);
@@ -446,6 +451,15 @@ const adminUsers = async (body: Record<string, unknown>) => {
       totalExportCount: Number(user.total_export_count || 0),
       openRank: Number(user.open_rank || 0),
       exportRank: Number(user.export_rank || 0),
+      statisticRank: Number(user.statistic_rank || 0),
+      totalFigmaImportCount: Number(user.total_figma_import_count || 0),
+      totalSequenceImportCount: Number(user.total_sequence_import_count || 0),
+      totalSvgaExportCount: Number(user.total_svga_export_count || 0),
+      totalWebpExportCount: Number(user.total_webp_export_count || 0),
+      totalGifExportCount: Number(user.total_gif_export_count || 0),
+      totalLottieExportCount: Number(user.total_lottie_export_count || 0),
+      totalWebmExportCount: Number(user.total_webm_export_count || 0),
+      totalPagExportCount: Number(user.total_pag_export_count || 0),
       openCount: Number(usage?.open_count || 0),
       figmaImportCount: Number(usage?.figma_import_count || 0),
       svgaExportCount: Number(usage?.svga_export_count || 0),
@@ -2186,6 +2200,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (action === "admin-user-statistics") {
+      await requireAdmin(req);
+      return json(await adminUsers({ ...body, mode: "history", proOnly: false, statistics: true }));
+    }
     if (action === "admin-users") {
       await requireAdmin(req);
       return json(await adminUsers(body));

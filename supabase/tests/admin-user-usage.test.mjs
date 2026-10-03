@@ -45,3 +45,18 @@ test('both page requests and stale-response identity include leaderboard sort', 
   assert.match(edge, /"pag_export"/);
   assert.match(edge, /await requireAdmin\(req\);\s*return json\(await adminUsers\(body\)\)/);
 });
+
+
+test('statistics API validates each sort and direction and maps all lifetime formats', async () => {
+  const calls=[];
+  const row={figma_user_id:'stats',total_figma_import_count:19,total_sequence_import_count:12,total_svga_export_count:20,total_webp_export_count:21,total_gif_export_count:22,total_lottie_export_count:23,total_webm_export_count:24,total_pag_export_count:25,statistic_rank:3};
+  const service={rpc:async(name,args)=>{calls.push([name,args]);return{data:name==='svga_admin_user_statistics_page'?{users:[row],total:51}:{},error:null};},from(){const q=new Proxy({},{get:(_,key)=>key==='then'?Promise.resolve({data:[],error:null}).then.bind(Promise.resolve({data:[],error:null})):()=>q});return q;}};
+  const source=between(edge,'const adminUsers = async','const adminProMilestones');
+  const fn=vm.runInNewContext(source.replace(/: Record<string, unknown>/g,'').replace(/new Map<string, ProSubscription>/g,'new Map').replace(/new Map<string, Record<string, unknown>>/g,'new Map')+';adminUsers',{service,beijingDate:()=> '2026-10-03',adminPersonalSequenceLibrariesForUsers:async()=>new Map(),normalizeProSubscription:()=>({plan:'none'}),emptyProSubscription:()=>({plan:'none'}),PERSONAL_SEQUENCE_LIBRARY_MAX_BYTES:10485760});
+  for(const sort of ['opens','exports','figmaImports','sequenceImports','svga','webp','gif','lottie','webm','pag','number','name','firstSeen','lastOpened']){
+    const result=await fn({statistics:true,mode:'history',sort,sortDirection:'asc',offset:50});
+    const call=calls.at(-1);assert.equal(call[0],'svga_admin_user_statistics_page');assert.equal(call[1].p_sort,sort);assert.equal(call[1].p_sort_direction,'asc');assert.equal(call[1].p_offset,50);
+    assert.equal(result.users[0].totalPagExportCount,25);assert.equal(result.users[0].totalFigmaImportCount,19);assert.equal(result.users[0].statisticRank,3);
+  }
+  await fn({statistics:true,mode:'history',sort:'bad',sortDirection:'bad'});assert.equal(calls.at(-1)[1].p_sort,'opens');assert.equal(calls.at(-1)[1].p_sort_direction,'desc');
+});
