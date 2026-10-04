@@ -1,0 +1,80 @@
+name: Public Source Guard
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Block private source paths
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          forbidden_paths=(
+            "src"
+            "supabase/functions"
+            "gpt-plugin"
+            "scripts"
+            "tests"
+            "test"
+            "docs/internal"
+          )
+
+          for path in "${forbidden_paths[@]}"; do
+            if [ -e "$path" ]; then
+              echo "::error::Forbidden private-source path found in public repository: $path"
+              exit 1
+            fi
+          done
+
+      - name: Block private implementation identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          forbidden_patterns=(
+            "ProtoWriter"
+            "exportSvga"
+            "sampleParticle"
+            "drawParticleAsset"
+            "writeParticleSprites"
+            "writeGlowSprites"
+            "writeSequenceSprites"
+            "zlibDeflate"
+            "processSequenceFramePayload"
+            "makeGlowRayTextureCanvas"
+            "SUPABASE_SERVICE_ROLE_KEY"
+            "SVGA_GPT_TOKEN_SECRET"
+            "BEGIN PRIVATE KEY"
+            "BEGIN RSA PRIVATE KEY"
+            "github_pat_"
+            "ghp_"
+            "sk-proj-"
+          )
+
+          for pattern in "${forbidden_patterns[@]}"; do
+            if grep -R -n -I -F --exclude-dir=.git --exclude="public-source-guard.yml" "$pattern" .; then
+              echo "::error::Forbidden private implementation or secret marker found: $pattern"
+              exit 1
+            fi
+          done
+
+      - name: Confirm deployment-only layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d cache-bridge
+          test -f .github/workflows/pages.yml
