@@ -12,6 +12,11 @@ export function normalizeGrowthRows(rows){
   return (rows||[]).map(r=>({day:String(r.day),newUsers:Number(r.new_users||0),totalUsers:Number(r.total_users||0)}));
 }
 
+export function growthSummaryValue(rows,metric){
+  if(!rows.length)return null;
+  return metric==='total'?rows[rows.length-1].totalUsers:rows.reduce((sum,row)=>sum+row.newUsers,0);
+}
+
 function beijingToday(){
   const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
   const get=t=>parts.find(p=>p.type===t)?.value||'';
@@ -142,8 +147,8 @@ export function openGrowthChart(){
   function updateSummary(){
     periodEl.textContent=rangeText(range,rangeStart,rangeEnd);
     datesEl.textContent=rows.length?`${rows[0].day} — ${rows[rows.length-1].day}`:`${rangeStart||'最早'} — ${rangeEnd||today}`;
-    const last=rows[rows.length-1];
-    valueEl.textContent=last?`${(metric==='total'?last.totalUsers:last.newUsers).toLocaleString('zh-CN')} 人`:'—';
+    const value=growthSummaryValue(rows,metric);
+    valueEl.textContent=value===null?'—':`${value.toLocaleString('zh-CN')} 人`;
   }
   function renderChart(){
     destroyChart();
