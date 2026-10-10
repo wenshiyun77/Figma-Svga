@@ -4,10 +4,11 @@ export async function renderProBenefits({root,request,toast,isCurrent}) {
 <section class="benefit-settings"><h2>全平台福利</h2><label>福利标题<input id="benefitTitle" value="PRO 限时福利" maxlength="80"></label><label>有效天数<input id="benefitDays" type="number" min="3" max="3" value="3" readonly aria-label="固定三天试用"></label><label class="benefit-copy-field">插件提示文案<textarea id="benefitMessage" maxlength="200" rows="3">3 天 PRO 福利已自动到账，尽情体验吧！</textarea></label><div class="benefit-copy-preview" id="benefitPreview"></div><p class="muted">符合条件的已生效 PRO 重置为本次发放起 3 天；未上线用户只保留最新一轮，上线后开始计时。永久 PRO 与剩余时间不少于 3 天的 PRO 不参与，不累加时长。</p><button class="btn" id="publishBenefit">一键发放 / 重置福利</button><span id="benefitPublishStatus" role="status"></span></section>
 <section class="benefit-settings"><h2>发放记录</h2><div id="benefitCampaigns">加载中…</div></section>`;
   const el=id=>root.querySelector('#'+id),escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let pendingRequest=null,copyLoaded=false;
-  const updatePreview=()=>{el('benefitPreview').textContent=el('benefitMessage').value;};updatePreview();el('benefitMessage').oninput=updatePreview;
+  let pendingRequest=null,copyLoaded=false,campaignCopyLoaded=false,campaignDirty=false;
+  const updatePreview=()=>{el('benefitPreview').textContent=el('benefitMessage').value;};updatePreview();el('benefitMessage').oninput=()=>{campaignDirty=true;updatePreview();};el('benefitTitle').oninput=()=>{campaignDirty=true;};
   async function load(){
     const data=await request('admin-pro-benefits');if(!isCurrent())return;
+    if(!campaignCopyLoaded){const latest=data.campaigns.find(c=>c.enabled!==false);if(latest&&!campaignDirty){el('benefitTitle').value=latest.title;el('benefitMessage').value=latest.message||'3 天 PRO 福利已自动到账，尽情体验吧！';updatePreview();}campaignCopyLoaded=true;}
     el('newcomerEnabled').checked=data.settings.newcomer_enabled;el('newcomerEnabled').disabled=false;
     if(!copyLoaded){el('newcomerMessage').value=data.settings.newcomer_message||'欢迎使用 SVGA Editor！已为你自动开启 3 天 PRO 试用。';copyLoaded=true;}
     el('newcomerMessage').disabled=false;el('saveNewcomerMessage').disabled=false;el('newcomerStatus').textContent='';
