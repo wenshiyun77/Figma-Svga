@@ -1,0 +1,5 @@
+{
+  "sharedDefinitions": 222,
+  "bytes": 187520,
+  "source": "src/ui.html + src/wave-public-shell.js + src/wave-web.js"
+}
