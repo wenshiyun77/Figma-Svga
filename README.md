@@ -18,3 +18,5 @@ The following are intentionally excluded and must never be committed here:
 All development happens in the private source repository.
 
 A `Public Source Guard` GitHub Actions workflow blocks known private source paths, core implementation identifiers, and sensitive secret markers from being introduced into this repository.
+
+The standalone sequence-frame tool is available at `sequence/`. It processes user-selected images locally in the browser and keeps the supplied tool’s PNG sequence, WebP and GIF exports. It does not include Figma plugin source or private SVGA/PAG implementations.

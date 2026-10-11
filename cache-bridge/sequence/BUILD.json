@@ -1,0 +1,10 @@
+{
+  "tool": "雪碧图拆帧工具",
+  "version": "1.1.0",
+  "pluginVersion": "0.8.81",
+  "url": "https://wenshiyun77.github.io/Figma-Svga/sequence/",
+  "sha256": "40ab0b699d4978d5c77abff17d21b8278429fcfc7bd11e1d6e49bf30fa6f279e",
+  "bytes": 130524,
+  "sourceFile": "雪碧图拆帧工具.html",
+  "runtime": "standalone-local-browser"
+}

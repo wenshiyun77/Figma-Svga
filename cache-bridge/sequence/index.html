@@ -1,0 +1,2925 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>雪碧图拆帧工具 v1.1.0</title>
+  <style>
+:root {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --panel: #171a20;
+  --panel-2: #1c2027;
+  --line: #2a2f38;
+  --line-2: #363d48;
+  --text: #f4f5f7;
+  --muted: #949aa6;
+  --accent: #f4c96b;
+  --accent-2: #ffd98b;
+  --danger: #ff7575;
+  --ok: #72d6a2;
+  --shadow: 0 18px 60px rgba(0,0,0,.28);
+}
+* { box-sizing: border-box; }
+html, body { margin:0; min-height:100%; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Helvetica Neue",Arial,sans-serif; }
+button, input, select { font:inherit; }
+button { cursor:pointer; }
+button:disabled, input:disabled { opacity:.45; cursor:not-allowed; }
+.app-shell { min-width:1180px; min-height:100vh; }
+.topbar { height:72px; padding:0 20px 0 24px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); background:#12151a; position:sticky; top:0; z-index:10; }
+.topbar h1 { font-size:17px; line-height:1.2; margin:0; letter-spacing:.2px; }
+.topbar p { font-size:12px; color:var(--muted); margin:6px 0 0; }
+.status-pill { font-size:12px; padding:8px 11px; border-radius:999px; background:#21252c; color:var(--muted); border:1px solid var(--line); }
+.status-pill.ok { color:var(--ok); }
+.status-pill.warn { color:var(--danger); }
+.workspace { display:grid; grid-template-columns:300px minmax(500px,1fr) 320px; height:calc(100vh - 72px); }
+.panel { background:var(--panel); overflow:auto; border-right:1px solid var(--line); }
+.right-panel { border-right:0; border-left:1px solid var(--line); }
+.panel-section { padding:16px; border-bottom:1px solid var(--line); }
+.section-title { font-weight:700; font-size:13px; }
+.section-sub { color:var(--muted); font-size:11px; margin-top:4px; }
+.section-row { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
+.sticky-row { position:sticky; top:0; background:var(--panel); z-index:3; padding-top:2px; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.field { display:flex; flex-direction:column; gap:7px; font-size:11px; color:var(--muted); margin-top:10px; }
+.field:first-child { margin-top:0; }
+.field input, .field select { width:100%; height:34px; border-radius:8px; border:1px solid var(--line-2); background:#101318; color:var(--text); outline:none; padding:0 10px; }
+.field input:focus, .field select:focus { border-color:#7e6a3e; box-shadow:0 0 0 2px rgba(244,201,107,.08); }
+.field input[type="range"] { padding:0; border:0; background:transparent; }
+.field-inline-label { display:flex; align-items:center; justify-content:space-between; }
+.field-inline-label b { color:var(--accent); font-size:11px; }
+.button-field { justify-content:flex-end; }
+.btn { height:34px; border-radius:8px; border:1px solid transparent; padding:0 12px; color:var(--text); background:#252a32; font-size:12px; font-weight:650; }
+.btn:hover:not(:disabled) { filter:brightness(1.08); }
+.btn.primary { background:linear-gradient(180deg,#f2d18b,#d5ab55); color:#211b10; }
+.btn.secondary { background:#232832; border-color:#343b47; }
+.btn.ghost { background:transparent; border-color:var(--line-2); color:#c7cbd2; }
+.btn.full { width:100%; margin-top:12px; }
+.button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+.hint { color:#707782; font-size:10px; line-height:1.55; margin-top:10px; }
+.frame-badge { background:#262b33; color:var(--accent); border:1px solid #363d47; border-radius:999px; padding:4px 8px; font-size:10px; }
+.stage-panel { min-width:0; display:flex; flex-direction:column; background:#0b0d10; }
+.stage-toolbar { min-height:48px; padding:7px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#15181d; border-bottom:1px solid var(--line); }
+.stage-toolbar > div:first-child { display:flex; align-items:center; gap:10px; min-width:0; }
+.stage-toolbar b { font-size:12px; }
+.stage-toolbar span { font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.toolbar-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.toolbar-actions .btn.active { border-color:#8d7441; background:#2a2418; color:#f7d58d; }
+.stage { --ruler-size:24px; flex:1; min-height:0; overflow:hidden; position:relative; background:#0b0d10; }
+.stage-viewport { position:absolute; left:var(--ruler-size); top:var(--ruler-size); right:0; bottom:0; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:24px; background-image:linear-gradient(45deg,#101318 25%,transparent 25%),linear-gradient(-45deg,#101318 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#101318 75%),linear-gradient(-45deg,transparent 75%,#101318 75%); background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0px; }
+.stage.rulers-hidden .stage-viewport, .stage.no-image .stage-viewport { left:0; top:0; }
+.stage-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); pointer-events:none; }
+.stage-empty strong { color:#cfd2d8; font-size:14px; }
+.stage-empty span { font-size:11px; }
+.stage-icon { width:50px; height:50px; display:grid; place-items:center; border:1px solid var(--line); border-radius:14px; background:#14171c; font-size:21px; color:var(--accent); margin-bottom:4px; }
+#mainCanvas { display:block; box-shadow:var(--shadow); background:transparent; touch-action:none; }
+/* 标尺属于编辑区本身，永久贴在窗口上沿/左沿；画布在独立滚动视口里移动。 */
+.canvas-editor { display:none; position:relative; flex:none; user-select:none; }
+.stage.rulers-hidden .ruler, .stage.rulers-hidden .ruler-corner,
+.stage.no-image .ruler, .stage.no-image .ruler-corner { display:none; }
+.ruler-corner { position:absolute; left:0; top:0; width:var(--ruler-size); height:var(--ruler-size); background:#1b1f25; border-right:1px solid #414957; border-bottom:1px solid #414957; z-index:30; }
+.ruler-corner::after { content:''; position:absolute; right:5px; bottom:5px; width:5px; height:5px; border-right:1px solid #8b94a1; border-bottom:1px solid #8b94a1; }
+.ruler { display:block; position:absolute; background:#1b1f25; z-index:29; touch-action:none; }
+.ruler.horizontal { left:var(--ruler-size); top:0; height:var(--ruler-size); cursor:row-resize; border-bottom:1px solid #414957; }
+.ruler.vertical { left:0; top:var(--ruler-size); width:var(--ruler-size); cursor:col-resize; border-right:1px solid #414957; }
+.canvas-stack { position:relative; flex:none; line-height:0; }
+.guide-layer { position:absolute; inset:0; z-index:4; pointer-events:none; overflow:visible; }
+.guide-layer.hidden { display:none; }
+.guide { position:absolute; pointer-events:auto; z-index:5; background:#45bfff; box-shadow:0 0 0 1px rgba(0,0,0,.18); }
+.guide.vertical { width:1px; cursor:col-resize; transform:translateX(-.5px); }
+.guide.horizontal { height:1px; cursor:row-resize; transform:translateY(-.5px); }
+.guide.vertical::before { content:''; position:absolute; top:0; bottom:0; left:-5px; width:11px; }
+.guide.horizontal::before { content:''; position:absolute; left:0; right:0; top:-5px; height:11px; }
+.guide.selected { background:#f4c96b; box-shadow:0 0 0 1px rgba(244,201,107,.16); }
+.guide.preview { pointer-events:none; opacity:.82; background:#72d6ff; }
+.guide-label { position:absolute; display:none; min-width:34px; height:18px; line-height:18px; padding:0 5px; border-radius:4px; background:#101318; border:1px solid #46505e; color:#f4f5f7; font-size:9px; white-space:nowrap; box-shadow:0 4px 14px rgba(0,0,0,.28); }
+.guide.selected .guide-label { display:block; }
+.guide.vertical .guide-label { top:5px; left:5px; }
+.guide.horizontal .guide-label { left:5px; top:5px; }
+.ruler-tip { position:absolute; pointer-events:none; z-index:20; background:#101318; border:1px solid #46505e; color:#f4f5f7; border-radius:4px; font-size:9px; line-height:18px; height:18px; padding:0 5px; display:none; }
+.preview-wrap { margin-top:10px; border-radius:10px; min-height:150px; border:1px solid var(--line); overflow:hidden; position:relative; display:grid; place-items:center; background-image:linear-gradient(45deg,#1e2229 25%,transparent 25%),linear-gradient(-45deg,#1e2229 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1e2229 75%),linear-gradient(-45deg,transparent 75%,#1e2229 75%); background-size:16px 16px; background-position:0 0,0 8px,8px -8px,-8px 0; }
+.preview-wrap canvas { max-width:100%; max-height:210px; image-rendering:auto; }
+.preview-wrap span { position:absolute; color:var(--muted); font-size:11px; }
+.preview-info { color:var(--muted); font-size:10px; margin-top:7px; text-align:center; }
+.frame-list-section { min-height:260px; max-height:43vh; overflow:auto; }
+.frame-list { display:flex; flex-direction:column; gap:6px; }
+.frame-item { width:100%; min-width:0; display:grid; grid-template-columns:32px minmax(0,1fr) auto; align-items:center; gap:8px; border:1px solid var(--line); background:#12151a; border-radius:8px; padding:7px 8px; cursor:pointer; }
+.frame-item:hover { border-color:#3d4551; }
+.frame-item { position:relative; }
+.frame-item.multi-selected { border-color:#735f37; background:#191711; }
+.frame-item.active { border-color:#c49a45; background:#211b12; box-shadow:0 0 0 1px rgba(244,201,107,.16) inset; }
+.frame-item.multi-selected::after { content:attr(data-select-order); position:absolute; right:4px; top:3px; min-width:16px; height:16px; padding:0 4px; display:grid; place-items:center; border-radius:999px; background:#f4c96b; color:#211b10; font-size:9px; font-weight:800; line-height:1; }
+.frame-item[draggable="true"] { cursor:grab; }
+.frame-item.dragging { opacity:.42; }
+.frame-item.drop-target { border-color:var(--accent); box-shadow:0 0 0 1px rgba(244,201,107,.18) inset; }
+.frame-num { width:26px; height:26px; display:grid; place-items:center; border-radius:6px; background:#232832; color:#b7bdc7; font-size:10px; }
+.frame-item.active .frame-num { background:#5e4b28; color:#ffe6b0; }
+.frame-name { min-width:0; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.frame-transform { color:#6f7680; font-size:9px; white-space:nowrap; }
+.export-section { background:#15181d; }
+.checkbox-row { display:flex; gap:8px; align-items:center; margin-top:10px; font-size:11px; color:var(--muted); }
+.export-result { color:var(--muted); font-size:10px; line-height:1.5; margin-top:8px; min-height:15px; }
+.export-result.ok { color:var(--ok); }
+.export-result.warn { color:#f3bf70; }
+.busy-overlay { position:fixed; inset:0; background:rgba(5,7,9,.72); backdrop-filter:blur(7px); z-index:100; display:grid; place-items:center; }
+.busy-overlay[hidden] { display:none; }
+.busy-card { width:310px; padding:24px; border-radius:14px; border:1px solid var(--line-2); background:#171a20; box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; }
+.busy-card b { font-size:13px; }
+.busy-card span { color:var(--muted); font-size:10px; }
+.spinner { width:28px; height:28px; border:3px solid #343943; border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin-bottom:3px; }
+.progress { width:100%; height:4px; border-radius:99px; background:#272c34; overflow:hidden; margin-top:4px; }
+.progress i { display:block; width:0%; height:100%; background:var(--accent); transition:width .12s linear; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media (max-width:1280px) { .workspace { grid-template-columns:285px minmax(450px,1fr) 300px; } }
+
+/* Compact left panel: import happens directly in the middle canvas. */
+.left-panel .panel-section { padding:11px 12px; }
+.config-section { padding-top:10px !important; padding-bottom:10px !important; }
+.grid-3-compact { display:grid; grid-template-columns:.78fr 1.36fr .72fr; gap:6px; align-items:end; }
+.grid-3-compact .field { margin:0; gap:5px; font-size:10px; min-width:0; }
+.grid-3-compact .field input, .grid-3-compact .field select { height:30px; padding:0 6px; font-size:11px; min-width:0; }
+.preview-section { padding-top:10px !important; padding-bottom:10px !important; }
+.preview-head { margin-bottom:0; }
+.preview-actions { display:flex; align-items:center; gap:6px; }
+.preview-fps { display:flex; align-items:center; gap:4px; color:var(--muted); font-size:10px; }
+.preview-fps input { width:46px; height:28px; border-radius:7px; border:1px solid var(--line-2); background:#101318; color:var(--text); padding:0 5px; }
+.preview-actions .btn { height:28px; padding:0 9px; font-size:11px; }
+.compact-selected .section-row { margin-bottom:6px; }
+.compact-input-row, .compact-slider-row { display:grid; grid-template-columns:38px minmax(0,1fr) 43px; align-items:center; gap:7px; margin-top:8px; color:var(--muted); font-size:10px; }
+.compact-input-row { grid-template-columns:38px minmax(0,1fr); }
+.compact-input-row input { height:30px; min-width:0; border-radius:7px; border:1px solid var(--line-2); background:#101318; color:var(--text); outline:none; padding:0 9px; }
+.compact-slider-row input[type=range] { width:100%; min-width:0; margin:0; }
+.compact-slider-row b { color:var(--accent); font-size:11px; text-align:right; white-space:nowrap; }
+.compact-actions { margin-top:10px; gap:6px; }
+.compact-actions .btn { height:30px; padding:0 7px; font-size:11px; }
+.compact-clear { margin-top:7px !important; height:29px !important; }
+.left-panel .preview-wrap { margin-top:7px; min-height:155px; }
+.stage.drag-active .stage-viewport { box-shadow:inset 0 0 0 2px rgba(244,201,107,.95); background-color:rgba(244,201,107,.035); }
+.stage.drag-active .stage-empty strong { color:var(--accent-2); }
+.stage-empty { pointer-events:auto; }
+.stage-empty strong { font-size:15px; }
+
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>雪碧图拆帧工具 <span style="font-size:10px;font-weight:500;color:#6f7680">v1.1.0</span></h1>
+        <p>本地运行 · 静态/动态图拆帧 · 画布拖入/粘贴 · PNG / WebP / GIF</p>
+      </div>
+      <div class="status-pill" id="runtimeStatus">检查本地编码器…</div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel left-panel">
+        <section class="panel-section config-section">
+          <div class="grid-3-compact">
+            <label class="field"><span>总帧数</span><input id="frameCount" type="number" min="1" max="300" value="10" /></label>
+            <label class="field"><span>切片排列</span>
+              <select id="layoutMode">
+                <option value="vertical">单竖列</option>
+                <option value="horizontal">单横列</option>
+                <option value="columns" selected>按列数排列</option>
+              </select>
+            </label>
+            <label class="field"><span>列数</span><input id="columnCount" type="number" min="1" max="300" value="2" /></label>
+          </div>
+        </section>
+        <section class="panel-section preview-section">
+          <div class="section-row preview-head">
+            <div class="section-title">动画预览</div>
+            <div class="preview-actions">
+              <label class="preview-fps"><span>FPS</span><input id="previewFps" type="number" min="1" max="60" value="12" /></label>
+              <button class="btn primary" id="playBtn" disabled>开始预览</button>
+            </div>
+          </div>
+          <div class="preview-wrap empty" id="previewWrap">
+            <canvas id="previewCanvas"></canvas>
+            <span id="previewEmpty">导入图片后可预览</span>
+          </div>
+          <div class="preview-info" id="previewInfo">—</div>
+        </section>
+        <section class="panel-section compact-selected">
+          <div class="section-row">
+            <div class="section-title">当前切片</div>
+            <span class="frame-badge" id="selectedBadge">未选择</span>
+          </div>
+          <label class="compact-input-row"><span>名称</span><input id="frameName" type="text" placeholder="frame_001" disabled /></label>
+          <label class="compact-slider-row"><span>缩放</span><input id="scaleRange" type="range" min="10" max="400" step="1" value="100" disabled /><b id="scaleValue">100%</b></label>
+          <label class="compact-slider-row"><span>橡皮</span><input id="eraseSizeRange" type="range" min="4" max="120" step="1" value="24" disabled /><b id="eraseSizeValue">24px</b></label>
+          <div class="button-row compact-actions">
+            <button class="btn secondary" id="resetFrameBtn" disabled>重置当前帧</button>
+            <button class="btn secondary" id="copyPrevBtn" disabled>复制上一帧</button>
+          </div>
+          <button class="btn ghost full compact-clear" id="clearEraseBtn" disabled>清除当前帧擦除</button>
+        </section>
+      </aside>
+
+      <section class="stage-panel">
+        <div class="stage-toolbar">
+          <div>
+            <b>切片画布</b>
+            <span id="gridMeta">等待导入图片</span>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn ghost active" id="toggleRulersBtn" disabled>标尺：显示</button>
+            <button class="btn ghost active" id="toggleGuidesBtn" disabled>参考线：显示</button>
+            <button class="btn ghost" id="toggleEraseBtn" disabled>擦除：关闭</button>
+            <button class="btn ghost" id="clearGuidesBtn" disabled>清空参考线</button>
+            <button class="btn ghost" id="resetAllBtn" disabled>重置全部帧</button>
+            <button class="btn ghost" id="fitStageBtn" disabled>适应窗口</button>
+          </div>
+        </div>
+        <div class="stage no-image" id="stage">
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/apng,.apng" hidden />
+          <div class="ruler-corner" id="rulerCorner" title="标尺原点"></div>
+          <canvas class="ruler horizontal" id="horizontalRuler" title="向下拖出竖向参考线"></canvas>
+          <canvas class="ruler vertical" id="verticalRuler" title="向右拖出横向参考线"></canvas>
+          <div class="stage-viewport" id="stageViewport">
+            <div class="stage-empty" id="stageEmpty">
+              <div class="stage-icon">✦</div>
+              <strong>拖入图片，或 ⌘V / Ctrl+V 粘贴</strong>
+              <span>支持 PNG / JPG / GIF / WebP / APNG，拖到中间画布即可导入</span>
+            </div>
+            <div class="canvas-editor" id="canvasEditor">
+              <div class="canvas-stack" id="canvasStack">
+                <canvas id="mainCanvas"></canvas>
+                <div class="guide-layer" id="guideLayer"></div>
+              </div>
+            </div>
+          </div>
+          <div class="ruler-tip" id="rulerTip"></div>
+        </div>
+      </section>
+
+      <aside class="panel right-panel">
+        <section class="panel-section frame-list-section">
+          <div class="section-row sticky-row">
+            <div>
+              <div class="section-title">切片列表</div>
+              <div class="section-sub" id="frameListMeta">0 帧</div>
+            </div>
+          </div>
+          <div class="frame-list" id="frameList"></div>
+        </section>
+
+        <section class="panel-section export-section">
+          <div class="section-title">导出 PNG 序列</div>
+          <div class="grid-2">
+            <label class="field">
+              <span>尺寸倍率</span>
+              <select id="pngScale">
+                <option value="0.5">50%</option>
+                <option value="0.75">75%</option>
+                <option value="1" selected>100%</option>
+                <option value="1.5">150%</option>
+                <option value="2">200%</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>PNG 压缩</span>
+              <select id="pngCompression">
+                <option value="smart" selected>智能压缩（Tinify 风格 · 推荐）</option>
+                <option value="128">强压缩（128 色）</option>
+                <option value="64">极致压缩（64 色）</option>
+                <option value="lossless">无损重编码（仅去元数据）</option>
+              </select>
+            </label>
+          </div>
+          <button class="btn primary full" id="exportPngBtn" disabled>导出 PNG 序列 ZIP</button>
+          <div class="export-result" id="pngExportResult">智能压缩会保留透明通道，并通过颜色量化显著减小 PNG 体积。</div>
+        </section>
+
+        <section class="panel-section export-section">
+          <div class="section-title">导出动态 WebP</div>
+          <div class="grid-2">
+            <label class="field">
+              <span>宽度 px</span>
+              <input id="webpWidth" type="number" min="1" value="200" />
+            </label>
+            <label class="field">
+              <span>高度 px</span>
+              <input id="webpHeight" type="number" min="1" value="200" />
+            </label>
+          </div>
+          <div class="grid-2">
+            <label class="field">
+              <span>FPS</span>
+              <input id="webpFps" type="number" min="1" max="60" value="12" />
+            </label>
+            <label class="field">
+              <span>质量</span>
+              <input id="webpQuality" type="number" min="10" max="100" value="82" />
+            </label>
+          </div>
+          <label class="field">
+            <span>目标体积 KB（0 = 不限制）</span>
+            <input id="webpTargetKb" type="number" min="0" value="0" />
+          </label>
+          <label class="checkbox-row">
+            <input id="lockAspect" type="checkbox" checked />
+            <span>锁定切片宽高比</span>
+          </label>
+          <button class="btn primary full" id="exportWebpBtn" disabled>导出动态 WebP</button>
+          <div class="export-result" id="exportResult"></div>
+        </section>
+        <section class="panel-section export-section">
+          <div class="section-title">导出 GIF</div>
+          <div class="section-sub" id="timingInfo">与 WebP 共用宽高设置；动态图优先按原始帧时长导出。</div>
+          <button class="btn primary full" id="exportGifBtn" disabled>导出 GIF</button>
+          <div class="export-result" id="gifExportResult"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="busy-overlay" id="busyOverlay" hidden>
+    <div class="busy-card">
+      <div class="spinner"></div>
+      <b id="busyTitle">正在处理…</b>
+      <span id="busyText">请不要关闭页面</span>
+      <div class="progress"><i id="busyProgress"></i></div>
+    </div>
+  </div>
+
+  <script>
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.SpriteCodec = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+
+  const te = typeof TextEncoder !== 'undefined' ? new TextEncoder() : null;
+
+  function asciiBytes(text) {
+    const out = new Uint8Array(text.length);
+    for (let i = 0; i < text.length; i++) out[i] = text.charCodeAt(i) & 255;
+    return out;
+  }
+
+  function utf8Bytes(text) {
+    if (te) return te.encode(text);
+    return Uint8Array.from(Buffer.from(text, 'utf8'));
+  }
+
+  function concat(parts) {
+    const total = parts.reduce((n, p) => n + p.length, 0);
+    const out = new Uint8Array(total);
+    let off = 0;
+    for (const p of parts) { out.set(p, off); off += p.length; }
+    return out;
+  }
+
+  function u16le(v) { return Uint8Array.of(v & 255, (v >>> 8) & 255); }
+  function u32le(v) { return Uint8Array.of(v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255); }
+  function u24le(v) { return Uint8Array.of(v & 255, (v >>> 8) & 255, (v >>> 16) & 255); }
+  function readU32LE(bytes, off) { return (bytes[off] | (bytes[off+1] << 8) | (bytes[off+2] << 16) | (bytes[off+3] << 24)) >>> 0; }
+  function readFourCC(bytes, off) { return String.fromCharCode(bytes[off], bytes[off+1], bytes[off+2], bytes[off+3]); }
+
+  const crcTable = (() => {
+    const table = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+      table[n] = c >>> 0;
+    }
+    return table;
+  })();
+
+  function crc32(bytes) {
+    let c = 0xffffffff;
+    for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 255] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+
+  function dosDateTime(date = new Date()) {
+    const year = Math.max(1980, date.getFullYear());
+    const dosTime = ((date.getHours() & 31) << 11) | ((date.getMinutes() & 63) << 5) | ((Math.floor(date.getSeconds()/2)) & 31);
+    const dosDate = (((year - 1980) & 127) << 9) | (((date.getMonth()+1) & 15) << 5) | (date.getDate() & 31);
+    return { dosTime, dosDate };
+  }
+
+  function createZipStore(files) {
+    const locals = [];
+    const centrals = [];
+    let offset = 0;
+    const { dosTime, dosDate } = dosDateTime();
+
+    for (const file of files) {
+      const nameBytes = utf8Bytes(file.name);
+      const data = file.data instanceof Uint8Array ? file.data : new Uint8Array(file.data);
+      const crc = crc32(data);
+      const local = concat([
+        u32le(0x04034b50), u16le(20), u16le(0x0800), u16le(0), u16le(dosTime), u16le(dosDate),
+        u32le(crc), u32le(data.length), u32le(data.length), u16le(nameBytes.length), u16le(0), nameBytes, data
+      ]);
+      locals.push(local);
+
+      const central = concat([
+        u32le(0x02014b50), u16le(20), u16le(20), u16le(0x0800), u16le(0), u16le(dosTime), u16le(dosDate),
+        u32le(crc), u32le(data.length), u32le(data.length), u16le(nameBytes.length), u16le(0), u16le(0),
+        u16le(0), u16le(0), u32le(0), u32le(offset), nameBytes
+      ]);
+      centrals.push(central);
+      offset += local.length;
+    }
+
+    const centralBytes = concat(centrals);
+    const end = concat([
+      u32le(0x06054b50), u16le(0), u16le(0), u16le(files.length), u16le(files.length),
+      u32le(centralBytes.length), u32le(offset), u16le(0)
+    ]);
+    return concat([...locals, centralBytes, end]);
+  }
+
+  function webpChunk(type, payload) {
+    const pad = payload.length & 1 ? Uint8Array.of(0) : new Uint8Array(0);
+    return concat([asciiBytes(type), u32le(payload.length), payload, pad]);
+  }
+
+  function extractWebPImageChunks(buffer) {
+    const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+    if (bytes.length < 12 || readFourCC(bytes,0) !== 'RIFF' || readFourCC(bytes,8) !== 'WEBP') {
+      throw new Error('无效的 WebP 帧');
+    }
+    const chunks = [];
+    let off = 12;
+    let foundImage = false;
+    while (off + 8 <= bytes.length) {
+      const type = readFourCC(bytes, off);
+      const size = readU32LE(bytes, off + 4);
+      const dataEnd = off + 8 + size;
+      const paddedEnd = dataEnd + (size & 1);
+      if (dataEnd > bytes.length) break;
+      if (type === 'ALPH' || type === 'VP8 ' || type === 'VP8L') {
+        chunks.push(bytes.slice(off, Math.min(paddedEnd, bytes.length)));
+        if (type === 'VP8 ' || type === 'VP8L') foundImage = true;
+      }
+      off = paddedEnd;
+    }
+    if (!foundImage) throw new Error('WebP 帧中没有可用图像数据');
+    return concat(chunks);
+  }
+
+  function muxAnimatedWebP(frameBuffers,width,height,durationMs) {
+    width=Math.max(1,Math.min(0x1000000,Math.round(width)));
+    height=Math.max(1,Math.min(0x1000000,Math.round(height)));
+    if(!frameBuffers.length)throw new Error('没有动画帧');
+    const durations=Array.isArray(durationMs)?durationMs:frameBuffers.map(()=>durationMs);
+    const vp8xPayload=new Uint8Array(10);
+    vp8xPayload[0]=0x12;
+    vp8xPayload.set(u24le(width-1),4);
+    vp8xPayload.set(u24le(height-1),7);
+    const vp8x=webpChunk('VP8X',vp8xPayload);
+    const anim=webpChunk('ANIM',new Uint8Array(6));
+    const frames=frameBuffers.map((buf,i)=>{
+      const img=extractWebPImageChunks(buf);
+      const ms=Math.max(1,Math.min(0xffffff,Math.round(Number(durations[i])||100)));
+      const header=concat([u24le(0),u24le(0),u24le(width-1),u24le(height-1),u24le(ms),Uint8Array.of(0x02)]);
+      return webpChunk('ANMF',concat([header,img]));
+    });
+    const body=concat([asciiBytes('WEBP'),vp8x,anim,...frames]);
+    return concat([asciiBytes('RIFF'),u32le(body.length),body]);
+  }
+
+  return { crc32, createZipStore, extractWebPImageChunks, muxAnimatedWebP, concat };
+});
+
+</script>
+  <script>
+(() => {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    runtimeStatus: $('runtimeStatus'), fileInput: $('fileInput'),
+    frameCount: $('frameCount'), layoutMode: $('layoutMode'), columnCount: $('columnCount'), selectedBadge: $('selectedBadge'), frameName: $('frameName'),
+    scaleRange: $('scaleRange'), scaleValue: $('scaleValue'), eraseSizeRange: $('eraseSizeRange'), eraseSizeValue: $('eraseSizeValue'),
+    resetFrameBtn: $('resetFrameBtn'), copyPrevBtn: $('copyPrevBtn'), clearEraseBtn: $('clearEraseBtn'), previewFps: $('previewFps'), playBtn: $('playBtn'),
+    previewWrap: $('previewWrap'), previewCanvas: $('previewCanvas'), previewEmpty: $('previewEmpty'), previewInfo: $('previewInfo'),
+    gridMeta: $('gridMeta'), resetAllBtn: $('resetAllBtn'), fitStageBtn: $('fitStageBtn'), stage: $('stage'), stageViewport: $('stageViewport'), stageEmpty: $('stageEmpty'),
+    toggleRulersBtn: $('toggleRulersBtn'), toggleGuidesBtn: $('toggleGuidesBtn'), toggleEraseBtn: $('toggleEraseBtn'), clearGuidesBtn: $('clearGuidesBtn'), canvasEditor: $('canvasEditor'), canvasStack: $('canvasStack'),
+    horizontalRuler: $('horizontalRuler'), verticalRuler: $('verticalRuler'), guideLayer: $('guideLayer'), rulerTip: $('rulerTip'),
+    mainCanvas: $('mainCanvas'), frameList: $('frameList'), frameListMeta: $('frameListMeta'), pngScale: $('pngScale'),
+    pngCompression: $('pngCompression'), exportPngBtn: $('exportPngBtn'), pngExportResult: $('pngExportResult'), webpWidth: $('webpWidth'), webpHeight: $('webpHeight'),
+    webpFps: $('webpFps'), webpQuality: $('webpQuality'), webpTargetKb: $('webpTargetKb'), lockAspect: $('lockAspect'),
+    exportWebpBtn: $('exportWebpBtn'), exportGifBtn: $('exportGifBtn'), exportResult: $('exportResult'), gifExportResult: $('gifExportResult'), timingInfo: $('timingInfo'), busyOverlay: $('busyOverlay'), busyTitle: $('busyTitle'),
+    busyText: $('busyText'), busyProgress: $('busyProgress')
+  };
+
+  let nextFrameId = 1;
+  let nextGuideId = 1;
+  const state = {
+    image: null,
+    fileName: '',
+    fileMeta: '',
+    frameCount: 10,
+    layoutMode: 'columns',
+    columnCount: 2,
+    cols: 2,
+    rows: 5,
+    cellW: 0,
+    cellH: 0,
+    sourceGrid: null,
+    importedAnimated: false,
+    animatedSourceType: '',
+    sourceFrameDurations: [],
+    frames: [],
+    selected: -1,
+    selectedOrderIds: [],
+    stageScale: 1,
+    dragMode: null,
+    dragStart: null,
+    reorderDrag: null,
+    listDragFrom: -1,
+    playing: false,
+    playIndex: 0,
+    playTimer: null,
+    webpSupported: false,
+    history: [],
+    historyLimit: 80,
+    inputHistoryEl: null,
+    wheelHistoryActive: false,
+    wheelHistoryTimer: null,
+    guides: [],
+    guidesVisible: true,
+    rulersVisible: true,
+    selectedGuideId: null,
+    guideDrag: null,
+    objectUrls: [],
+    eraseMode: false,
+    eraseBrushSize: 24,
+    eraseStroke: null,
+    nudgeHistoryActive: false,
+    nudgeHistoryTimer: null,
+    lastNudgeKey: ''
+  };
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function pad3(n) { return String(n).padStart(3, '0'); }
+  function defaultName(i) { return `frame_${pad3(i + 1)}`; }
+  function sanitizeName(name, fallback) {
+    const cleaned = String(name || '').replace(/\.(png|webp|gif)$/i, '').replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').trim().replace(/[. ]+$/g, '');
+    return cleaned || fallback;
+  }
+
+  function normalizeLayoutMode(mode) {
+    if (mode === 'vertical' || mode === 'horizontal' || mode === 'columns') return mode;
+    return Number.isFinite(Number(mode)) ? 'columns' : 'columns';
+  }
+  function getCols(frameCount = state.frameCount, mode = state.layoutMode, columnCount = state.columnCount) {
+    if (mode === 'vertical') return 1;
+    if (mode === 'horizontal') return Math.max(1, frameCount || 1);
+    if (mode !== 'columns' && Number.isFinite(Number(mode))) {
+      return clamp(Math.round(Number(mode) || 1), 1, Math.max(1, frameCount || 1));
+    }
+    return clamp(Math.round(Number(columnCount) || 1), 1, Math.max(1, frameCount || 1));
+  }
+  function sourceWidth(source = state.image) {
+    return Math.max(0, Math.round(Number(source?.naturalWidth || source?.displayWidth || source?.width || 0)));
+  }
+  function sourceHeight(source = state.image) {
+    return Math.max(0, Math.round(Number(source?.naturalHeight || source?.displayHeight || source?.height || 0)));
+  }
+  function stageWidth() { return Math.round(state.cols * state.cellW); }
+  function stageHeight() { return Math.round(state.rows * state.cellH); }
+  function suggestColumnCount(n) {
+    const total = Math.max(1, Math.round(n || 1));
+    let best = Math.ceil(Math.sqrt(total));
+    let score = Infinity;
+    for (let cols = 1; cols <= total; cols++) {
+      const rows = Math.ceil(total / cols);
+      const candidate = 8 * Math.abs(cols - rows) + (cols * rows - total) + (cols < rows ? .5 : 0);
+      if (candidate < score) { score = candidate; best = cols; }
+    }
+    return best;
+  }
+  function getFrameDurationMs(index, fallbackFps = null) {
+    const raw = Number(state.frames[index]?.durationMs || 0);
+    if (state.importedAnimated && raw > 0) return clamp(Math.round(raw), 1, 0xffffff);
+    const fps = clamp(Number(fallbackFps || els.previewFps.value) || 12, 1, 60);
+    return Math.round(1000 / fps);
+  }
+  function getFrameDurations(fps = null) {
+    return state.frames.map((f,i) => getFrameDurationMs(i, fps));
+  }
+  function syncTimingInfo() {
+    if (!els.timingInfo) return;
+    if (state.importedAnimated) {
+      const ms = getFrameDurations();
+      const total = ms.reduce((a, v) => a + v, 0);
+      els.timingInfo.textContent = `原始 ${state.frameCount} 帧 · 总时长 ${(total / 1000).toFixed(2)}s · 预览/WebP/GIF 按各帧原始时间播放（调整 FPS 不会覆盖原时长）。`;
+    } else {
+      els.timingInfo.textContent = '与 WebP 共用宽高和 FPS；动态图导入后优先保留各帧原始时长。';
+    }
+  }
+  function cloneErasePaths(paths = []) {
+    return (paths || []).map(stroke => ({
+      sizeN: clamp(Number(stroke?.sizeN) || 0, 0.0001, 10),
+      points: (stroke?.points || []).map(pt => ({ x: clamp(Number(pt?.x) || 0, 0, 1), y: clamp(Number(pt?.y) || 0, 0, 1) }))
+    }));
+  }
+  function normalizeLocalPoint(x, y, cellX, cellY, cellW, cellH) {
+    return {
+      x: clamp((x - cellX) / Math.max(1, cellW), 0, 1),
+      y: clamp((y - cellY) / Math.max(1, cellH), 0, 1)
+    };
+  }
+  function brushSizeToNormalized(sizePx) {
+    return Math.max(1, Number(sizePx) || 1) / Math.max(1, state.cellW, state.cellH);
+  }
+
+  function initRuntime() {
+    try {
+      const c = document.createElement('canvas');
+      c.width = c.height = 2;
+      state.webpSupported = c.toDataURL('image/webp').startsWith('data:image/webp');
+    } catch (_) {
+      state.webpSupported = false;
+    }
+    els.runtimeStatus.textContent = state.webpSupported ? '本地工具 · 图片粘贴 / 拖入 · GIF / WebP / APNG' : '本地工具 · 当前浏览器不支持 WebP 编码';
+    els.runtimeStatus.className = `status-pill ${state.webpSupported ? 'ok' : 'warn'}`;
+  }
+
+  function createFrame(index, oldFrame = null) {
+    if (oldFrame) {
+      return {
+        id: oldFrame.id || nextFrameId++,
+        sourceIndex: Number.isInteger(oldFrame.sourceIndex) ? oldFrame.sourceIndex : index,
+        name: oldFrame.name || defaultName(index),
+        customName: !!oldFrame.customName,
+        dx: Number(oldFrame.dx) || 0,
+        dy: Number(oldFrame.dy) || 0,
+        scale: clamp(Number(oldFrame.scale) || 1, 0.1, 4),
+        durationMs: Number(oldFrame.durationMs) || 0,
+        erasePaths: cloneErasePaths(oldFrame.erasePaths || oldFrame.eraserPaths || [])
+      };
+    }
+    return { id: nextFrameId++, sourceIndex: index, name: defaultName(index), customName: false, dx: 0, dy: 0, scale: 1, durationMs: 0, erasePaths: [] };
+  }
+
+  function cloneFrames(frames = state.frames) {
+    return frames.map(f => ({ ...f, erasePaths: cloneErasePaths(f.erasePaths || []) }));
+  }
+
+  function frameIndexById(id) {
+    return state.frames.findIndex(f => f.id === id);
+  }
+
+  function normalizeFrameSelection() {
+    const validIds = new Set(state.frames.map(f => f.id));
+    state.selectedOrderIds = (state.selectedOrderIds || []).filter(id => validIds.has(id));
+    if (!state.frames.length) {
+      state.selected = -1;
+      state.selectedOrderIds = [];
+      return;
+    }
+    state.selected = clamp(Number(state.selected) || 0, 0, state.frames.length - 1);
+    const activeId = state.frames[state.selected]?.id;
+    if (!state.selectedOrderIds.length && activeId != null) state.selectedOrderIds = [activeId];
+    if (activeId != null && !state.selectedOrderIds.includes(activeId)) {
+      const lastId = state.selectedOrderIds[state.selectedOrderIds.length - 1];
+      const lastIndex = frameIndexById(lastId);
+      if (lastIndex >= 0) state.selected = lastIndex;
+      else state.selectedOrderIds = [activeId];
+    }
+  }
+
+  function isFrameSelected(index) {
+    const id = state.frames[index]?.id;
+    return id != null && state.selectedOrderIds.includes(id);
+  }
+
+  function selectionRank(index) {
+    const id = state.frames[index]?.id;
+    const rank = id == null ? -1 : state.selectedOrderIds.indexOf(id);
+    return rank >= 0 ? rank + 1 : 0;
+  }
+
+  function setSingleSelection(index) {
+    if (!state.frames[index]) return;
+    state.selected = index;
+    state.selectedOrderIds = [state.frames[index].id];
+    if (!state.playing) state.playIndex = index;
+  }
+
+
+  function getSelectedFrameIds() {
+    normalizeFrameSelection();
+    if (state.selectedOrderIds.length) return [...state.selectedOrderIds];
+    const activeId = state.frames[state.selected]?.id;
+    return activeId != null ? [activeId] : [];
+  }
+
+  function getSelectedFrames() {
+    const ids = new Set(getSelectedFrameIds());
+    return state.frames.filter(f => ids.has(f.id));
+  }
+
+  function setUniformScaleOnSelection(newScale) {
+    const scale = clamp(Number(newScale) || 1, 0.1, 4);
+    const ids = new Set(getSelectedFrameIds());
+    state.frames.forEach(frame => {
+      if (ids.has(frame.id)) frame.scale = scale;
+    });
+  }
+
+  function hasErasePaths(frame) {
+    return !!(frame && Array.isArray(frame.erasePaths) && frame.erasePaths.length);
+  }
+
+  function toggleFrameSelection(index) {
+    const frame = state.frames[index];
+    if (!frame) return;
+    const pos = state.selectedOrderIds.indexOf(frame.id);
+    if (pos >= 0) {
+      if (state.selectedOrderIds.length > 1) state.selectedOrderIds.splice(pos, 1);
+    } else {
+      state.selectedOrderIds.push(frame.id);
+    }
+    state.selected = index;
+    if (!state.playing) state.playIndex = index;
+    normalizeFrameSelection();
+  }
+
+  function makeSnapshot() {
+    return {
+      image: state.image,
+      fileName: state.fileName,
+      fileMeta: state.fileMeta,
+      frameCount: state.frameCount,
+      layoutMode: state.layoutMode,
+      columnCount: state.columnCount,
+      eraseBrushSize: state.eraseBrushSize,
+      sourceGrid: state.sourceGrid ? { ...state.sourceGrid } : null,
+      importedAnimated: state.importedAnimated,
+      animatedSourceType: state.animatedSourceType,
+      sourceFrameDurations: [...state.sourceFrameDurations],
+      frames: cloneFrames(),
+      selected: state.selected,
+      selectedOrderIds: [...state.selectedOrderIds],
+      guides: state.guides.map(g => ({ ...g })),
+      guidesVisible: state.guidesVisible,
+      rulersVisible: state.rulersVisible
+    };
+  }
+
+  function pushHistory() {
+    state.history.push(makeSnapshot());
+    if (state.history.length > state.historyLimit) state.history.shift();
+  }
+
+  function clearPlaybackTimer() {
+    state.playing = false;
+    if (state.playTimer) clearTimeout(state.playTimer);
+    state.playTimer = null;
+    els.playBtn.textContent = '开始预览';
+  }
+
+  function restoreSnapshot(snap) {
+    if (!snap) return;
+    clearPlaybackTimer();
+    state.image = snap.image || null;
+    state.fileName = snap.fileName || '';
+    state.fileMeta = snap.fileMeta || '';
+    state.frameCount = clamp(Number(snap.frameCount) || 1, 1, 300);
+    state.layoutMode = normalizeLayoutMode(snap.layoutMode || 'columns');
+    state.columnCount = clamp(Number(snap.columnCount) || (Number.isFinite(Number(snap.layoutMode)) ? Number(snap.layoutMode) : 2), 1, state.frameCount);
+    state.eraseBrushSize = clamp(Number(snap.eraseBrushSize) || state.eraseBrushSize || 24, 4, 120);
+    state.sourceGrid = snap.sourceGrid ? { ...snap.sourceGrid } : null;
+    state.importedAnimated = !!snap.importedAnimated;
+    state.animatedSourceType = snap.animatedSourceType || '';
+    state.sourceFrameDurations = Array.isArray(snap.sourceFrameDurations) ? [...snap.sourceFrameDurations] : [];
+    state.eraseMode = false;
+    state.eraseStroke = null;
+    state.frames = (snap.frames || []).map((f, i) => createFrame(i, f));
+    state.selected = clamp(Number(snap.selected) || 0, 0, Math.max(0, state.frames.length - 1));
+    state.selectedOrderIds = Array.isArray(snap.selectedOrderIds) ? [...snap.selectedOrderIds] : [];
+    normalizeFrameSelection();
+    state.guides = (snap.guides || []).map(g => ({ id: g.id || nextGuideId++, orientation: g.orientation === 'h' ? 'h' : 'v', position: Number(g.position) || 0 }));
+    nextGuideId = Math.max(nextGuideId, 1 + state.guides.reduce((m, g) => Math.max(m, Number(g.id) || 0), 0));
+    state.guidesVisible = snap.guidesVisible !== false;
+    state.rulersVisible = snap.rulersVisible !== false;
+    state.selectedGuideId = null;
+    state.guideDrag = null;
+    state.playIndex = state.selected;
+    state.dragMode = null;
+    state.dragStart = null;
+    state.reorderDrag = null;
+    els.frameCount.value = state.frameCount;
+    els.layoutMode.value = state.layoutMode;
+    els.columnCount.value = state.columnCount;
+    els.eraseSizeRange.value = state.eraseBrushSize;
+    els.eraseSizeValue.textContent = `${state.eraseBrushSize}px`;
+    computeGridGeometry();
+    if (state.image) {
+      els.stageEmpty.style.display = 'none';
+      els.canvasEditor.style.display = 'block';
+      els.mainCanvas.style.display = 'block';
+      els.previewEmpty.style.display = 'none';
+      els.previewWrap.classList.remove('empty');
+      enableProjectControls(true);
+      updateWebpDimensions(true);
+      renderAll();
+      requestAnimationFrame(fitStage);
+    } else {
+      els.stageEmpty.style.display = '';
+      els.canvasEditor.style.display = 'none';
+      els.mainCanvas.style.display = 'none';
+      els.previewEmpty.style.display = '';
+      els.previewWrap.classList.add('empty');
+      els.frameList.innerHTML = '';
+      els.frameListMeta.textContent = '0 帧';
+      els.gridMeta.textContent = '等待导入图片';
+      enableProjectControls(false);
+      syncSelectedControls();
+      syncGuideToolbar();
+    }
+  }
+
+  function undo() {
+    const snap = state.history.pop();
+    if (!snap) return;
+    restoreSnapshot(snap);
+  }
+
+  function normalizeGuidesToCell() {
+    if (!state.cellW || !state.cellH) return;
+    state.guides.forEach(g => {
+      const limit = g.orientation === 'v' ? state.cellW : state.cellH;
+      g.position = clamp(Number(g.position) || 0, 0, limit);
+    });
+  }
+
+  function computeGridGeometry() {
+    state.cols = getCols(state.frameCount, state.layoutMode, state.columnCount);
+    state.rows = Math.ceil(state.frameCount / state.cols);
+    if (state.image) {
+      if (state.sourceGrid) {
+        state.cellW = state.sourceGrid.cellW;
+        state.cellH = state.sourceGrid.cellH;
+      } else {
+        state.cellW = sourceWidth() / state.cols;
+        state.cellH = sourceHeight() / state.rows;
+      }
+    } else {
+      state.cellW = 0;
+      state.cellH = 0;
+    }
+    normalizeGuidesToCell();
+  }
+
+  function normalizeAutomaticNames() {
+    state.frames.forEach((f, i) => {
+      if (!f.customName) f.name = defaultName(i);
+    });
+  }
+
+  function rebuildGrid({ preserve = true, resetSources = false } = {}) {
+    state.frameCount = clamp(parseInt(els.frameCount.value || '1', 10), 1, 300);
+    state.layoutMode = normalizeLayoutMode(els.layoutMode.value);
+    state.columnCount = clamp(parseInt(els.columnCount.value || '1', 10), 1, state.frameCount);
+    els.frameCount.value = state.frameCount;
+    els.layoutMode.value = state.layoutMode;
+    els.columnCount.max = String(state.frameCount);
+    els.columnCount.value = state.columnCount;
+    els.columnCount.disabled = state.layoutMode !== 'columns';
+    computeGridGeometry();
+    const old = state.frames;
+    state.frames = Array.from({ length: state.frameCount }, (_, i) => {
+      const f = createFrame(i, preserve ? old[i] : null);
+      if (resetSources && !state.sourceGrid) f.sourceIndex = i;
+      if (!preserve && state.importedAnimated) f.durationMs = Number(state.sourceFrameDurations[i]) || 100;
+      if (!f.customName) f.name = defaultName(i);
+      return f;
+    });
+    if (state.selected >= state.frameCount) state.selected = state.frameCount - 1;
+    if (state.selected < 0 && state.image) state.selected = 0;
+    normalizeFrameSelection();
+    state.playIndex = Math.max(0, state.selected);
+    updateWebpDimensions(true);
+    renderAll();
+  }
+
+  function isImageFile(file) {
+    return !!file && ((file.type && file.type.startsWith('image/')) || /\.(png|apng|webp|jpe?g|gif)$/i.test(file.name || ''));
+  }
+
+  function guessMimeType(file) {
+    const name = String(file?.name || '').toLowerCase();
+    const type = String(file?.type || '').toLowerCase();
+    if (/\.(gif|webp|apng|png|jpe?g)$/i.test(name)) {
+      if (name.endsWith('.gif')) return 'image/gif';
+      if (name.endsWith('.webp')) return 'image/webp';
+      if (name.endsWith('.apng') || name.endsWith('.png')) return 'image/png';
+      return 'image/jpeg';
+    }
+    return type === 'image/apng' ? 'image/png' : type;
+  }
+
+  function readUint32BE(bytes, offset) {
+    return (((bytes[offset] * 0x1000000) + (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3]) >>> 0);
+  }
+  function readUint32LE(bytes, offset) {
+    return (((bytes[offset + 3] * 0x1000000) + (bytes[offset + 2] << 16) + (bytes[offset + 1] << 8) + bytes[offset]) >>> 0);
+  }
+  function hasAnimationChunk(bytes, mime) {
+    if (mime === 'image/gif') return bytes.length > 10 && String.fromCharCode(...bytes.slice(0, 3)) === 'GIF';
+    if (mime === 'image/webp') {
+      if (bytes.length < 16 || String.fromCharCode(...bytes.slice(8,12)) !== 'WEBP') return false;
+      for (let off = 12; off + 8 <= bytes.length;) {
+        const four = String.fromCharCode(...bytes.slice(off,off+4));
+        const len = readUint32LE(bytes,off+4);
+        if (four === 'ANIM' || four === 'ANMF') return true;
+        if (four === 'VP8X' && len >= 1 && (bytes[off+8] & 0x02)) return true;
+        off += 8 + len + (len & 1);
+      }
+      return false;
+    }
+    if (mime === 'image/png') {
+      if (bytes.length < 33 || bytes[0] !== 137 || bytes[1] !== 80) return false;
+      for (let off = 8; off + 12 <= bytes.length;) {
+        const len = readUint32BE(bytes,off);
+        const kind = String.fromCharCode(...bytes.slice(off+4,off+8));
+        if (kind === 'acTL') return true;
+        if (kind === 'IDAT' || kind === 'IEND') break;
+        off += 12 + len;
+      }
+    }
+    return false;
+  }
+
+  function loadStaticDrawable(file) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const url = URL.createObjectURL(file);
+      state.objectUrls.push(url);
+      image.onload = () => { image._url = url; resolve(image); };
+      image.onerror = () => reject(new Error('图片数据无法读取，请换一个文件')); 
+      image.src = url;
+    });
+  }
+
+  function parseGifWithoutWebCodecs(bytes) {
+    if (bytes.length < 13 || String.fromCharCode(...bytes.slice(0,3)) !== 'GIF') throw new Error('GIF 文件格式无效');
+    const u16 = (at) => bytes[at] | (bytes[at+1] << 8);
+    const width = u16(6), height = u16(8);
+    if (width < 1 || height < 1 || width > 8192 || height > 8192) throw new Error('GIF 图片尺寸无效');
+    let offset = 13;
+    const packed = bytes[10];
+    let globalPalette = null;
+    if (packed & 0x80) {
+      const count = 1 << ((packed & 7) + 1);
+      globalPalette = bytes.slice(offset, offset + count*3);
+      offset += count*3;
+    }
+    const readBlocks = () => {
+      const arr = [];
+      let total = 0;
+      while (offset < bytes.length) {
+        const n = bytes[offset++];
+        if (!n) break;
+        if (offset + n > bytes.length) throw new Error('GIF 数据块不完整');
+        arr.push(bytes.subarray(offset,offset+n));
+        total += n;
+        offset += n;
+      }
+      const data = new Uint8Array(total);
+      let pos = 0;
+      for (const block of arr) { data.set(block,pos); pos += block.length; }
+      return data;
+    };
+    const unpack = (data, minSize, limit) => {
+      const clear = 1 << minSize, stop = clear+1;
+      let dict = [], codeSize, nextCode, bitAt = 0;
+      const reset = () => { dict = []; for (let j = 0; j < clear; j++) dict[j] = [j]; nextCode = stop+1; codeSize = minSize+1; };
+      const readCode = () => {
+        if (bitAt + codeSize > data.length*8) return -1;
+        let code = 0;
+        for (let b = 0; b < codeSize; b++) code |= ((data[(bitAt+b)>>3] >> ((bitAt+b)&7))&1)<<b;
+        bitAt += codeSize;
+        return code;
+      };
+      reset();
+      const pixels = new Uint8Array(limit);
+      let out = 0, prior = null;
+      for (;;) {
+        const code = readCode();
+        if (code < 0 || code === stop) break;
+        if (code === clear) { reset(); prior = null; continue; }
+        let current;
+        if (dict[code]) current = dict[code];
+        else if (code === nextCode && prior) current = [...prior,prior[0]];
+        else throw new Error('GIF 压缩数据已损坏');
+        for (const v of current) { if (out < limit) pixels[out++] = v; }
+        if (prior && nextCode < 4096) {
+          dict[nextCode++] = [...prior,current[0]];
+          if (nextCode === (1 << codeSize) && codeSize < 12) codeSize++;
+        }
+        prior = current;
+        if (out >= limit) break;
+      }
+      if (out < limit) throw new Error('GIF 帧像素未能完整解码');
+      return pixels;
+    };
+    const surface = new Uint8ClampedArray(width*height*4);
+    const frames = [];
+    const durations = [];
+    let graphic = {delay:100, disposal:0, transparent:-1};
+    let previousDisposal = 0, previousRect = null, restorePixels = null;
+    while (offset < bytes.length) {
+      const byte = bytes[offset++];
+      if (byte === 0x3b) break;
+      if (byte === 0x21) {
+        const kind = bytes[offset++];
+        if (kind === 0xf9) {
+          const size = bytes[offset++];
+          if (size !== 4) throw new Error('GIF 图形控制数据无效');
+          const flags = bytes[offset++];
+          const delay = u16(offset)*10; offset+=2;
+          const tr = bytes[offset++]; offset++;
+          graphic = {delay: delay || 100, disposal:(flags>>2)&7, transparent:(flags&1) ? tr:-1};
+        } else {
+          const headerSize=bytes[offset++];
+          offset+=headerSize;
+          readBlocks();
+        }
+        continue;
+      }
+      if (byte !== 0x2c) throw new Error('GIF 数据块标识无效');
+      if (previousDisposal === 2 && previousRect) {
+        const {x,y,w,h} = previousRect;
+        for (let yy=y;yy<y+h;yy++) for(let xx=x;xx<x+w;xx++) {
+          if (xx>=0 && yy>=0 && xx<width && yy<height) surface.fill(0, (yy*width+xx)*4,(yy*width+xx)*4+4);
+        }
+      } else if (previousDisposal === 3 && restorePixels) surface.set(restorePixels);
+      const x=u16(offset),y=u16(offset+2),w=u16(offset+4),h=u16(offset+6); offset+=8;
+      const flags=bytes[offset++];
+      const palette = (flags & 0x80) ? (() => {
+        const count = 1 << ((flags&7)+1);
+        const value=bytes.slice(offset,offset+count*3);
+        offset+=count*3;
+        return value;
+      })() : globalPalette;
+      if (!palette) throw new Error('GIF 缺少调色板');
+      const minCodeSize = bytes[offset++];
+      const compressed = readBlocks();
+      if (w < 1 || h < 1 || w*h > 80_000_000) throw new Error('GIF 帧尺寸异常');
+      const decoded = unpack(compressed,minCodeSize,w*h);
+      let raster = decoded;
+      if (flags & 0x40) {
+        raster = new Uint8Array(w*h);
+        let at=0;
+        for (const [start,step] of [[0,8],[4,8],[2,4],[1,2]]) {
+          for (let yy=start;yy<h;yy+=step) { raster.set(decoded.subarray(at,at+w),yy*w); at+=w; }
+        }
+      }
+      const saved = graphic.disposal === 3 ? surface.slice() : null;
+      for(let yy=0;yy<h;yy++) for(let xx=0;xx<w;xx++) {
+        const pi = raster[yy*w+xx];
+        const dx=x+xx,dy=y+yy;
+        if(pi === graphic.transparent || dx<0 || dy<0 || dx>=width || dy>=height) continue;
+        const src=pi*3, dest=(dy*width+dx)*4;
+        surface[dest]=palette[src];surface[dest+1]=palette[src+1];surface[dest+2]=palette[src+2];surface[dest+3]=255;
+      }
+      const frameCanvas=document.createElement('canvas');
+      frameCanvas.width=width;frameCanvas.height=height;
+      frameCanvas.getContext('2d').putImageData(new ImageData(surface.slice(),width,height),0,0);
+      frames.push(frameCanvas);
+      durations.push(graphic.delay);
+      previousDisposal=graphic.disposal;
+      previousRect={x,y,w,h};
+      restorePixels=saved;
+      graphic={delay:100,disposal:0,transparent:-1};
+      if(frames.length>300) throw new Error('当前最多支持 300 帧，原文件帧数过多');
+    }
+    return {frames,durations,width,height};
+  }
+
+  async function decodeAnimation(file, bytes, mime) {
+    if (typeof ImageDecoder !== 'undefined') {
+      let decoder;
+      try {
+        const supported = typeof ImageDecoder.isTypeSupported === 'function' ? await ImageDecoder.isTypeSupported(mime) : true;
+        if (supported) {
+          decoder = new ImageDecoder({data:bytes,type:mime,preferAnimation:true});
+          if (decoder.tracks?.ready) await decoder.tracks.ready;
+          const track=decoder.tracks?.selectedTrack;
+          const count = Number(track?.frameCount || 0);
+          if (count > 300) throw new Error('当前最多支持 300 帧，原文件帧数过多');
+          if (count >= 2) {
+            const frames=[],durations=[];
+            let width=0,height=0;
+            for(let i=0;i<count;i++) {
+              const result=await decoder.decode({frameIndex:i,completeFramesOnly:true});
+              const vf=result.image;
+              const fw=Math.round(vf.displayWidth || vf.codedWidth || track?.codedWidth || 1);
+              const fh=Math.round(vf.displayHeight || vf.codedHeight || track?.codedHeight || 1);
+              const image=document.createElement('canvas');image.width=fw;image.height=fh;
+              image.getContext('2d').drawImage(vf,0,0,fw,fh);
+              frames.push(image);
+              durations.push(Math.max(1,Math.round(Number(vf.duration || 0)/1000)||100));
+              vf.close?.();
+              width=Math.max(width,fw);height=Math.max(height,fh);
+              updateBusy(`解码动态图 ${i+1}/${count} 帧`,5+68*(i+1)/count);
+              await new Promise(requestAnimationFrame);
+            }
+            decoder.close?.();
+            return {frames,durations,width,height};
+          }
+        }
+      } catch(e) {
+        if(/最多支持 300 帧/.test(e.message)) throw e;
+        console.warn('WebCodecs 动图解码回退',e);
+      } finally { decoder?.close?.(); }
+    }
+    if (mime === 'image/gif') return parseGifWithoutWebCodecs(bytes);
+    throw new Error('当前浏览器不支持此动态格式逐帧解码。请使用最新版 Chrome / Edge 打开本地 HTML。');
+  }
+
+  function packAnimationFrames(decoded, type) {
+    const count=decoded.frames.length;
+    if (!count || count > 300) throw new Error('动态图帧数超出范围（1–300 帧）');
+    const frameW=Math.max(1,Math.round(decoded.width));
+    const frameH=Math.max(1,Math.round(decoded.height));
+    const mode=normalizeLayoutMode(els.layoutMode.value);
+    const columns=mode === 'columns' ? suggestColumnCount(count) : clamp(Number(els.columnCount.value)||1,1,count);
+    const cols=getCols(count,mode,columns);
+    const rows=Math.ceil(count/cols);
+    const totalW=cols*frameW,totalH=rows*frameH;
+    if(totalW > 16384 || totalH > 16384 || totalW*totalH > 64000000) throw new Error('动态图帧数或单帧尺寸过大，无法完整装入内存画布；请先缩小图片。');
+    const canvas=document.createElement('canvas');canvas.width=totalW;canvas.height=totalH;
+    const ctx=canvas.getContext('2d');
+    if(!ctx) throw new Error('无法分配动态图画布内存');
+    decoded.frames.forEach((frame,i) => {
+      const x=(i%cols)*frameW+(frameW-frame.width)/2;
+      const y=Math.floor(i/cols)*frameH+(frameH-frame.height)/2;
+      ctx.drawImage(frame,x,y);
+    });
+    return {drawable:canvas,frameCount:count,sourceGrid:{cols,cellW:frameW,cellH:frameH,count},durations:decoded.durations,suggestedColumns:columns,animatedSourceType:type};
+  }
+
+  function applyLoadedSource(drawable, file, sourceLabel, options={}) {
+    pushHistory();
+    clearPlaybackTimer();
+    state.image=drawable;
+    state.fileName=file.name || 'clipboard.png';
+    state.importedAnimated=!!options.animated;
+    state.animatedSourceType=options.animatedSourceType || '';
+    state.sourceGrid=options.sourceGrid || null;
+    state.sourceFrameDurations=options.durations || [];
+    state.fileMeta=`${state.fileName} · ${sourceWidth(drawable)}×${sourceHeight(drawable)}px · ${sourceLabel}`;
+    state.selected=0;state.selectedOrderIds=[];state.playIndex=0;
+    state.frames=[];state.guides=[];state.selectedGuideId=null;state.guideDrag=null;
+    state.eraseMode=false;state.eraseStroke=null;els.mainCanvas.style.cursor='';
+    if(options.frameCount) {
+      state.frameCount=options.frameCount;
+      els.frameCount.value=state.frameCount;
+      if(state.layoutMode==='columns') {
+        state.columnCount=options.suggestedColumns || suggestColumnCount(state.frameCount);
+        els.columnCount.value=state.columnCount;
+      }
+    }
+    els.stageEmpty.style.display='none';els.canvasEditor.style.display='block';
+    els.mainCanvas.style.display='block';els.previewEmpty.style.display='none';
+    els.previewWrap.classList.remove('empty');
+    enableProjectControls(true);
+    rebuildGrid({preserve:false,resetSources:true});
+    requestAnimationFrame(fitStage);
+  }
+
+  let importSequence=0;
+  async function setImage(file, sourceLabel='') {
+    if(!file || !isImageFile(file)) return;
+    const sequence=++importSequence;
+    try {
+      setBusy(true,'正在导入图片','检查图片类型与动画帧…',3);
+      const mime=guessMimeType(file);
+      const bytes=(mime==='image/gif'||mime==='image/webp'||mime==='image/png')?new Uint8Array(await file.arrayBuffer()):null;
+      if(bytes && hasAnimationChunk(bytes,mime)) {
+        updateBusy('正在读取动态图所有帧…',10);
+        const decoded=await decodeAnimation(file,bytes,mime);
+        const result=packAnimationFrames(decoded,mime);
+        if(sequence!==importSequence)return;
+        applyLoadedSource(result.drawable,file,sourceLabel,{animated:true,...result});
+        updateBusy(`已拆分 ${result.frameCount} 帧`,100);
+      } else {
+        const image=await loadStaticDrawable(file);
+        if(sequence!==importSequence)return;
+        applyLoadedSource(image,file,sourceLabel,{animated:false});
+        updateBusy('静态图片已导入',100);
+      }
+      setTimeout(()=>{if(sequence===importSequence)setBusy(false);},140);
+    } catch(e) {
+      if(sequence!==importSequence)return;
+      console.error(e);setBusy(false);
+      alert(`图片导入失败：${e.message || e}`);
+    }
+  }
+
+  function enableProjectControls(enabled) {
+    [els.resetFrameBtn, els.copyPrevBtn, els.playBtn, els.resetAllBtn, els.fitStageBtn, els.toggleRulersBtn, els.toggleGuidesBtn, els.toggleEraseBtn, els.clearGuidesBtn, els.exportPngBtn, els.exportWebpBtn, els.exportGifBtn]
+      .forEach(el => el.disabled = !enabled);
+    els.eraseSizeRange.disabled = !enabled || state.selected < 0;
+    els.clearEraseBtn.disabled = !enabled || state.selected < 0;
+    els.columnCount.disabled = !enabled || state.layoutMode !== 'columns';
+  }
+
+  function sourceCellOrigin(frame) {
+    const sourceIndex = Math.max(0, Number(frame.sourceIndex) || 0);
+    const colCount = state.sourceGrid ? state.sourceGrid.cols : state.cols;
+    return { col: sourceIndex % colCount, row: Math.floor(sourceIndex / colCount) };
+  }
+
+  function positionCellOrigin(index) {
+    return { col: index % state.cols, row: Math.floor(index / state.cols) };
+  }
+
+  function getHandleRect(index) {
+    const { col, row } = positionCellOrigin(index);
+    const x = col * state.cellW;
+    const y = row * state.cellH;
+    const w = Math.min(state.cellW, Math.max(42, 62 / state.stageScale));
+    const h = Math.min(state.cellH, Math.max(18, 22 / state.stageScale));
+    return { x, y, w, h };
+  }
+
+  function drawFrame(ctx, index, targetX, targetY, targetW, targetH, options = {}) {
+    if (!state.image || !state.frames[index]) return;
+    const frame = state.frames[index];
+    const { col, row } = sourceCellOrigin(frame);
+    const sx = targetW / state.cellW;
+    const sy = targetH / state.cellH;
+
+    ctx.save();
+    if (options.alpha != null) ctx.globalAlpha = options.alpha;
+    ctx.beginPath();
+    ctx.rect(targetX, targetY, targetW, targetH);
+    ctx.clip();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const cropCenterX = (col + 0.5) * state.cellW;
+    const cropCenterY = (row + 0.5) * state.cellH;
+    ctx.translate(targetX + targetW / 2 + frame.dx * sx, targetY + targetH / 2 + frame.dy * sy);
+    ctx.scale(frame.scale * sx, frame.scale * sy);
+    if (state.sourceGrid) {
+      ctx.drawImage(state.image, col * state.cellW, row * state.cellH, state.cellW, state.cellH,
+        -state.cellW/2, -state.cellH/2, state.cellW, state.cellH);
+    } else {
+      ctx.translate(-cropCenterX, -cropCenterY);
+      ctx.drawImage(state.image, 0, 0);
+    }
+    ctx.restore();
+    applyFrameErase(ctx, frame, targetX, targetY, targetW, targetH);
+
+    if (options.border) {
+      const displayIndex = Number.isInteger(options.displayIndex) ? options.displayIndex : index;
+      ctx.save();
+      if (options.alpha != null) ctx.globalAlpha = options.alpha;
+      ctx.strokeStyle = options.selected ? '#f4c96b' : 'rgba(255,255,255,.52)';
+      ctx.lineWidth = options.selected ? Math.max(2, 2 / state.stageScale) : Math.max(1, 1 / state.stageScale);
+      ctx.strokeRect(targetX, targetY, targetW, targetH);
+      const labelW = Math.min(targetW, Math.max(42, 62 / state.stageScale));
+      const labelH = Math.min(targetH, Math.max(18, 22 / state.stageScale));
+      ctx.fillStyle = options.selected ? 'rgba(244,201,107,.97)' : 'rgba(10,12,15,.82)';
+      ctx.fillRect(targetX, targetY, labelW, labelH);
+      ctx.fillStyle = options.selected ? '#1d180f' : '#ffffff';
+      ctx.font = `${Math.max(8, 10 / state.stageScale)}px -apple-system, sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.beginPath();
+      ctx.rect(targetX, targetY, labelW, labelH);
+      ctx.clip();
+      const rankPrefix = options.selectionRank ? `${options.selectionRank}·` : '';
+      const label = `${rankPrefix}↕${displayIndex + 1}`;
+      ctx.fillText(label, targetX + 6 / state.stageScale, targetY + labelH / 2);
+      ctx.restore();
+    }
+  }
+
+  function applyFrameErase(ctx, frame, targetX, targetY, targetW, targetH) {
+    if (!hasErasePaths(frame)) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(targetX, targetY, targetW, targetH);
+    ctx.clip();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const stroke of frame.erasePaths) {
+      const points = stroke?.points || [];
+      if (!points.length) continue;
+      const lineWidth = Math.max(1, (Number(stroke.sizeN) || 0.01) * Math.max(targetW, targetH));
+      ctx.lineWidth = lineWidth;
+      if (points.length === 1) {
+        const p = points[0];
+        const cx = targetX + p.x * targetW;
+        const cy = targetY + p.y * targetH;
+        ctx.beginPath();
+        ctx.arc(cx, cy, lineWidth / 2, 0, Math.PI * 2);
+        ctx.fill();
+        continue;
+      }
+      ctx.beginPath();
+      points.forEach((p, idx) => {
+        const px = targetX + p.x * targetW;
+        const py = targetY + p.y * targetH;
+        if (!idx) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawReorderSlot(ctx, index, target = false) {
+    const { col, row } = positionCellOrigin(index);
+    const x = col * state.cellW, y = row * state.cellH;
+    ctx.save();
+    ctx.fillStyle = target ? 'rgba(244,201,107,.10)' : 'rgba(0,0,0,.25)';
+    ctx.fillRect(x, y, state.cellW, state.cellH);
+    ctx.strokeStyle = target ? '#f4c96b' : 'rgba(255,255,255,.30)';
+    ctx.lineWidth = Math.max(2, 2 / state.stageScale);
+    ctx.setLineDash([8 / state.stageScale, 6 / state.stageScale]);
+    ctx.strokeRect(x, y, state.cellW, state.cellH);
+    ctx.restore();
+  }
+
+  function syncGuideToolbar() {
+    const hasImage = !!state.image;
+    els.toggleRulersBtn.textContent = `标尺：${state.rulersVisible ? '显示' : '隐藏'}`;
+    els.toggleGuidesBtn.textContent = `参考线：${state.guidesVisible ? '显示' : '隐藏'}`;
+    els.toggleEraseBtn.textContent = `擦除：${state.eraseMode ? '开启' : '关闭'}`;
+    els.toggleRulersBtn.classList.toggle('active', state.rulersVisible);
+    els.toggleGuidesBtn.classList.toggle('active', state.guidesVisible);
+    els.toggleEraseBtn.classList.toggle('active', state.eraseMode);
+    els.clearGuidesBtn.disabled = !hasImage || state.guides.length === 0;
+    els.toggleEraseBtn.disabled = !hasImage;
+    els.stage.classList.toggle('rulers-hidden', !state.rulersVisible);
+    els.stage.classList.toggle('no-image', !hasImage);
+    els.guideLayer.classList.toggle('hidden', !state.guidesVisible);
+  }
+
+  function rulerMajorStep() {
+    const desired = 72;
+    const raw = desired / Math.max(.0001, state.stageScale);
+    const steps = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
+    return steps.find(v => v >= raw) || Math.ceil(raw / 10000) * 10000;
+  }
+
+  function prepareRulerCanvas(canvas, cssW, cssH) {
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.style.width = `${Math.max(0, cssW)}px`;
+    canvas.style.height = `${Math.max(0, cssH)}px`;
+    const bw = Math.max(1, Math.round(cssW * dpr));
+    const bh = Math.max(1, Math.round(cssH * dpr));
+    if (canvas.width !== bw) canvas.width = bw;
+    if (canvas.height !== bh) canvas.height = bh;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+    return ctx;
+  }
+
+  function rowFrameCount(row) {
+    return Math.max(0, Math.min(state.cols, state.frameCount - row * state.cols));
+  }
+
+  function colFrameCount(col) {
+    if (col < 0 || col >= state.cols || col >= state.frameCount) return 0;
+    let count = 0;
+    for (let row = 0; row < state.rows; row++) {
+      if (row * state.cols + col < state.frameCount) count++;
+    }
+    return count;
+  }
+
+  function renderRulers() {
+    syncGuideToolbar();
+    if (!state.image || !state.rulersVisible) return;
+
+    const size = 24;
+    const stageW = Math.max(size + 1, els.stage.clientWidth);
+    const stageH = Math.max(size + 1, els.stage.clientHeight);
+    const hW = Math.max(1, stageW - size);
+    const vH = Math.max(1, stageH - size);
+
+    // 标尺本身由 CSS 固定在编辑区边缘，这里只负责尺寸和刻度。
+    const hctx = prepareRulerCanvas(els.horizontalRuler, hW, size);
+    const vctx = prepareRulerCanvas(els.verticalRuler, size, vH);
+    const major = rulerMajorStep();
+    const minor = major / 5;
+
+    const drawBase = (ctx, w, h, horizontal) => {
+      ctx.fillStyle = '#1b1f25';
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = '#343a44';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (horizontal) {
+        ctx.moveTo(0, h - .5); ctx.lineTo(w, h - .5);
+      } else {
+        ctx.moveTo(w - .5, 0); ctx.lineTo(w - .5, h);
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#8f96a2';
+      ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textBaseline = 'top';
+    };
+    drawBase(hctx, hW, size, true);
+    drawBase(vctx, size, vH, false);
+
+    // 画布可能在编辑区中居中，或因为滚动而离开视口。
+    // 轨道固定不动，只把刻度平移到“当前画布在视口中的实际位置”。
+    const canvasRect = els.mainCanvas.getBoundingClientRect();
+    const viewportRect = els.stageViewport.getBoundingClientRect();
+    const canvasOffsetX = canvasRect.left - viewportRect.left;
+    const canvasOffsetY = canvasRect.top - viewportRect.top;
+
+    // 单帧局部坐标重复：每一列 / 每一行都从 0 重新计数。
+    for (let col = 0; col < state.cols && colFrameCount(col) > 0; col++) {
+      const base = col * state.cellW;
+      for (let value = 0; value < state.cellW - .001; value += minor) {
+        const px = canvasOffsetX + (base + value) * state.stageScale;
+        if (px < -20 || px > hW + 20) continue;
+        const majorTick = Math.abs((value / major) - Math.round(value / major)) < .001;
+        hctx.strokeStyle = value === 0 ? '#929aa6' : (majorTick ? '#747c88' : '#4b525c');
+        hctx.beginPath();
+        hctx.moveTo(Math.round(px) + .5, size);
+        hctx.lineTo(Math.round(px) + .5, size - (value === 0 ? 13 : (majorTick ? 10 : 5)));
+        hctx.stroke();
+        if (majorTick && px > -18 && px < hW - 18) {
+          hctx.fillStyle = value === 0 ? '#c0c6cf' : '#9ba2ad';
+          hctx.fillText(String(Math.round(value)), px + 3, 2);
+        }
+      }
+    }
+
+    for (let row = 0; row < state.rows && rowFrameCount(row) > 0; row++) {
+      const base = row * state.cellH;
+      for (let value = 0; value < state.cellH - .001; value += minor) {
+        const py = canvasOffsetY + (base + value) * state.stageScale;
+        if (py < -20 || py > vH + 20) continue;
+        const majorTick = Math.abs((value / major) - Math.round(value / major)) < .001;
+        vctx.strokeStyle = value === 0 ? '#929aa6' : (majorTick ? '#747c88' : '#4b525c');
+        vctx.beginPath();
+        vctx.moveTo(size, Math.round(py) + .5);
+        vctx.lineTo(size - (value === 0 ? 13 : (majorTick ? 10 : 5)), Math.round(py) + .5);
+        vctx.stroke();
+        if (majorTick && py > -18 && py < vH - 18) {
+          vctx.save();
+          vctx.translate(2, py + 17);
+          vctx.rotate(-Math.PI / 2);
+          vctx.fillStyle = value === 0 ? '#c0c6cf' : '#9ba2ad';
+          vctx.fillText(String(Math.round(value)), 0, 0);
+          vctx.restore();
+        }
+      }
+    }
+
+    if (state.guidesVisible) {
+      for (const g of state.guides) {
+        const selected = g.id === state.selectedGuideId;
+        const color = selected ? '#f4c96b' : '#45bfff';
+        if (g.orientation === 'v') {
+          for (let col = 0; col < state.cols && colFrameCount(col) > 0; col++) {
+            const x = canvasOffsetX + (col * state.cellW + g.position) * state.stageScale;
+            if (x < -8 || x > hW + 8) continue;
+            hctx.fillStyle = color;
+            hctx.beginPath();
+            hctx.moveTo(x, size - 1); hctx.lineTo(x - 4, size - 7); hctx.lineTo(x + 4, size - 7); hctx.closePath(); hctx.fill();
+          }
+        } else {
+          for (let row = 0; row < state.rows && rowFrameCount(row) > 0; row++) {
+            const y = canvasOffsetY + (row * state.cellH + g.position) * state.stageScale;
+            if (y < -8 || y > vH + 8) continue;
+            vctx.fillStyle = color;
+            vctx.beginPath();
+            vctx.moveTo(size - 1, y); vctx.lineTo(size - 7, y - 4); vctx.lineTo(size - 7, y + 4); vctx.closePath(); vctx.fill();
+          }
+        }
+      }
+    }
+  }
+
+  function guideSegments(g) {
+    const segments = [];
+    if (g.orientation === 'h') {
+      for (let row = 0; row < state.rows; row++) {
+        const count = rowFrameCount(row);
+        if (!count) continue;
+        segments.push({
+          left: 0,
+          top: (row * state.cellH + g.position) * state.stageScale,
+          width: count * state.cellW * state.stageScale,
+          height: 1
+        });
+      }
+    } else {
+      for (let col = 0; col < state.cols; col++) {
+        const count = colFrameCount(col);
+        if (!count) continue;
+        segments.push({
+          left: (col * state.cellW + g.position) * state.stageScale,
+          top: 0,
+          width: 1,
+          height: count * state.cellH * state.stageScale
+        });
+      }
+    }
+    return segments;
+  }
+
+  function appendGuideSegments(frag, guide, { preview = false } = {}) {
+    const segments = guideSegments(guide);
+    segments.forEach((seg, index) => {
+      const line = document.createElement('div');
+      const selected = !preview && guide.id === state.selectedGuideId;
+      line.className = `guide ${guide.orientation === 'v' ? 'vertical' : 'horizontal'} ${selected ? 'selected' : ''} ${preview ? 'preview' : ''}`;
+      if (!preview) line.dataset.guideId = String(guide.id);
+      line.style.left = `${seg.left}px`;
+      line.style.top = `${seg.top}px`;
+      if (guide.orientation === 'v') line.style.height = `${seg.height}px`;
+      else line.style.width = `${seg.width}px`;
+      if (!preview && selected && index === 0) {
+        const label = document.createElement('span');
+        label.className = 'guide-label';
+        label.textContent = `${guide.orientation === 'v' ? 'X' : 'Y'} ${Math.round(guide.position)} px · ${guide.orientation === 'v' ? '每列同步' : '每行同步'}`;
+        line.appendChild(label);
+      }
+      if (!preview) line.addEventListener('pointerdown', ev => beginGuideMove(guide.id, ev));
+      frag.appendChild(line);
+    });
+  }
+
+  function renderGuides() {
+    syncGuideToolbar();
+    els.guideLayer.innerHTML = '';
+    if (!state.image || !state.guidesVisible) return;
+    const frag = document.createDocumentFragment();
+    for (const g of state.guides) appendGuideSegments(frag, g);
+    const gd = state.guideDrag;
+    if (gd && gd.mode === 'new' && gd.valid && Number.isFinite(gd.position)) {
+      appendGuideSegments(frag, { id: -1, orientation: gd.orientation, position: gd.position }, { preview: true });
+    }
+    els.guideLayer.appendChild(frag);
+  }
+
+  function guidePointFromEvent(ev) {
+    const rect = els.canvasStack.getBoundingClientRect();
+    const x = (ev.clientX - rect.left) / state.stageScale;
+    const y = (ev.clientY - rect.top) / state.stageScale;
+    return {
+      x, y,
+      insideCanvas: x >= 0 && x <= stageWidth() && y >= 0 && y <= stageHeight()
+    };
+  }
+
+  function guidePositionForEvent(orientation, ev) {
+    const p = guidePointFromEvent(ev);
+    let position = 0;
+    if (orientation === 'v') {
+      const col = clamp(Math.floor(p.x / Math.max(.0001, state.cellW)), 0, Math.max(0, state.cols - 1));
+      position = p.x - col * state.cellW;
+      position = clamp(position, 0, state.cellW);
+    } else {
+      const row = clamp(Math.floor(p.y / Math.max(.0001, state.cellH)), 0, Math.max(0, state.rows - 1));
+      position = p.y - row * state.cellH;
+      position = clamp(position, 0, state.cellH);
+    }
+    const frameIndex = p.insideCanvas ? frameAtPoint(p) : -1;
+    return { position, inside: frameIndex >= 0, point: p, frameIndex };
+  }
+
+  function showRulerTip(ev, orientation, position) {
+    const stageRect = els.stage.getBoundingClientRect();
+    els.rulerTip.textContent = `${orientation === 'v' ? 'X' : 'Y'} ${Math.round(position)} px · ${orientation === 'v' ? '每列同步' : '每行同步'}`;
+    els.rulerTip.style.left = `${ev.clientX - stageRect.left + 10}px`;
+    els.rulerTip.style.top = `${ev.clientY - stageRect.top + 10}px`;
+    els.rulerTip.style.display = 'block';
+  }
+
+  function hideRulerTip() { els.rulerTip.style.display = 'none'; }
+
+  function beginGuideFromRuler(orientation, ev) {
+    if (!state.image || ev.button !== 0 || !state.rulersVisible) return;
+    ev.preventDefault();
+    state.selectedGuideId = null;
+    const pos = guidePositionForEvent(orientation, ev);
+    state.guideDrag = { mode: 'new', orientation, position: pos.position, valid: pos.inside };
+    renderGuides();
+    renderRulers();
+    showRulerTip(ev, orientation, pos.position);
+  }
+
+  function beginGuideMove(id, ev) {
+    if (!state.image || ev.button !== 0 || !state.guidesVisible) return;
+    const guide = state.guides.find(g => g.id === id);
+    if (!guide) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    state.selectedGuideId = id;
+    state.guideDrag = {
+      mode: 'move', id, orientation: guide.orientation, startPosition: guide.position,
+      startClientX: ev.clientX, startClientY: ev.clientY, changed: false, historyPushed: false
+    };
+    renderGuides();
+    renderRulers();
+    showRulerTip(ev, guide.orientation, guide.position);
+  }
+
+  function handleGuidePointerMove(ev) {
+    const gd = state.guideDrag;
+    if (!state.image || !gd) return;
+    if (gd.mode === 'new') {
+      const pos = guidePositionForEvent(gd.orientation, ev);
+      gd.position = pos.position;
+      gd.valid = pos.inside;
+      renderGuides();
+      showRulerTip(ev, gd.orientation, gd.position);
+      return;
+    }
+    const guide = state.guides.find(g => g.id === gd.id);
+    if (!guide) return;
+    const clientDelta = gd.orientation === 'v' ? ev.clientX - gd.startClientX : ev.clientY - gd.startClientY;
+    if (!gd.changed && Math.abs(clientDelta) >= 2) {
+      pushHistory();
+      gd.historyPushed = true;
+      gd.changed = true;
+    }
+    if (gd.changed) {
+      const delta = clientDelta / Math.max(.0001, state.stageScale);
+      const limit = gd.orientation === 'v' ? state.cellW : state.cellH;
+      guide.position = clamp(gd.startPosition + delta, 0, limit);
+    }
+    renderGuides();
+    renderRulers();
+    showRulerTip(ev, gd.orientation, guide.position);
+  }
+
+  function handleGuidePointerUp(ev) {
+    const gd = state.guideDrag;
+    if (!gd) return;
+    if (gd.mode === 'new') {
+      const pos = guidePositionForEvent(gd.orientation, ev);
+      if (pos.inside) {
+        pushHistory();
+        const guide = { id: nextGuideId++, orientation: gd.orientation, position: pos.position };
+        state.guides.push(guide);
+        state.selectedGuideId = guide.id;
+      }
+    }
+    state.guideDrag = null;
+    hideRulerTip();
+    renderAll();
+  }
+
+  function deleteSelectedGuide() {
+    if (state.selectedGuideId == null) return;
+    const exists = state.guides.some(g => g.id === state.selectedGuideId);
+    if (!exists) return;
+    pushHistory();
+    state.guides = state.guides.filter(g => g.id !== state.selectedGuideId);
+    state.selectedGuideId = null;
+    renderAll();
+  }
+
+  function clearGuides() {
+    if (!state.image || !state.guides.length) return;
+    pushHistory();
+    state.guides = [];
+    state.selectedGuideId = null;
+    renderAll();
+  }
+
+  function toggleGuides() {
+    if (!state.image) return;
+    pushHistory();
+    state.guidesVisible = !state.guidesVisible;
+    if (!state.guidesVisible) state.selectedGuideId = null;
+    renderAll();
+  }
+
+  function toggleRulers() {
+    if (!state.image) return;
+    pushHistory();
+    state.rulersVisible = !state.rulersVisible;
+    syncGuideToolbar();
+    requestAnimationFrame(fitStage);
+  }
+
+  function renderMainCanvas() {
+    if (!state.image) return;
+    const canvas = els.mainCanvas;
+    const w = Math.max(1, stageWidth());
+    const h = Math.max(1, stageHeight());
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    const rd = state.reorderDrag;
+    const dragIds = new Set(rd?.selectedIds || []);
+    for (let i = 0; i < state.frameCount; i++) {
+      const { col, row } = positionCellOrigin(i);
+      if (rd && dragIds.has(state.frames[i]?.id)) {
+        drawReorderSlot(ctx, i, false);
+        continue;
+      }
+      drawFrame(ctx, i, col * state.cellW, row * state.cellH, state.cellW, state.cellH, {
+        border: true,
+        selected: isFrameSelected(i),
+        selectionRank: state.selectedOrderIds.length > 1 ? selectionRank(i) : 0
+      });
+    }
+    if (rd) {
+      const count = Math.max(1, rd.selectedIds.length);
+      const targetStart = clamp(rd.target, 0, Math.max(0, state.frameCount - count));
+      for (let j = 0; j < count; j++) drawReorderSlot(ctx, targetStart + j, true);
+      const gx = rd.currentX - rd.grabOffsetX;
+      const gy = rd.currentY - rd.grabOffsetY;
+      rd.selectedIds.forEach((id, order) => {
+        const index = frameIndexById(id);
+        if (index < 0) return;
+        const offset = order * Math.max(5, 8 / state.stageScale);
+        drawFrame(ctx, index, gx + offset, gy + offset, state.cellW, state.cellH, {
+          border: true,
+          selected: true,
+          selectionRank: order + 1,
+          alpha: Math.max(.62, .92 - order * .04),
+          displayIndex: index
+        });
+      });
+    }
+    canvas.style.width = `${w * state.stageScale}px`;
+    canvas.style.height = `${h * state.stageScale}px`;
+    els.canvasStack.style.width = `${w * state.stageScale}px`;
+    els.canvasStack.style.height = `${h * state.stageScale}px`;
+    renderRulers();
+    renderGuides();
+  }
+
+  function renderPreview(index = state.playIndex) {
+    if (!state.image || index < 0 || index >= state.frameCount) return;
+    const max = 360;
+    let outW = Math.round(state.cellW);
+    let outH = Math.round(state.cellH);
+    const scale = Math.min(1, max / Math.max(outW, outH));
+    outW = Math.max(1, Math.round(outW * scale));
+    outH = Math.max(1, Math.round(outH * scale));
+    const canvas = els.previewCanvas;
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, outW, outH);
+    drawFrame(ctx, index, 0, 0, outW, outH);
+    els.previewInfo.textContent = `第 ${index+1}/${state.frameCount} 帧 · ${state.frames[index].name} · ${Math.round(state.cellW)} × ${Math.round(state.cellH)}px${state.importedAnimated ? ` · ${getFrameDurationMs(index)}ms` : ''}`;
+  }
+
+  function clearListDropTargets() {
+    els.frameList.querySelectorAll('.dragging,.drop-target').forEach(el => el.classList.remove('dragging', 'drop-target'));
+  }
+
+  function renderFrameList() {
+    els.frameList.innerHTML = '';
+    const selectedCount = state.selectedOrderIds.length;
+    els.frameListMeta.textContent = state.image
+      ? `${state.frameCount || 0} 帧 · Shift 多选${selectedCount > 1 ? ` · 已选 ${selectedCount} 帧` : ''} · 可拖拽换序`
+      : '0 帧';
+    if (!state.image) return;
+    const frag = document.createDocumentFragment();
+    state.frames.forEach((f, i) => {
+      const item = document.createElement('div');
+      const rank = selectionRank(i);
+      const multiRank = selectedCount > 1 ? rank : 0;
+      item.className = `frame-item ${multiRank ? 'multi-selected' : ''} ${i === state.selected ? 'active' : ''}`;
+      item.dataset.index = i;
+      item.dataset.frameId = String(f.id);
+      if (multiRank) item.dataset.selectOrder = String(multiRank);
+      item.draggable = true;
+      item.innerHTML = `<div class="frame-num">${i + 1}</div><div class="frame-name"></div><div class="frame-transform"></div>`;
+      item.querySelector('.frame-name').textContent = f.name;
+      item.querySelector('.frame-transform').textContent = `${Math.round(f.scale * 100)}% · ${Math.round(f.dx)},${Math.round(f.dy)}`;
+      item.addEventListener('click', e => selectFrame(i, e.shiftKey));
+      item.addEventListener('dragstart', e => {
+        if (!isFrameSelected(i)) setSingleSelection(i);
+        else state.selected = i;
+        state.listDragFrom = i;
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(i));
+      });
+      item.addEventListener('dragover', e => {
+        e.preventDefault();
+        clearListDropTargets();
+        els.frameList.querySelectorAll('.frame-item').forEach(row => {
+          const id = Number(row.dataset.frameId);
+          if (state.selectedOrderIds.includes(id)) row.classList.add('dragging');
+        });
+        item.classList.add('drop-target');
+        e.dataTransfer.dropEffect = 'move';
+      });
+      item.addEventListener('drop', e => {
+        e.preventDefault();
+        const from = state.listDragFrom;
+        state.listDragFrom = -1;
+        clearListDropTargets();
+        if (from >= 0) moveSelectedFramesTo(i);
+      });
+      item.addEventListener('dragend', () => {
+        state.listDragFrom = -1;
+        clearListDropTargets();
+        renderFrameList();
+      });
+      frag.appendChild(item);
+    });
+    els.frameList.appendChild(frag);
+  }
+
+  function syncSelectedControls() {
+    const f = state.frames[state.selected];
+    const enabled = !!f;
+    [els.frameName, els.scaleRange, els.eraseSizeRange].forEach(el => el.disabled = !enabled);
+    els.resetFrameBtn.disabled = !enabled;
+    els.copyPrevBtn.disabled = !enabled || state.selected <= 0;
+    els.clearEraseBtn.disabled = !enabled || !hasErasePaths(f);
+    els.columnCount.max = String(state.frameCount || 1);
+    els.columnCount.disabled = !state.image || state.layoutMode !== 'columns';
+    els.eraseSizeRange.value = state.eraseBrushSize;
+    els.eraseSizeValue.textContent = `${state.eraseBrushSize}px`;
+    if (!enabled) {
+      els.selectedBadge.textContent = '未选择';
+      els.frameName.value = '';
+      els.scaleRange.value = 100;
+      els.scaleValue.textContent = '100%';
+      return;
+    }
+    const sel = getSelectedFrames();
+    const mixed = sel.length > 1 && sel.some(item => Math.abs(item.scale - sel[0].scale) > 0.0001);
+    els.selectedBadge.textContent = state.selectedOrderIds.length > 1 ? `已选 ${state.selectedOrderIds.length} 帧 · 当前第 ${state.selected+1} 帧` : `第 ${state.selected+1} 帧`;
+    els.frameName.value = f.name;
+    els.scaleRange.value = Math.round(f.scale * 100);
+    els.scaleValue.textContent = mixed ? '混合' : `${Math.round(f.scale * 100)}%`;
+  }
+
+  function updateMeta() {
+    if (!state.image) { els.gridMeta.textContent = '等待导入图片'; return; }
+    els.gridMeta.textContent = `${state.fileName} · ${state.cols} 列 × ${state.rows} 行 · ${state.frameCount} 帧 · 单帧约 ${Math.round(state.cellW)} × ${Math.round(state.cellH)}px`;
+    syncGuideToolbar();
+  }
+
+  function renderAll() {
+    updateMeta();
+    syncSelectedControls();
+    renderMainCanvas();
+    renderFrameList();
+    syncTimingInfo();
+    if (state.image) renderPreview(state.playing ? state.playIndex : Math.max(0, state.selected));
+  }
+
+  function selectFrame(i, additive = false) {
+    if (!state.image || i < 0 || i >= state.frameCount) return;
+    if (additive) toggleFrameSelection(i);
+    else setSingleSelection(i);
+    renderAll();
+  }
+
+  function fitStage() {
+    if (!state.image) return;
+    const pad = 56;
+    const maxW = Math.max(200, els.stageViewport.clientWidth - pad);
+    const maxH = Math.max(200, els.stageViewport.clientHeight - pad);
+    state.stageScale = Math.min(1, maxW / Math.max(1, stageWidth()), maxH / Math.max(1, stageHeight()));
+    state.stageScale = Math.max(0.05, state.stageScale);
+    renderMainCanvas();
+  }
+
+  function canvasPoint(ev) {
+    const rect = els.mainCanvas.getBoundingClientRect();
+    return { x: (ev.clientX - rect.left) / state.stageScale, y: (ev.clientY - rect.top) / state.stageScale };
+  }
+
+  function frameAtPoint(p) {
+    const col = Math.floor(p.x / state.cellW);
+    const row = Math.floor(p.y / state.cellH);
+    if (col < 0 || col >= state.cols || row < 0 || row >= state.rows) return -1;
+    const i = row * state.cols + col;
+    return i < state.frameCount ? i : -1;
+  }
+
+  function isInReorderHandle(index, p) {
+    const r = getHandleRect(index);
+    return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+  }
+
+  function toggleEraseMode(force = null) {
+    if (!state.image) return;
+    state.eraseMode = force == null ? !state.eraseMode : !!force;
+    state.eraseStroke = null;
+    if (!state.eraseMode && state.dragMode === 'erase') {
+      state.dragMode = null;
+      state.dragStart = null;
+    }
+    els.mainCanvas.style.cursor = state.eraseMode ? 'crosshair' : '';
+    renderAll();
+  }
+
+  function beginEraseStroke(index, p) {
+    const frame = state.frames[index];
+    if (!frame) return;
+    const { col, row } = positionCellOrigin(index);
+    const cellX = col * state.cellW;
+    const cellY = row * state.cellH;
+    const point = normalizeLocalPoint(p.x, p.y, cellX, cellY, state.cellW, state.cellH);
+    pushHistory();
+    frame.erasePaths ||= [];
+    const stroke = { sizeN: brushSizeToNormalized(state.eraseBrushSize), points: [point] };
+    frame.erasePaths.push(stroke);
+    state.dragMode = 'erase';
+    state.eraseStroke = { index, stroke };
+    els.mainCanvas.style.cursor = 'crosshair';
+    renderAll();
+  }
+
+  function appendErasePoint(p) {
+    if (!state.eraseStroke) return;
+    const index = state.eraseStroke.index;
+    const { col, row } = positionCellOrigin(index);
+    const cellX = col * state.cellW;
+    const cellY = row * state.cellH;
+    const point = normalizeLocalPoint(p.x, p.y, cellX, cellY, state.cellW, state.cellH);
+    const points = state.eraseStroke.stroke.points;
+    const last = points[points.length - 1];
+    if (last && Math.hypot(point.x - last.x, point.y - last.y) < 0.0025) return;
+    points.push(point);
+    renderMainCanvas();
+    renderPreview(state.selected);
+    renderFrameList();
+  }
+
+  function clearSelectedErase() {
+    const frame = state.frames[state.selected];
+    if (!frame || !hasErasePaths(frame)) return;
+    pushHistory();
+    frame.erasePaths = [];
+    renderAll();
+  }
+
+  function handlePointerDown(ev) {
+    if (!state.image || ev.button !== 0 || state.guideDrag) return;
+    if (state.selectedGuideId != null) { state.selectedGuideId = null; renderGuides(); renderRulers(); }
+    const p = canvasPoint(ev);
+    const i = frameAtPoint(p);
+    if (i < 0) return;
+    if (state.eraseMode) {
+      setSingleSelection(i);
+      beginEraseStroke(i, p);
+      els.mainCanvas.setPointerCapture?.(ev.pointerId);
+      return;
+    }
+    const onHandle = isInReorderHandle(i, p);
+
+    if (ev.shiftKey) {
+      const alreadySelected = isFrameSelected(i);
+      if (!(onHandle && alreadySelected && state.selectedOrderIds.length > 1)) {
+        toggleFrameSelection(i);
+        renderAll();
+        return;
+      }
+    }
+
+    const wasSelected = isFrameSelected(i);
+    if (!(onHandle && wasSelected && state.selectedOrderIds.length > 1)) setSingleSelection(i);
+    else {
+      state.selected = i;
+      if (!state.playing) state.playIndex = i;
+    }
+
+    const { col, row } = positionCellOrigin(i);
+    const cellX = col * state.cellW;
+    const cellY = row * state.cellH;
+    if (onHandle) {
+      state.dragMode = 'reorder';
+      state.reorderDrag = {
+        from: i,
+        selectedIds: [...state.selectedOrderIds],
+        target: i,
+        currentX: p.x,
+        currentY: p.y,
+        grabOffsetX: p.x - cellX,
+        grabOffsetY: p.y - cellY
+      };
+      state.dragStart = null;
+      els.mainCanvas.style.cursor = 'grabbing';
+      renderAll();
+    } else {
+      state.dragMode = 'content';
+      state.dragStart = { x: p.x, y: p.y, dx: state.frames[i].dx, dy: state.frames[i].dy, i, axis: null, changed: false };
+      state.reorderDrag = null;
+      els.mainCanvas.style.cursor = 'move';
+      renderAll();
+    }
+    els.mainCanvas.setPointerCapture?.(ev.pointerId);
+  }
+
+  function handlePointerMove(ev) {
+    if (!state.image || !state.dragMode) return;
+    const p = canvasPoint(ev);
+    if (state.dragMode === 'erase' && state.eraseStroke) {
+      appendErasePoint(p);
+      return;
+    }
+    if (state.dragMode === 'reorder' && state.reorderDrag) {
+      state.reorderDrag.currentX = p.x;
+      state.reorderDrag.currentY = p.y;
+      const target = frameAtPoint(p);
+      if (target >= 0) state.reorderDrag.target = target;
+      renderMainCanvas();
+      return;
+    }
+    if (state.dragMode !== 'content' || !state.dragStart) return;
+    const d = state.dragStart;
+    const totalX = p.x - d.x;
+    const totalY = p.y - d.y;
+    if (!d.axis && Math.max(Math.abs(totalX), Math.abs(totalY)) >= Math.max(2, 2 / state.stageScale)) {
+      d.axis = Math.abs(totalX) >= Math.abs(totalY) ? 'x' : 'y';
+      pushHistory();
+      d.changed = true;
+    }
+    if (!d.axis) return;
+    const f = state.frames[d.i];
+    if (d.axis === 'x') {
+      f.dx = d.dx + totalX;
+      f.dy = d.dy;
+    } else {
+      f.dx = d.dx;
+      f.dy = d.dy + totalY;
+    }
+    syncSelectedControls();
+    renderMainCanvas();
+    renderPreview(state.selected);
+  }
+
+  function handlePointerUp() {
+    if (!state.dragMode) return;
+    if (state.dragMode === 'erase') {
+      state.dragMode = null;
+      state.eraseStroke = null;
+      els.mainCanvas.style.cursor = state.eraseMode ? 'crosshair' : '';
+      renderAll();
+      return;
+    }
+    if (state.dragMode === 'reorder' && state.reorderDrag) {
+      const { from, target } = state.reorderDrag;
+      state.reorderDrag = null;
+      state.dragMode = null;
+      els.mainCanvas.style.cursor = state.eraseMode ? 'crosshair' : '';
+      if (target >= 0) moveSelectedFramesTo(target);
+      else renderAll();
+      return;
+    }
+    const changed = !!state.dragStart?.changed;
+    state.dragMode = null;
+    state.dragStart = null;
+    els.mainCanvas.style.cursor = state.eraseMode ? 'crosshair' : '';
+    if (changed) renderAll();
+    else renderAll();
+  }
+
+  function handleWheel(ev) {
+    if (!state.image) return;
+    ev.preventDefault();
+    const p = canvasPoint(ev);
+    const i = frameAtPoint(p);
+    if (i < 0) return;
+    if (!isFrameSelected(i)) setSingleSelection(i);
+    else state.selected = i;
+    if (!state.wheelHistoryActive) {
+      pushHistory();
+      state.wheelHistoryActive = true;
+    }
+    if (state.wheelHistoryTimer) clearTimeout(state.wheelHistoryTimer);
+    state.wheelHistoryTimer = setTimeout(() => { state.wheelHistoryActive = false; }, 380);
+    const f = state.frames[i];
+    const factor = ev.deltaY < 0 ? 1.05 : 0.95;
+    setUniformScaleOnSelection(clamp(f.scale * factor, 0.1, 4));
+    renderAll();
+  }
+
+  function moveSelectedFramesTo(target) {
+    if (!state.image || target < 0 || target >= state.frames.length) return;
+    normalizeFrameSelection();
+    const ids = state.selectedOrderIds.length ? [...state.selectedOrderIds] : [state.frames[state.selected]?.id].filter(Boolean);
+    if (!ids.length) return;
+    const selectedSet = new Set(ids);
+    const orderedFrames = ids.map(id => state.frames.find(f => f.id === id)).filter(Boolean);
+    const remaining = state.frames.filter(f => !selectedSet.has(f.id));
+    const insertAt = clamp(target, 0, remaining.length);
+    const nextFrames = [...remaining.slice(0, insertAt), ...orderedFrames, ...remaining.slice(insertAt)];
+    const before = state.frames.map(f => f.id).join(',');
+    const after = nextFrames.map(f => f.id).join(',');
+    if (before === after) { renderAll(); return; }
+    const activeId = state.frames[state.selected]?.id || ids[ids.length - 1];
+    pushHistory();
+    state.frames = nextFrames;
+    normalizeAutomaticNames();
+    state.selectedOrderIds = ids;
+    state.selected = Math.max(0, frameIndexById(activeId));
+    state.playIndex = state.selected;
+    renderAll();
+  }
+
+  function moveFrame(from, to) {
+    if (!state.image || from < 0 || from >= state.frames.length) return;
+    setSingleSelection(from);
+    moveSelectedFramesTo(to);
+  }
+
+  function stopPreview() {
+    clearPlaybackTimer();
+    if (state.image) renderPreview(Math.max(0, state.selected));
+  }
+
+  function previewTick() {
+    if (!state.playing || !state.image) return;
+    const i = state.playIndex;
+    renderPreview(i);
+    state.playIndex = (i + 1) % state.frameCount;
+    state.playTimer = setTimeout(previewTick, getFrameDurationMs(i));
+  }
+
+  function togglePreview() {
+    if (!state.image) return;
+    if (state.playing) { stopPreview(); return; }
+    state.playing = true;
+    state.playIndex = Math.max(0, state.selected);
+    els.playBtn.textContent = '停止预览';
+    previewTick();
+  }
+
+  function beginInputHistory(el) {
+    if (!state.image || state.inputHistoryEl === el) return;
+    pushHistory();
+    state.inputHistoryEl = el;
+  }
+
+  function endInputHistory(el) {
+    if (state.inputHistoryEl === el) state.inputHistoryEl = null;
+  }
+
+  function updateSelectedFromInputs(ev) {
+    const f = state.frames[state.selected];
+    if (!f) return;
+    if (ev?.target === els.frameName) {
+      const raw = els.frameName.value.trim();
+      if (raw) { f.name = raw; f.customName = raw !== defaultName(state.selected); }
+      else { f.name = defaultName(state.selected); f.customName = false; }
+    }
+    if (ev?.target === els.scaleRange) setUniformScaleOnSelection(clamp(Number(els.scaleRange.value) / 100 || 1, 0.1, 4));
+    els.scaleValue.textContent = `${Math.round(state.frames[state.selected].scale * 100)}%`;
+    renderMainCanvas();
+    renderPreview(state.selected);
+    renderFrameList();
+  }
+
+  function nudgeSelectedFrame(dx, dy) {
+    const f = state.frames[state.selected];
+    if (!state.image || !f) return;
+    f.dx += dx;
+    f.dy += dy;
+    syncSelectedControls();
+    renderMainCanvas();
+    renderPreview(state.selected);
+    renderFrameList();
+  }
+
+  function resetSelected() {
+    const f = state.frames[state.selected];
+    if (!f) return;
+    pushHistory();
+    f.dx = 0; f.dy = 0; f.scale = 1; f.erasePaths = [];
+    renderAll();
+  }
+
+  function copyPrevious() {
+    const i = state.selected;
+    if (i <= 0) return;
+    pushHistory();
+    const prev = state.frames[i - 1];
+    state.frames[i].dx = prev.dx;
+    state.frames[i].dy = prev.dy;
+    state.frames[i].scale = prev.scale;
+    renderAll();
+  }
+
+  function resetAll() {
+    if (!state.image) return;
+    if (!confirm('确定重置全部帧的位移和缩放吗？帧名称和排序会保留。')) return;
+    pushHistory();
+    state.frames.forEach(f => { f.dx = 0; f.dy = 0; f.scale = 1; f.erasePaths = []; });
+    renderAll();
+  }
+
+  function updateWebpDimensions(force = false, changed = 'width') {
+    if (!state.image) return;
+    const ratio = state.cellW / state.cellH;
+    if (force) {
+      const max = 600;
+      let w = Math.round(state.cellW), h = Math.round(state.cellH);
+      if (Math.max(w, h) > max) { const s = max / Math.max(w, h); w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s)); }
+      els.webpWidth.value = w; els.webpHeight.value = h;
+      return;
+    }
+    if (!els.lockAspect.checked) return;
+    if (changed === 'width') els.webpHeight.value = Math.max(1, Math.round((Number(els.webpWidth.value) || 1) / ratio));
+    else els.webpWidth.value = Math.max(1, Math.round((Number(els.webpHeight.value) || 1) * ratio));
+  }
+
+  function setBusy(on, title = '正在处理…', text = '请不要关闭页面', progress = 0) {
+    els.busyOverlay.hidden = !on;
+    els.busyTitle.textContent = title;
+    els.busyText.textContent = text;
+    els.busyProgress.style.width = `${clamp(progress, 0, 100)}%`;
+  }
+
+  function updateBusy(text, progress) {
+    els.busyText.textContent = text;
+    els.busyProgress.style.width = `${clamp(progress, 0, 100)}%`;
+  }
+
+  function canvasToBlob(canvas, type = 'image/png', quality) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('图片编码失败')), type, quality);
+    });
+  }
+
+  async function blobToU8(blob) { return new Uint8Array(await blob.arrayBuffer()); }
+
+  function rgbaBucketKey(r, g, b, a) {
+    if (a === 0) return -1;
+    return (r >> 3) | ((g >> 3) << 5) | ((b >> 3) << 10) | ((a >> 4) << 15);
+  }
+
+  function buildColorHistogram(data) {
+    const map = new Map();
+    let transparentCount = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+      if (a === 0) { transparentCount++; continue; }
+      const key = rgbaBucketKey(r, g, b, a);
+      let v = map.get(key);
+      if (!v) {
+        v = { key, r: 0, g: 0, b: 0, a: 0, count: 0 };
+        map.set(key, v);
+      }
+      v.r += r; v.g += g; v.b += b; v.a += a; v.count++;
+    }
+    const items = [];
+    for (const v of map.values()) {
+      items.push({
+        key: v.key,
+        r: v.r / v.count,
+        g: v.g / v.count,
+        b: v.b / v.count,
+        a: v.a / v.count,
+        count: v.count
+      });
+    }
+    return { items, transparentCount };
+  }
+
+  function colorBoxStats(items) {
+    let minR=255,minG=255,minB=255,minA=255,maxR=0,maxG=0,maxB=0,maxA=0,total=0;
+    for (const c of items) {
+      if (c.r < minR) minR = c.r; if (c.r > maxR) maxR = c.r;
+      if (c.g < minG) minG = c.g; if (c.g > maxG) maxG = c.g;
+      if (c.b < minB) minB = c.b; if (c.b > maxB) maxB = c.b;
+      if (c.a < minA) minA = c.a; if (c.a > maxA) maxA = c.a;
+      total += c.count;
+    }
+    const ranges = [maxR-minR, maxG-minG, maxB-minB, (maxA-minA)*1.45];
+    let channel = 0;
+    for (let i=1;i<4;i++) if (ranges[i] > ranges[channel]) channel = i;
+    const range = ranges[channel];
+    return { total, channel, score: range * Math.log2(total + 1), range };
+  }
+
+  function splitColorBox(items) {
+    if (items.length < 2) return null;
+    const stats = colorBoxStats(items);
+    if (stats.range <= 0) return null;
+    const key = ['r','g','b','a'][stats.channel];
+    const sorted = items.slice().sort((x,y) => x[key] - y[key]);
+    const half = stats.total / 2;
+    let acc = 0, cut = 1;
+    for (let i=0;i<sorted.length-1;i++) {
+      acc += sorted[i].count;
+      if (acc >= half) { cut = i + 1; break; }
+    }
+    return [sorted.slice(0, cut), sorted.slice(cut)];
+  }
+
+  function makePalette(hist, maxColors) {
+    const hasTransparent = hist.transparentCount > 0;
+    const available = Math.max(1, maxColors - (hasTransparent ? 1 : 0));
+    let boxes = hist.items.length ? [hist.items] : [];
+    while (boxes.length < available) {
+      let best = -1, bestScore = -1;
+      for (let i=0;i<boxes.length;i++) {
+        if (boxes[i].length < 2) continue;
+        const st = colorBoxStats(boxes[i]);
+        if (st.score > bestScore) { bestScore = st.score; best = i; }
+      }
+      if (best < 0) break;
+      const split = splitColorBox(boxes[best]);
+      if (!split || !split[0].length || !split[1].length) break;
+      boxes.splice(best, 1, split[0], split[1]);
+    }
+    const palette = [];
+    if (hasTransparent) palette.push({ r:0,g:0,b:0,a:0 });
+    for (const box of boxes) {
+      let r=0,g=0,b=0,a=0,n=0;
+      for (const c of box) { r+=c.r*c.count; g+=c.g*c.count; b+=c.b*c.count; a+=c.a*c.count; n+=c.count; }
+      palette.push({
+        r: Math.round(r/n), g: Math.round(g/n), b: Math.round(b/n), a: Math.round(a/n)
+      });
+    }
+    return palette.slice(0, 256);
+  }
+
+  function nearestPaletteIndex(c, palette, startIndex) {
+    let best = startIndex || 0, bestD = Infinity;
+    for (let i=startIndex||0;i<palette.length;i++) {
+      const p = palette[i];
+      const aa = c.a / 255, pa = p.a / 255;
+      const dr = c.r * aa - p.r * pa;
+      const dg = c.g * aa - p.g * pa;
+      const db = c.b * aa - p.b * pa;
+      const da = c.a - p.a;
+      const d = dr*dr + dg*dg + db*db + da*da*1.65;
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best;
+  }
+
+  function mapPixelsToPalette(data, hist, palette) {
+    const keyToIndex = new Map();
+    const hasTransparent = hist.transparentCount > 0;
+    const start = hasTransparent ? 1 : 0;
+    for (const c of hist.items) keyToIndex.set(c.key, nearestPaletteIndex(c, palette, start));
+    const out = new Uint8Array(data.length / 4);
+    for (let i=0, j=0;i<data.length;i+=4,j++) {
+      const a = data[i+3];
+      if (a === 0 && hasTransparent) { out[j] = 0; continue; }
+      const key = rgbaBucketKey(data[i], data[i+1], data[i+2], a);
+      let idx = keyToIndex.get(key);
+      if (idx == null) {
+        idx = nearestPaletteIndex({r:data[i],g:data[i+1],b:data[i+2],a}, palette, start);
+        keyToIndex.set(key, idx);
+      }
+      out[j] = idx;
+    }
+    return out;
+  }
+
+  function u32be(v) { return Uint8Array.of((v>>>24)&255,(v>>>16)&255,(v>>>8)&255,v&255); }
+
+  function pngChunk(type, data) {
+    const typeBytes = new TextEncoder().encode(type);
+    const body = SpriteCodec.concat([typeBytes, data]);
+    return SpriteCodec.concat([u32be(data.length), body, u32be(SpriteCodec.crc32(body))]);
+  }
+
+  async function deflateZlib(bytes) {
+    if (typeof CompressionStream === 'undefined') throw new Error('当前浏览器不支持本地 PNG 智能压缩，请使用最新版 Chrome。');
+    const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  async function encodeIndexedPng(imageData, maxColors) {
+    const width = imageData.width, height = imageData.height;
+    const hist = buildColorHistogram(imageData.data);
+    const palette = makePalette(hist, Math.max(2, Math.min(256, maxColors)));
+    if (!palette.length) palette.push({r:0,g:0,b:0,a:0});
+    const indices = mapPixelsToPalette(imageData.data, hist, palette);
+
+    const scan = new Uint8Array((width + 1) * height);
+    let prev = null;
+    for (let y=0;y<height;y++) {
+      const src = indices.subarray(y*width, (y+1)*width);
+      const none = new Uint8Array(width);
+      const sub = new Uint8Array(width);
+      const up = new Uint8Array(width);
+      let scoreNone=0, scoreSub=0, scoreUp=0;
+      for (let x=0;x<width;x++) {
+        const v = src[x];
+        none[x] = v;
+        sub[x] = (v - (x ? src[x-1] : 0) + 256) & 255;
+        up[x] = (v - (prev ? prev[x] : 0) + 256) & 255;
+        scoreNone += Math.min(v, 256-v);
+        scoreSub += Math.min(sub[x], 256-sub[x]);
+        scoreUp += Math.min(up[x], 256-up[x]);
+      }
+      const row = y * (width + 1);
+      if (scoreSub <= scoreNone && scoreSub <= scoreUp) { scan[row]=1; scan.set(sub,row+1); }
+      else if (scoreUp <= scoreNone) { scan[row]=2; scan.set(up,row+1); }
+      else { scan[row]=0; scan.set(none,row+1); }
+      prev = src;
+    }
+    const compressed = await deflateZlib(scan);
+
+    const ihdr = new Uint8Array(13);
+    ihdr.set(u32be(width),0); ihdr.set(u32be(height),4);
+    ihdr[8]=8; ihdr[9]=3; ihdr[10]=0; ihdr[11]=0; ihdr[12]=0;
+    const plte = new Uint8Array(palette.length*3);
+    const alpha = new Uint8Array(palette.length);
+    let lastAlpha = -1;
+    for (let i=0;i<palette.length;i++) {
+      const p=palette[i];
+      plte[i*3]=p.r; plte[i*3+1]=p.g; plte[i*3+2]=p.b; alpha[i]=p.a;
+      if (p.a !== 255) lastAlpha = i;
+    }
+    const parts = [
+      Uint8Array.of(137,80,78,71,13,10,26,10),
+      pngChunk('IHDR', ihdr),
+      pngChunk('PLTE', plte)
+    ];
+    if (lastAlpha >= 0) parts.push(pngChunk('tRNS', alpha.slice(0,lastAlpha+1)));
+    parts.push(pngChunk('IDAT', compressed), pngChunk('IEND', new Uint8Array(0)));
+    return { bytes: SpriteCodec.concat(parts), colors: palette.length };
+  }
+
+  async function buildPngFiles(outW, outH, mode) {
+    const files = [];
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(outW));
+    canvas.height = Math.max(1, Math.round(outH));
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const used = new Map();
+    let baselineTotal = 0, outputTotal = 0, colorTotal = 0;
+    const maxColors = mode === '64' ? 64 : mode === '128' ? 128 : 256;
+
+    for (let i = 0; i < state.frameCount; i++) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawFrame(ctx, i, 0, 0, canvas.width, canvas.height);
+
+      const baselineBlob = await canvasToBlob(canvas, 'image/png');
+      const baseline = await blobToU8(baselineBlob);
+      let data = baseline;
+      let colors = 0;
+
+      if (mode !== 'lossless') {
+        updateBusy(`量化第 ${i + 1}/${state.frameCount} 帧色彩…`, 8 + (i / state.frameCount) * 62);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const optimized = await encodeIndexedPng(imageData, maxColors);
+        colors = optimized.colors;
+        if (optimized.bytes.length < baseline.length) data = optimized.bytes;
+      }
+
+      const base = sanitizeName(state.frames[i].name, defaultName(i));
+      const count = (used.get(base) || 0) + 1;
+      used.set(base, count);
+      const finalName = count === 1 ? base : `${base}_${count}`;
+      files.push({ name: `${finalName}.png`, data });
+      baselineTotal += baseline.length;
+      outputTotal += data.length;
+      colorTotal += colors;
+      updateBusy(`压缩第 ${i + 1}/${state.frameCount} 帧 · ${(data.length/1024).toFixed(1)} KB`, 10 + ((i + 1) / state.frameCount) * 68);
+      await new Promise(r => setTimeout(r, 0));
+    }
+    return { files, baselineTotal, outputTotal, avgColors: state.frameCount ? Math.round(colorTotal/state.frameCount) : 0 };
+  }
+
+  async function buildWebPFrameBuffers(outW, outH, quality) {
+    const frames = [];
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    for (let i = 0; i < state.frameCount; i++) {
+      ctx.clearRect(0, 0, outW, outH);
+      drawFrame(ctx, i, 0, 0, outW, outH);
+      const blob = await canvasToBlob(canvas, 'image/webp', quality / 100);
+      frames.push(await blob.arrayBuffer());
+      updateBusy(`编码第 ${i + 1}/${state.frameCount} 帧 · 质量 ${quality}`, 10 + ((i + 1) / state.frameCount) * 64);
+      await new Promise(r => setTimeout(r, 0));
+    }
+    return frames;
+  }
+
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1200);
+  }
+
+  async function exportPng() {
+    if (!state.image) return;
+    try {
+      const mode = els.pngCompression.value || 'smart';
+      const modeText = mode === 'lossless' ? '无损重编码' : mode === '64' ? '64 色极致量化' : mode === '128' ? '128 色强量化' : '256 色智能量化';
+      setBusy(true, '正在导出 PNG 序列', `${modeText} · 保留透明通道…`, 3);
+      els.pngExportResult.className = 'export-result';
+      els.pngExportResult.textContent = '正在计算压缩结果…';
+      const s = Number(els.pngScale.value) || 1;
+      const w = Math.max(1, Math.round(state.cellW * s));
+      const h = Math.max(1, Math.round(state.cellH * s));
+      const result = await buildPngFiles(w, h, mode);
+      updateBusy('打包 ZIP…', 88);
+      const zipBytes = SpriteCodec.createZipStore(result.files);
+      updateBusy('完成', 100);
+      downloadBlob(new Blob([zipBytes], { type: 'application/zip' }), 'sprite_frames_png.zip');
+
+      const beforeKb = result.baselineTotal / 1024;
+      const afterKb = result.outputTotal / 1024;
+      const saved = result.baselineTotal ? Math.max(0, (1 - result.outputTotal / result.baselineTotal) * 100) : 0;
+      els.pngExportResult.className = `export-result ${saved >= 10 ? 'ok' : 'warn'}`;
+      els.pngExportResult.textContent = mode === 'lossless'
+        ? `已导出 ${state.frameCount} 帧 · ${w}×${h}px · PNG ${afterKb.toFixed(1)} KB（无损重编码）`
+        : `已导出 ${state.frameCount} 帧 · ${w}×${h}px · ${beforeKb.toFixed(1)} KB → ${afterKb.toFixed(1)} KB · 减少 ${saved.toFixed(1)}% · 平均约 ${result.avgColors} 色`;
+    } catch (e) {
+      els.pngExportResult.className = 'export-result warn';
+      els.pngExportResult.textContent = `压缩失败：${e.message}`;
+      alert(`PNG 导出失败：${e.message}`);
+    } finally {
+      setTimeout(() => setBusy(false), 160);
+    }
+  }
+
+  async function encodeAnimationAtQuality(w, h, fps, quality) {
+    const buffers = await buildWebPFrameBuffers(w, h, quality);
+    const bytes = SpriteCodec.muxAnimatedWebP(buffers,w,h,getFrameDurations(fps));
+    return bytes;
+  }
+
+  async function exportWebp() {
+    if (!state.image) return;
+    if (!state.webpSupported) { alert('当前浏览器不支持 WebP 编码。建议用最新版 Chrome 打开本工具。'); return; }
+    try {
+      els.exportResult.className = 'export-result';
+      els.exportResult.textContent = '';
+      const w = clamp(Math.round(Number(els.webpWidth.value) || 1), 1, 4096);
+      const h = clamp(Math.round(Number(els.webpHeight.value) || 1), 1, 4096);
+      const fps = clamp(Math.round(Number(els.webpFps.value) || 12), 1, 60);
+      const requestedQ = clamp(Math.round(Number(els.webpQuality.value) || 82), 10, 100);
+      const targetKb = Math.max(0, Math.round(Number(els.webpTargetKb.value) || 0));
+      let q = requestedQ;
+      let bytes;
+      setBusy(true, '正在导出动态 WebP', `生成 ${w} × ${h}px 动画…`, 3);
+
+      bytes = await encodeAnimationAtQuality(w, h, fps, q);
+      if (targetKb > 0) {
+        const target = targetKb * 1024;
+        while (bytes.length > target && q > 20) {
+          q = Math.max(20, q - 8);
+          updateBusy(`当前 ${(bytes.length / 1024).toFixed(1)} KB，继续压缩到质量 ${q}…`, 76);
+          bytes = await encodeAnimationAtQuality(w, h, fps, q);
+        }
+      }
+
+      updateBusy('完成', 100);
+      downloadBlob(new Blob([bytes], { type: 'image/webp' }), 'sprite_preview.webp');
+      const kb = bytes.length / 1024;
+      const hit = !targetKb || kb <= targetKb;
+      els.exportResult.className = `export-result ${hit ? 'ok' : 'warn'}`;
+      els.exportResult.textContent = `已导出 ${w} × ${h}px · ${fps} FPS · 实际质量 ${q} · ${kb.toFixed(1)} KB${targetKb && !hit ? '（已压到质量 20，仍高于目标；建议再降低导出尺寸）' : ''}`;
+    } catch (e) {
+      console.error(e);
+      alert(`WebP 导出失败：${e.message}\n建议使用最新版 Chrome 再试一次。`);
+    } finally {
+      setTimeout(() => setBusy(false), 160);
+    }
+  }
+
+  function gifFixedNineBitLZW(indices) {
+    const clear=256, stop=257;
+    let codes=new Map(), next=258;
+    const reset=()=>{codes=new Map();next=258;};
+    const bits=[];
+    let buffer=0,used=0;
+    const write=(n)=>{buffer|=(n<<used);used+=9;while(used>=8){bits.push(buffer&255);buffer>>>=8;used-=8;}};
+    write(clear);
+    let prefix=Number(indices[0] ?? 0);
+    for(let i=1;i<indices.length;i++) {
+      const nextByte=Number(indices[i]);
+      const key=`${prefix},${nextByte}`;
+      const found=codes.get(key);
+      if(found!==undefined) {prefix=found;continue;}
+      write(prefix);
+      if(next<500) codes.set(key,next++);
+      else {write(clear);reset();}
+      prefix=nextByte;
+    }
+    write(prefix);write(stop);
+    if(used>0)bits.push(buffer&255);
+    return new Uint8Array(bits);
+  }
+
+  function gifChunkBlocks(buffer) {
+    const blocks=[];
+    for(let at=0;at<buffer.length;at+=255) {
+      const part=buffer.subarray(at,Math.min(at+255,buffer.length));
+      blocks.push(Uint8Array.of(part.length),part);
+    }
+    blocks.push(Uint8Array.of(0));
+    return SpriteCodec.concat(blocks);
+  }
+
+  function encodeGifCanvasImage(imageData) {
+    const rgba=new Uint8ClampedArray(imageData.data);
+    for(let i=0;i<rgba.length;i+=4) {
+      if(rgba[i+3]<128) {rgba[i]=0;rgba[i+1]=0;rgba[i+2]=0;rgba[i+3]=0;}
+      else rgba[i+3]=255;
+    }
+    const hist=buildColorHistogram(rgba);
+    const pal=makePalette(hist,256);
+    if(!pal.length)pal.push({r:0,g:0,b:0,a:0});
+    const indices=mapPixelsToPalette(rgba,hist,pal);
+    const rgb=new Uint8Array(256*3);
+    pal.forEach((p,i)=>{rgb[i*3]=p.r;rgb[i*3+1]=p.g;rgb[i*3+2]=p.b;});
+    return {indices,rgb,hasTransparency:hist.transparentCount>0};
+  }
+
+  async function exportGif() {
+    if(!state.image)return;
+    try {
+      const width=clamp(Math.round(Number(els.webpWidth.value)||1),1,4096);
+      const height=clamp(Math.round(Number(els.webpHeight.value)||1),1,4096);
+      if(width*height*state.frameCount>60000000) throw new Error('导出帧总像素过大，请减小宽高');
+      setBusy(true,'正在导出 GIF','正在量化颜色与保留各帧时间…',2);
+      const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      const parts=[],txt=new TextEncoder();
+      const u16=(n)=>Uint8Array.of(n&255,(n>>8)&255);
+      parts.push(txt.encode('GIF89a'),u16(width),u16(height),Uint8Array.of(0x70,0,0));
+      parts.push(Uint8Array.from([0x21,0xFF,0x0B,...txt.encode('NETSCAPE2.0'),0x03,0x01,0,0,0]));
+      const durations=getFrameDurations(clamp(Number(els.webpFps.value)||12,1,60));
+      for(let i=0;i<state.frameCount;i++) {
+        ctx.clearRect(0,0,width,height);
+        drawFrame(ctx,i,0,0,width,height);
+        const frame=encodeGifCanvasImage(ctx.getImageData(0,0,width,height));
+        const delay=clamp(Math.round(durations[i]/10),1,65535);
+        const packed=((2<<2)|(frame.hasTransparency?1:0));
+        parts.push(Uint8Array.of(0x21,0xF9,0x04,packed,delay&255,delay>>8,0,0));
+        parts.push(Uint8Array.of(0x2C,0,0,0,0,width&255,width>>8,height&255,height>>8,0x87));
+        parts.push(frame.rgb,Uint8Array.of(8),gifChunkBlocks(gifFixedNineBitLZW(frame.indices)));
+        updateBusy(`GIF 第 ${i+1}/${state.frameCount} 帧`,6+90*(i+1)/state.frameCount);
+        await new Promise(r=>setTimeout(r,0));
+      }
+      parts.push(Uint8Array.of(0x3B));
+      const result=SpriteCodec.concat(parts);
+      downloadBlob(new Blob([result],{type:'image/gif'}),'sprite_animation.gif');
+      els.gifExportResult.className='export-result ok';
+      els.gifExportResult.textContent=`GIF ${state.frameCount} 帧 · ${width}×${height}px · ${(result.length/1024).toFixed(1)} KB${state.importedAnimated?' · 保留原始帧时长':''}`;
+    } catch(e) {
+      console.error(e);
+      els.gifExportResult.className='export-result warn';
+      els.gifExportResult.textContent=`GIF 导出失败：${e.message}`;
+      alert(`GIF 导出失败：${e.message}`);
+    } finally {setTimeout(()=>setBusy(false),120);}
+  }
+
+  function firstImageFileFromTransfer(transfer) {
+    const file=Array.from(transfer?.files || []).find(isImageFile);
+    if(file) return file;
+    for (const item of Array.from(transfer?.items || [])) {
+      if (item?.kind === 'file' && (/^image\//i.test(item.type || '') || !item.type)) {
+        const candidate=item.getAsFile?.();
+        if(candidate && isImageFile(candidate)) return candidate;
+      }
+    }
+    return null;
+  }
+
+  function chooseImageUrlFromTransfer(transfer) {
+    const html=transfer?.getData?.('text/html') || '';
+    if(html) {
+      const doc=new DOMParser().parseFromString(html,'text/html');
+      const img=doc.querySelector('img[src],img[data-src],img[srcset],source[srcset]');
+      if(img) {
+        let url=img.getAttribute('src') || img.getAttribute('data-src') || '';
+        if(!url && img.getAttribute('srcset')) url=img.getAttribute('srcset').split(',')[0].trim().split(/\s+/)[0];
+        if(url) {
+          try {
+            const base=doc.querySelector('base[href]')?.getAttribute('href') || '';
+            if(base && !/^(?:https?:|data:|blob:)/i.test(url)) url=new URL(url,base).href;
+          } catch(_) {}
+          if(/^(?:https?:\/\/|data:image\/|blob:)/i.test(url)) return url;
+        }
+      }
+    }
+    const uri=transfer?.getData?.('text/uri-list') || '';
+    const plain=transfer?.getData?.('text/plain') || '';
+    const test=uri.split(/\r?\n/).find(line=>line && !line.startsWith('#')) || plain.trim();
+    if(/^(?:https?:\/\/|data:image\/|blob:)/i.test(test)) return test;
+    return '';
+  }
+
+  async function importImageUrl(url,sourceLabel) {
+    try {
+      if (!/^(?:https?:\/\/|data:image\/|blob:)/i.test(url)) throw new Error('粘贴内容不是受支持的图片地址');
+      setBusy(true,'正在获取网页图片…','尝试读取图片原始数据',8);
+      const response=await fetch(url,{mode:'cors',credentials:'omit'});
+      if(!response.ok) throw new Error(`下载失败：HTTP ${response.status}`);
+      const blob=await response.blob();
+      const mime=blob.type || (url.toLowerCase().split('?')[0].endsWith('.gif') ? 'image/gif' : 'image/png');
+      if (!mime.startsWith('image/')) throw new Error('链接返回的内容不是图片');
+      const ext=mime.includes('gif') ? 'gif' : mime.includes('webp') ? 'webp' : mime.includes('jpeg') ? 'jpg' : 'png';
+      const fromUrl=/^https?:\/\//i.test(url) ? decodeURIComponent(new URL(url).pathname.split('/').pop() || '') : '';
+      const cleanName=(fromUrl && /\.(png|apng|gif|webp|jpe?g)$/i.test(fromUrl)) ? fromUrl : `clipboard_web.${ext}`;
+      const file=new File([blob],cleanName,{type:mime});
+      await setImage(file,sourceLabel);
+    } catch(e) {
+      setBusy(false);
+      console.warn('网页图片导入失败',e);
+      alert(`网页图片无法直接下载：${e.message}。\n该网站可能禁止跨域读取。请右键「复制图片」（而不是复制图片地址），或保存图片后直接拖到中间画布。`);
+    }
+  }
+
+  function handlePaste(e) {
+    const transfer=e.clipboardData;
+    const file=firstImageFileFromTransfer(transfer);
+    if(file) {
+      e.preventDefault();
+      void setImage(file,'粘贴导入');
+      return;
+    }
+    const url=chooseImageUrlFromTransfer(transfer);
+    if(url) {
+      e.preventDefault();
+      void importImageUrl(url,'网页图片粘贴');
+    }
+  }
+
+  function handleStageDragOver(e) {
+    e.preventDefault();
+    if(e.dataTransfer) e.dataTransfer.dropEffect='copy';
+    els.stage.classList.add('drag-active');
+  }
+
+  function handleStageDragLeave(e) {
+    if(e.relatedTarget && els.stage.contains(e.relatedTarget)) return;
+    els.stage.classList.remove('drag-active');
+  }
+
+  function handleStageDrop(e) {
+    e.preventDefault();e.stopPropagation();
+    els.stage.classList.remove('drag-active');
+    const file=firstImageFileFromTransfer(e.dataTransfer);
+    if(file) {
+      void setImage(file,'拖入画布');
+      return;
+    }
+    const url=chooseImageUrlFromTransfer(e.dataTransfer);
+    if(url) void importImageUrl(url,'网页图片拖入');
+  }
+
+  // Events
+  els.fileInput.addEventListener('change',e => { if(e.target.files?.[0]) void setImage(e.target.files[0],'选择图片'); e.target.value=''; });
+  els.stageEmpty.addEventListener('click', () => els.fileInput.click());
+  els.stage.addEventListener('dragenter',handleStageDragOver);
+  els.stage.addEventListener('dragover',handleStageDragOver);
+  els.stage.addEventListener('dragleave',handleStageDragLeave);
+  els.stage.addEventListener('drop',handleStageDrop);
+  els.frameCount.addEventListener('change',() => { pushHistory(); rebuildGrid({preserve:true,resetSources:!state.sourceGrid}); });
+  els.layoutMode.addEventListener('change',() => { pushHistory(); rebuildGrid({preserve:true,resetSources:!state.sourceGrid}); requestAnimationFrame(fitStage); });
+  els.columnCount.addEventListener('change',() => { if(els.layoutMode.value==='columns'){ pushHistory();rebuildGrid({preserve:true,resetSources:!state.sourceGrid});requestAnimationFrame(fitStage); } });
+  [els.frameName, els.scaleRange].forEach(el => {
+    el.addEventListener('focus', () => beginInputHistory(el));
+    el.addEventListener('blur', () => endInputHistory(el));
+    el.addEventListener('input', updateSelectedFromInputs);
+  });
+  els.eraseSizeRange.addEventListener('input', () => { state.eraseBrushSize = clamp(Number(els.eraseSizeRange.value) || 24, 4, 120); els.eraseSizeValue.textContent = `${state.eraseBrushSize}px`; });
+  els.resetFrameBtn.addEventListener('click', resetSelected);
+  els.copyPrevBtn.addEventListener('click', copyPrevious);
+  els.clearEraseBtn.addEventListener('click', clearSelectedErase);
+  els.resetAllBtn.addEventListener('click', resetAll);
+  els.fitStageBtn.addEventListener('click', fitStage);
+  els.toggleRulersBtn.addEventListener('click', toggleRulers);
+  els.toggleGuidesBtn.addEventListener('click', toggleGuides);
+  els.toggleEraseBtn.addEventListener('click', () => toggleEraseMode());
+  els.clearGuidesBtn.addEventListener('click', clearGuides);
+  els.horizontalRuler.addEventListener('pointerdown', e => beginGuideFromRuler('v', e));
+  els.verticalRuler.addEventListener('pointerdown', e => beginGuideFromRuler('h', e));
+  let rulerViewportRaf = 0;
+  const scheduleViewportRulers = () => {
+    if (rulerViewportRaf) return;
+    rulerViewportRaf = requestAnimationFrame(() => {
+      rulerViewportRaf = 0;
+      if (state.image && state.rulersVisible) renderRulers();
+    });
+  };
+  els.stageViewport.addEventListener('scroll', scheduleViewportRulers, { passive: true });
+  window.addEventListener('resize', scheduleViewportRulers);
+  els.playBtn.addEventListener('click', togglePreview);
+  els.previewFps.addEventListener('change', () => { if (state.playing) { if (state.playTimer) clearTimeout(state.playTimer); previewTick(); } });
+  els.mainCanvas.addEventListener('pointerdown', handlePointerDown);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointermove', handleGuidePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+  window.addEventListener('pointerup', handleGuidePointerUp);
+  window.addEventListener('pointercancel', handlePointerUp);
+  window.addEventListener('pointercancel', handleGuidePointerUp);
+  els.mainCanvas.addEventListener('wheel', handleWheel, { passive: false });
+  els.webpWidth.addEventListener('input', () => updateWebpDimensions(false, 'width'));
+  els.webpHeight.addEventListener('input', () => updateWebpDimensions(false, 'height'));
+  els.pngCompression.addEventListener('change', () => {
+    const v = els.pngCompression.value;
+    els.pngExportResult.className = 'export-result';
+    els.pngExportResult.textContent = v === 'lossless'
+      ? '无损重编码只移除元数据，体积下降通常有限。'
+      : v === '64'
+        ? '极致压缩：最多 64 色，体积最小，渐变素材可能出现色阶。'
+        : v === '128'
+          ? '强压缩：最多 128 色，适合游戏特效和体积敏感素材。'
+          : '智能压缩：最多 256 色，保留透明 Alpha，机制接近 Tinify/TinyPNG 的索引色量化。';
+  });
+
+  els.exportPngBtn.addEventListener('click', exportPng);
+  els.exportWebpBtn.addEventListener('click', exportWebp);
+  els.exportGifBtn.addEventListener('click', exportGif);
+  document.addEventListener('paste', handlePaste, true);
+  window.addEventListener('keydown', e => {
+    const key = String(e.key || '').toLowerCase();
+    const activeEl = document.activeElement;
+    const editing = /^(INPUT|TEXTAREA|SELECT)$/.test(activeEl?.tagName || '') || !!activeEl?.isContentEditable;
+    if (!editing && !e.metaKey && !e.ctrlKey && !e.altKey && ['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+      if (state.image && state.selected >= 0) {
+        e.preventDefault();
+        if (!state.nudgeHistoryActive) {
+          pushHistory();
+          state.nudgeHistoryActive = true;
+        }
+        state.lastNudgeKey = key;
+        if (state.nudgeHistoryTimer) clearTimeout(state.nudgeHistoryTimer);
+        state.nudgeHistoryTimer = setTimeout(() => {
+          state.nudgeHistoryActive = false;
+          state.lastNudgeKey = '';
+          state.nudgeHistoryTimer = null;
+        }, 220);
+        const step = e.shiftKey ? 10 : 1;
+        if (key === 'arrowleft') nudgeSelectedFrame(-step, 0);
+        else if (key === 'arrowright') nudgeSelectedFrame(step, 0);
+        else if (key === 'arrowup') nudgeSelectedFrame(0, -step);
+        else if (key === 'arrowdown') nudgeSelectedFrame(0, step);
+      }
+      return;
+    }
+    if (!editing && (key === 'delete' || key === 'backspace') && state.selectedGuideId != null) {
+      e.preventDefault();
+      deleteSelectedGuide();
+      return;
+    }
+    if (!editing && key === 'escape' && state.selectedGuideId != null) {
+      state.selectedGuideId = null; renderGuides(); renderRulers(); return;
+    }
+    if (!editing && key === 'escape' && state.eraseMode) {
+      e.preventDefault();
+      toggleEraseMode(false);
+      return;
+    }
+    if (!editing && (e.metaKey || e.ctrlKey) && key === ';') {
+      e.preventDefault(); toggleGuides(); return;
+    }
+    if (!editing && e.shiftKey && key === 'r') {
+      e.preventDefault(); toggleRulers(); return;
+    }
+    if ((e.metaKey || e.ctrlKey) && !e.shiftKey && key === 'z') {
+      if (state.history.length) {
+        e.preventDefault();
+        undo();
+      }
+    }
+  });
+  window.addEventListener('keyup', e => {
+    const key = String(e.key || '').toLowerCase();
+    if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key) && state.lastNudgeKey === key) {
+      state.nudgeHistoryActive = false;
+      state.lastNudgeKey = '';
+      if (state.nudgeHistoryTimer) {
+        clearTimeout(state.nudgeHistoryTimer);
+        state.nudgeHistoryTimer = null;
+      }
+    }
+  });
+  window.addEventListener('resize', () => { if (state.image) fitStage(); });
+  window.addEventListener('beforeunload', () => state.objectUrls.forEach(url => { try { URL.revokeObjectURL(url); } catch (_) {} }));
+
+  state.layoutMode = normalizeLayoutMode(els.layoutMode.value);
+  state.columnCount = clamp(parseInt(els.columnCount.value || '2', 10), 1, state.frameCount);
+  els.columnCount.disabled = true;
+  els.eraseSizeValue.textContent = `${state.eraseBrushSize}px`;
+  initRuntime();
+  enableProjectControls(false);
+  syncSelectedControls();
+  syncGuideToolbar();
+})();
+
+</script>
+</body>
+</html>
