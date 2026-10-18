@@ -1,4 +1,4 @@
-import { renderProBenefits } from './pro-benefits.mjs?v=20261010-reset-copy2';
+import { renderProBenefits } from './pro-benefits.mjs?v=20261019-configurable-days';
 import { displacementFrameCount } from './displacement-frame-count.mjs';
 const ADMIN_BUILD='20261003-v19';
 window.__SVGA_ADMIN_BUILD__=ADMIN_BUILD;
