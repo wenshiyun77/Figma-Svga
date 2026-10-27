@@ -1,4 +1,4 @@
-import { FEATURE_CATALOG, normalizeFeaturePolicy, DEFAULT_FEATURE_POLICY } from './feature-permissions.catalog.mjs';
+import { FEATURE_CATALOG, normalizeFeaturePolicy, DEFAULT_FEATURE_POLICY } from './feature-permissions.catalog.mjs?v=20261028-explosion';
 
 const GROUPS=['基础动效','图层动效','其他动效','导出格式'];
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

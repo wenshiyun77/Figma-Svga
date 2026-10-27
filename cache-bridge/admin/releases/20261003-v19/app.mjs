@@ -1,5 +1,5 @@
 import { renderProBenefits } from './pro-benefits.mjs?v=20261019-configurable-days';
-import { renderFeaturePermissions } from './feature-permissions.mjs?v=20261026-permissions';
+import { renderFeaturePermissions } from './feature-permissions.mjs?v=20261028-explosion';
 import { displacementFrameCount } from './displacement-frame-count.mjs';
 const ADMIN_BUILD='20261003-v19';
 window.__SVGA_ADMIN_BUILD__=ADMIN_BUILD;
