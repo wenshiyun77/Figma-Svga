@@ -1,8 +1,8 @@
 const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const date=v=>{const d=new Date(v);return v&&Number.isFinite(d.valueOf())?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d):'';};
 const ordered=messages=>[...messages].sort((a,b)=>(Date.parse(a.createdAt)||0)-(Date.parse(b.createdAt)||0));
-function summary(thread,messages){
- const value={...thread};if(messages){for(const message of ordered(messages)){if(message.sender==='admin'){value.latestAdminReply=String(message.body||'');value.latestAdminReplyAt=message.createdAt;}else if(message.sender==='user'){value.latestUserMessage=String(message.body||'');value.latestUserMessageAt=message.createdAt;}}}
+export function feedbackSummary(thread,messages){
+ const value={...thread};if(messages){for(const message of ordered(messages)){if(message.sender==='admin'&&(!value.latestAdminReplyAt||(Date.parse(message.createdAt)||0)>=(Date.parse(value.latestAdminReplyAt)||0))){value.latestAdminReply=String(message.body||'');value.latestAdminReplyAt=message.createdAt;}else if(message.sender==='user'&&(!value.latestUserMessageAt||(Date.parse(message.createdAt)||0)>=(Date.parse(value.latestUserMessageAt)||0))){value.latestUserMessage=String(message.body||'');value.latestUserMessageAt=message.createdAt;}}}
  return value;
 }
 function summaryMarkup(thread){
@@ -14,7 +14,7 @@ export async function renderFeedbackInbox({root,request,toast=()=>{},isCurrent=(
  const alive=()=>isCurrent()&&root.isConnected;
  root.innerHTML=`<div class="head"><div><h1>用户反馈</h1><div class="muted">查看反馈，在当前卡片内回复</div></div></div><form class="search" id="feedbackSearch"><input name="q" placeholder="用户 / Figma ID / 内容"><button class="btn" type="submit">搜索</button></form><div class="spacer"></div><div class="list feedback-list" id="feedbackList" aria-live="polite">加载中…</div>`;
  const list=root.querySelector('#feedbackList'),search=root.querySelector('#feedbackSearch');
- const updateSummary=(id,data)=>{if(!cards.get(id)?.isConnected)return;const current=summary({...threads.get(id),...data.thread},data.messages);threads.set(id,current);cards.get(id).querySelector('.feedback-summary').innerHTML=summaryMarkup(current);};
+ const updateSummary=(id,data)=>{if(!cards.get(id)?.isConnected)return;const current=feedbackSummary({...threads.get(id),...data.thread},data.messages);threads.set(id,current);cards.get(id).querySelector('.feedback-summary').innerHTML=summaryMarkup(current);};
  function renderDetail(id,data){
   const card=cards.get(id);if(!alive()||selected!==id||!card?.isConnected)return;
   const detail=card.querySelector('.feedback-detail'),previous=detail.querySelector('textarea'),focused=previous&&document.activeElement===previous,selection=focused?[previous.selectionStart,previous.selectionEnd]:null,messages=ordered(data.messages||[]),busy=sending.has(id),inputId='feedback-reply-'+id;
@@ -46,7 +46,7 @@ export async function renderFeedbackInbox({root,request,toast=()=>{},isCurrent=(
  async function load(query){
   const ticket=++loadTicket;detailTicket++;selected=null;list.textContent='加载中…';cards.clear();
   try{const data=await request('admin-feedback-list',{query});if(!alive()||ticket!==loadTicket)return;threads.clear();
-   list.innerHTML=(data.threads||[]).map((thread,index)=>{const id=String(thread.id),value=summary(thread,cache.get(id)?.messages);threads.set(id,value);return `<article class="feedback-card" data-thread-id="${escape(id)}"><button class="threadButton feedback-card-toggle" type="button" data-feedback-toggle="${escape(id)}" aria-expanded="false" aria-controls="feedback-detail-${index}"><div class="row"><strong>${escape(thread.displayName||'未命名用户')}</strong><span class="stars" aria-label="${Math.max(0,Math.min(5,Number(thread.rating)||0))}分">${'★'.repeat(Math.max(0,Math.min(5,Number(thread.rating)||0)))}</span></div><div class="muted">${escape(thread.figmaUserId)} · ${escape(date(thread.updatedAt))}</div><div class="feedback-summary">${summaryMarkup(value)}</div></button><div class="feedback-detail" id="feedback-detail-${index}" hidden></div></article>`;}).join('')||'<div class="status">暂无反馈</div>';
+   list.innerHTML=(data.threads||[]).map((thread,index)=>{const id=String(thread.id),value=feedbackSummary(thread,cache.get(id)?.messages);threads.set(id,value);return `<article class="feedback-card" data-thread-id="${escape(id)}"><button class="threadButton feedback-card-toggle" type="button" data-feedback-toggle="${escape(id)}" aria-expanded="false" aria-controls="feedback-detail-${index}"><div class="row"><strong>${escape(thread.displayName||'未命名用户')}</strong><span class="stars" aria-label="${Math.max(0,Math.min(5,Number(thread.rating)||0))}分">${'★'.repeat(Math.max(0,Math.min(5,Number(thread.rating)||0)))}</span></div><div class="muted">${escape(thread.figmaUserId)} · ${escape(date(thread.updatedAt))}</div><div class="feedback-summary">${summaryMarkup(value)}</div></button><div class="feedback-detail" id="feedback-detail-${index}" hidden></div></article>`;}).join('')||'<div class="status">暂无反馈</div>';
    for(const card of list.querySelectorAll('[data-thread-id]'))cards.set(card.dataset.threadId,card);
   }catch(error){if(alive()&&ticket===loadTicket)list.textContent=error.message||'反馈读取失败';}
  }

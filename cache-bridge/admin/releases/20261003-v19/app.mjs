@@ -1,4 +1,4 @@
-import { renderFeedbackInbox } from './feedback-inline.mjs?v=20261101-feedback';
+import { renderFeedbackInbox } from './feedback-inline.mjs?v=20261101-feedback-2';
 import { renderProBenefits } from './pro-benefits.mjs?v=20261019-configurable-days';
 import { renderFeaturePermissions } from './feature-permissions.mjs?v=20261028-explosion';
 import { displacementFrameCount } from './displacement-frame-count.mjs';
