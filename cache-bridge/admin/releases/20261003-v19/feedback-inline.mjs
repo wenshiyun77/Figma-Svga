@@ -9,7 +9,7 @@ function summaryMarkup(thread){
  const user=thread.latestUserMessage??(thread.latestSender==='user'?thread.latestMessage:null),reply=thread.latestAdminReply??(thread.latestSender==='admin'?thread.latestMessage:'');
  return `<div class="feedback-user-row"><span class="feedback-message-label">用户反馈${thread.latestUserMessageAt?` · ${escape(date(thread.latestUserMessageAt))}`:''}</span><div class="feedback-user-text">${escape(user??'展开查看反馈原文')||'暂无文字反馈'}</div></div>${reply?`<div class="feedback-reply-row"><span class="feedback-message-label">管理员回复${thread.latestAdminReplyAt?` · ${escape(date(thread.latestAdminReplyAt))}`:''}</span><div class="feedback-reply-text">${escape(reply)}</div></div>`:''}`;
 }
-export async function renderFeedbackInbox({root,request,toast=()=>{},isCurrent=()=>true}){
+export async function renderFeedbackInbox({root,request,toast=()=>{},onReply=()=>{},isCurrent=()=>true}){
  let selected=null,loadTicket=0,detailTicket=0;const threads=new Map(),cards=new Map(),cache=new Map(),drafts=new Map(),sending=new Set();
  const alive=()=>isCurrent()&&root.isConnected;
  root.innerHTML=`<div class="head"><div><h1>用户反馈</h1><div class="muted">查看反馈，在当前卡片内回复</div></div></div><form class="search" id="feedbackSearch"><input name="q" placeholder="用户 / Figma ID / 内容"><button class="btn" type="submit">搜索</button></form><div class="spacer"></div><div class="list feedback-list" id="feedbackList" aria-live="polite">加载中…</div>`;
@@ -37,6 +37,7 @@ export async function renderFeedbackInbox({root,request,toast=()=>{},isCurrent=(
   const card=cards.get(id),ticket=loadTicket;
   try{
    let data=await request('admin-feedback-reply',{id,body});
+   void onReply();
    if(!Array.isArray(data.messages))data={thread:threads.get(id),messages:[...(cache.get(id)?.messages||[]),{sender:'admin',body,createdAt:new Date().toISOString()}]};
    cache.set(id,data);drafts.delete(id);
    if(!alive()||ticket!==loadTicket||cards.get(id)!==card)return;updateSummary(id,data);if(selected===id)renderDetail(id,data);toast('已回复');

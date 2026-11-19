@@ -1,6 +1,6 @@
-import { renderFeedbackInbox } from './feedback-inline.mjs?v=20261101-feedback-2';
+import { renderFeedbackInbox } from './feedback-inline.mjs?v=20261119-feedback-badge';
 import { renderProBenefits } from './pro-benefits.mjs?v=20261019-configurable-days';
-import { renderFeaturePermissions } from './feature-permissions.mjs?v=20261028-explosion';
+import { renderFeaturePermissions } from './feature-permissions.mjs?v=20261119-lightning';
 import { displacementFrameCount } from './displacement-frame-count.mjs';
 const ADMIN_BUILD='20261003-v19';
 window.__SVGA_ADMIN_BUILD__=ADMIN_BUILD;
@@ -27,7 +27,24 @@ async function request(action,body={}){if(!token)throw Error('请先登录管理
 async function adminRpc(name,body={}){if(!token)throw Error('请先登录管理员账号');if(expiresAt<=Math.floor(Date.now()/1000)+60)await refresh();const send=()=>fetch(BASE+'/rest/v1/rpc/'+name,{method:'POST',headers:{Authorization:'Bearer '+token,apikey:KEY,'content-type':'application/json'},body:JSON.stringify(body)});let r=await send();if(r.status===401){await refresh();r=await send()}const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.message||j.error_description||j.error||`请求失败（${r.status}）`);return j}
 async function verify(){try{return(await request('admin-state',{user:ADMIN_USER})).isAdmin===true}catch{return false}}
 function loginView(message=''){pageEpoch++;app.innerHTML=`<main class="login"><form class="login-card" id="loginForm"><div class="brand">SVGA</div><h1>管理后台</h1><div class="muted">已绑定账号 w••••@gmail.com</div><input name="password" type="password" placeholder="输入密码" autocomplete="current-password" required>${message?`<div class="login-error">${esc(message)}</div>`:''}<button class="btn">登录</button></form></main>`;$('#loginForm').onsubmit=async e=>{e.preventDefault();const b=e.currentTarget.querySelector('button');b.disabled=true;b.textContent='登录中…';try{await auth(e.currentTarget.password.value);if(!await verify())throw Error('当前账号不是管理员');shell()}catch(err){loginView(err.message)}}}
-function shell(){app.innerHTML=`<div class="shell"><aside class="side"><div class="side-brand"><span class="side-logo">S</span><div><strong>SVGA 编辑器</strong><small>管理后台</small></div></div><nav class="nav"><button data-route="users">用户数据</button><button data-route="materials">素材管理</button><button data-route="feedback">用户反馈</button><button data-route="benefits">PRO 福利</button><button data-route="permissions">权限管理</button></nav><button class="btn secondary logout" id="logout">退出登录</button></aside><main class="main" id="page"></main></div>`;document.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$('#logout').onclick=()=>{saveSession(null);loginView()};render()}
+let feedbackBadgeTimer, feedbackBadgeRequest = 0;
+async function refreshFeedbackBadge() {
+  const badge = $('#feedbackBadge');
+  if (!badge || document.hidden || !token) return;
+  const ticket = ++feedbackBadgeRequest;
+  try {
+    const data = await request('admin-feedback-pending-count');
+    if (!badge.isConnected || ticket !== feedbackBadgeRequest) return;
+    const count = Math.max(0, Number(data.count) || 0);
+    badge.textContent = count > 99 ? '99+' : String(count);
+    badge.hidden = count === 0;
+    badge.setAttribute('aria-label', count > 99 ? '超过 99 条待回复反馈' : `${count} 条待回复反馈`);
+  } catch {
+    // Preserve the last known count until the next refresh.
+  }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) void refreshFeedbackBadge(); });
+function shell(){app.innerHTML=`<div class="shell"><aside class="side"><div class="side-brand"><span class="side-logo">S</span><div><strong>SVGA 编辑器</strong><small>管理后台</small></div></div><nav class="nav"><button data-route="users">用户数据</button><button data-route="materials">素材管理</button><button data-route="feedback">用户反馈<span id="feedbackBadge" class="feedback-badge" aria-live="polite" hidden></span></button><button data-route="benefits">PRO 福利</button><button data-route="permissions">权限管理</button></nav><button class="btn secondary logout" id="logout">退出登录</button></aside><main class="main" id="page"></main></div>`;document.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>{route=b.dataset.route;render()});$('#logout').onclick=()=>{clearInterval(feedbackBadgeTimer);saveSession(null);loginView()};clearInterval(feedbackBadgeTimer);feedbackBadgeTimer=setInterval(refreshFeedbackBadge,30000);void refreshFeedbackBadge();render()}
 function render(){pageEpoch++;if(previewObserver)previewObserver.disconnect();if(userPagingObserver)userPagingObserver.disconnect();document.querySelectorAll('[data-route]').forEach(b=>b.classList.toggle('active',b.dataset.route===route));if(route==='users')usersPage();else if(route==='materials')materialsPage();else if(route==='benefits'){const epoch=pageEpoch;renderProBenefits({root:$('#page'),request,toast,isCurrent:()=>pageEpoch===epoch&&route==='benefits'});}else if(route==='permissions'){const epoch=pageEpoch;renderFeaturePermissions({root:$('#page'),request,toast,isCurrent:()=>pageEpoch===epoch&&route==='permissions'});}else feedbackPage()}
 function avatarMarkup(u){if(u.photoUrl)return`<span class="avatar"><img src="${esc(u.photoUrl)}" alt="" loading="lazy" decoding="async"></span>`;return`<span class="avatar">${esc((u.displayName||'?').trim().slice(0,1).toUpperCase()||'?')}</span>`}
 function normalizeAdminSubscription(u){const source=u?.subscription||{};let plan=String(source.plan||'none');if(!['trial','monthly','permanent'].includes(plan)&&u?.features?.lighting)plan='permanent';return{plan,startedAt:source.startedAt||null,expiresAt:source.expiresAt||null,daysRemaining:Number(source.daysRemaining||0)||null}}
@@ -386,5 +403,5 @@ async function uploadOfficialFolders(fileList,category=activeUploadCategory(),ki
 }
 async function backfillOfficial(){if(backfillBusy)return;const missing=(official?.sequences||[]).filter(s=>!(s.previewAnimated&&s.previewFrames?.[0]));if(!missing.length){toast('官方素材预览已经完整');return}backfillBusy=true;const b=$('#backfillPreviews');if(b){b.disabled=true;b.textContent='补齐中…'}try{for(let i=0;i<missing.length;i++){const s=missing[i];try{$('#materialStatus').textContent=`补齐预览 ${i+1}/${missing.length}：${s.name}`;const files=[];for(const f of s.frames||[]){await yieldToMain();const r=await fetch(f.url);if(!r.ok)throw Error('源帧下载失败');files.push(new File([await r.blob()],f.name||'frame.png',{type:f.mimeType||'image/png'}))}if(files.length>1){const p=await makePreview(files);await request('admin-sequence-preview-backfill',{id:s.id,preview:{mimeType:'image/webp',dataUrl:await toDataUrl(p)}})}}catch(err){console.warn('preview backfill failed',s.name,err)}await yieldToMain()}await loadOfficialMaterials()}finally{backfillBusy=false;if(b){b.disabled=false;b.textContent='补齐缺失预览'}}}
 async function backfillPersonal(){if(backfillBusy)return;const missing=[];for(const u of personal?.users||[])for(const s of u.sequences||[])if(!(s.previewAnimated&&s.previewFrames?.[0]))missing.push(s);if(!missing.length){toast('用户素材预览已经完整');return}backfillBusy=true;const b=$('#backfillPreviews');if(b){b.disabled=true;b.textContent='补齐中…'}try{for(let i=0;i<missing.length;i++){const s=missing[i];try{$('#materialStatus').textContent=`补齐用户预览 ${i+1}/${missing.length}：${s.name}`;const d=await request('admin-personal-sequence-frames',{id:s.id}),files=[];for(const f of d.frames||[]){await yieldToMain();const r=await fetch(f.url);if(!r.ok)throw Error('源帧下载失败');files.push(new File([await r.blob()],f.name||'frame.png',{type:f.mimeType||'image/png'}))}if(files.length>1){const p=await makePreview(files);await request('admin-personal-sequence-preview-backfill',{id:s.id,preview:{mimeType:'image/webp',dataUrl:await toDataUrl(p)}})}}catch(err){console.warn('personal preview backfill failed',s.name,err)}await yieldToMain()}await loadPersonal('')}finally{backfillBusy=false;if(b){b.disabled=false;b.textContent='补齐缺失预览'}}}
-async function feedbackPage(){const epoch=pageEpoch;await renderFeedbackInbox({root:$('#page'),request,toast,isCurrent:()=>pageEpoch===epoch&&route==='feedback'});}
+async function feedbackPage(){const epoch=pageEpoch;await renderFeedbackInbox({root:$('#page'),request,toast,onReply:refreshFeedbackBadge,isCurrent:()=>pageEpoch===epoch&&route==='feedback'});}
 (async()=>{if(restoreSession()&&await verify())shell();else loginView()})();

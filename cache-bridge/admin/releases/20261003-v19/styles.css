@@ -97,3 +97,22 @@
 .feedback-detail{padding:0 18px 18px;border-top:1px solid rgba(145,132,255,.14)}.feedback-detail[hidden]{display:none}.feedback-conversation{max-height:320px;overflow:auto;overscroll-behavior:contain;padding:14px 0;display:grid;gap:10px}.feedback-message{padding:10px 12px;background:rgba(255,255,255,.035);border-radius:9px}.feedback-message.is-admin{margin-left:20px;background:rgba(145,132,255,.11)}
 .feedback-reply-form{display:grid;gap:8px;padding-top:12px;border-top:1px solid rgba(145,132,255,.14)}.feedback-reply-form label{font-size:13px;color:#c9d0df}.feedback-reply-form textarea{box-sizing:border-box;width:100%;min-height:95px;resize:vertical}.feedback-reply-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}.feedback-reply-status{font-size:12px;color:#b9c3da;overflow-wrap:anywhere}.feedback-loading,.feedback-load-error{padding:18px 0}.feedback-load-error{color:#ffb4b4}
 @media(max-width:600px){.feedback-card-toggle{padding:14px}.feedback-detail{padding:0 14px 14px}.feedback-reply-actions{align-items:flex-start;flex-wrap:wrap}.feedback-message.is-admin{margin-left:10px}}
+
+
+.feedback-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: 8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #38d68b;
+  color: #052717;
+  font-size: 11px;
+  font-weight: 750;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+.feedback-badge[hidden] { display: none; }
