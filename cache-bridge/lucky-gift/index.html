@@ -294,7 +294,7 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
       <label class="timing">出场节奏
         <select id="timing">
           <option value="staggered">错峰连续</option>
-          <option value="together">同时出场</option>
+          <option value="together">集中出场</option>
           <option value="waves">分四批</option>
         </select>
       </label>
@@ -922,7 +922,6 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   };
   function makeParticles(settings2, category2, effect, frameCount = FPS * 5) {
     const effects = categories[category2].effects;
-    const hasTimelineFade = usesTimelineFade(category2, effect, settings2.mixEffects);
     const seconds = frameCount / FPS;
     const lastFrame2 = (frameCount - 1) / frameCount;
     const fadeIn = settings2.fadeIn ?? defaults.fadeIn;
@@ -933,8 +932,12 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     const particles = Array.from({ length: settings2.count }, (_, i) => {
       const roll = (lane) => random(i, lane, settings2.seed ?? 0);
       const j = roll(1);
-      const v = settings2.count === 1 ? 0.5 : (i + 0.5) / settings2.count;
-      const offset = { together: 0, staggered: wrap(v + 0.18 * (j - 0.5)), waves: i % 4 / 4 }[settings2.timing];
+      const v = (i + 0.5) / settings2.count;
+      const slot = (i + 0.12 + 0.76 * j) / settings2.count;
+      const batch = i % 4;
+      const batchSize = Math.ceil((settings2.count - batch) / 4);
+      const batchSlot = (Math.floor(i / 4) + 0.12 + 0.76 * j) / batchSize;
+      const offset = { together: -0.14 * slot, staggered: slot, waves: -(batch + 0.58 * batchSlot) / 4 }[settings2.timing];
       const size = settings2.size * (1 + (2 * roll(4) - 1) * settings2.variance / 100);
       const alternate = 1 + Math.floor(roll(10) * (effects.length - 1));
       const variant = settings2.mixEffects && roll(11) < 0.5 ? (effect + alternate) % effects.length : effect;
@@ -946,6 +949,11 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         timelineFade,
         traversesStage,
         oneShot: !traversesStage && !timelineFade,
+        materialOffset: slot,
+        clockOrigin: TAU * slot,
+        clockOriginSin: wave(slot),
+        clockStrength: (0.22 + 0.28 * motionRandom) * (0.5 + 0.5 * slot) / TAU,
+        fadeDelay: 0.22 * slot,
         path: effects[variant][1],
         cycles: Math.max(1, settings2.cycles + Math.round((2 * roll(9) - 1) * motionRandom * 3)),
         angleOffset: (2 * roll(6) - 1) * appearanceRandom * TAU / 4,
@@ -964,9 +972,13 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     });
     return (progress) => {
       const phase = wrap(progress);
-      const timelineAlpha = hasTimelineFade ? smoothOpacity(phase * seconds / fadeIn) * smoothOpacity((lastFrame2 - phase) * seconds / fadeOut) : 1;
+      const opening = phase * seconds / fadeIn;
+      const closing = (lastFrame2 - phase) * seconds / fadeOut;
       return particles.map((particle) => {
-        const u = wrap(phase * particle.cycles + particle.offset);
+        const clock = phase + (sin(TAU * phase + particle.clockOrigin) - particle.clockOriginSin) * particle.clockStrength;
+        const u = wrap(clock * particle.cycles + particle.offset);
+        const delay = particle.fadeDelay;
+        const timelineAlpha = particle.timelineFade ? smoothOpacity((opening - delay) / (1 - delay)) * smoothOpacity((closing - delay) / (1 - delay)) : 1;
         const [dx, dy, rotation = 0, scale = 1] = particle.path({ ...particle.vars, u });
         const x = WIDTH / 2 + dx * spread;
         const displaySize = Math.min(MAX_PARTICLE_EDGE, particle.size * scale * (1 + settings2.pulse / 100 * wave(u)));
@@ -976,9 +988,11 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         return {
           x,
           y,
+          clock,
+          materialOffset: particle.materialOffset,
           angle: rotation + settings2.rotation * TAU / 360 + settings2.spin * TAU * u + particle.angleOffset,
           size: displaySize,
-          alpha: particle.opacity * life * fadeAt(y, settings2.top, settings2.bottom) * (particle.timelineFade ? timelineAlpha : 1)
+          alpha: particle.opacity * life * fadeAt(y, settings2.top, settings2.bottom) * timelineAlpha
         };
       });
     };
@@ -1075,11 +1089,11 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       decoder.close();
     }
   }
-  function cellAt(material2, progress, frameCount) {
+  function cellAt(material2, progress, frameCount, offset = 0) {
     const { cells, duration: duration2 } = material2;
     if (!duration2) return cells[0];
     const loops = Math.max(1, Math.round(frameCount / FPS * 1e3 / duration2));
-    const phase = progress * loops;
+    const phase = progress * loops + offset;
     const time = (phase - Math.floor(phase)) * duration2;
     let first = 0;
     let last = cells.length;
@@ -1122,10 +1136,10 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     const sprites = Array.from({ length: count }, () => ({ imageKey: key, frames: [] }));
     for (let i = 0; i < frameCount; i++) {
       const progress = i / frameCount;
-      const cell = cellAt(material2, progress, frameCount);
-      sample(progress).forEach((particle, index) => sprites[index].frames.push(
-        particle.alpha > 0 ? frameFor(particle, material2, cell) : { alpha: 0 }
-      ));
+      sample(progress).forEach((particle, index) => {
+        const frame = particle.alpha > 0 ? frameFor(particle, material2, cellAt(material2, particle.clock, frameCount, particle.materialOffset)) : { alpha: 0 };
+        sprites[index].frames.push(frame);
+      });
     }
     const images = /* @__PURE__ */ new Map([[key, await pngBytes(material2.atlas, optimize)]]);
     const bytes = window.SVGAImportCore.encodeMovie({
@@ -1200,14 +1214,14 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         const progress = frame / frames;
         const { width, height, atlas } = material;
         const cell = cellAt(material, progress, frames);
-        const { x, y } = cell;
         if (cell !== lastThumbnailCell) {
           thumbnailContext.clearRect(0, 0, width, height);
-          thumbnailContext.drawImage(atlas, x, y, width, height, 0, 0, width, height);
+          thumbnailContext.drawImage(atlas, cell.x, cell.y, width, height, 0, 0, width, height);
           lastThumbnailCell = cell;
         }
         for (const particle of sampler(frames)(progress)) {
           if (particle.alpha <= 0) continue;
+          const { x, y } = cellAt(material, particle.clock, frames, particle.materialOffset);
           const scale = particle.size / Math.max(width, height);
           context.save();
           context.translate(particle.x, particle.y);
