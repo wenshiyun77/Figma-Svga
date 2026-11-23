@@ -56,6 +56,13 @@ h3 { font-size: 13px; margin-bottom: 9px; }
 .media.dragging .upload { border-color: var(--accent); background: #30274a; }
 .file-info { padding: 12px 0 4px; overflow-wrap: anywhere; }
 .note { margin-top: 10px; line-height: 1.55; }
+.background-picker { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.background-picker h2 { margin-bottom: 8px; }
+.background-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.background-actions button:first-child { flex: 1; }
+.background-picker.dragging button:first-child { border-color: var(--accent); background: #30274a; }
+#background-name { overflow-wrap: anywhere; }
+#background-error { color: #ffb7c3; }
 .preview { display: flex; flex-direction: column; min-height: 0; }
 .preview-bar,.playback {
   display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #1b1a22;
@@ -73,7 +80,8 @@ h3 { font-size: 13px; margin-bottom: 9px; }
   background-image: conic-gradient(#2a2935 25%, #24232d 0 50%, #2a2935 0 75%, #24232d 0);
   background-size: 18px 18px;
 }
-.stage canvas { display: block; width: 100%; height: 100%; }
+#stage-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.stage canvas { position: relative; display: block; width: 100%; height: 100%; }
 .fade-guide {
   position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed #b2aaff92;
   pointer-events: none;
@@ -224,11 +232,23 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
     </div>
     <p id="material-note" class="note" hidden></p>
     <p class="note">支持 PNG、JPG、SVG 等静态图片，以及 GIF、WebP 动图。</p>
+    <section id="background-picker" class="background-picker" aria-labelledby="background-title">
+      <h2 id="background-title">背景</h2>
+      <input id="background-file" type="file" accept="image/*" hidden>
+      <div class="background-actions">
+        <button id="background-add" type="button" aria-describedby="background-note">＋ 添加背景</button>
+        <button id="background-remove" type="button" hidden>移除</button>
+      </div>
+      <p id="background-name" class="note" hidden></p>
+      <p id="background-note" class="note">可拖入图片，仅用于预览。</p>
+      <p id="background-error" class="note" role="status" hidden></p>
+    </section>
   </aside>
   <section class="preview" aria-labelledby="preview-title">
     <div class="preview-bar"><h2 id="preview-title">画布预览</h2><span>750 × 1624</span></div>
     <div class="preview-space">
       <div class="stage" id="stage">
+        <img id="stage-background" alt="" hidden>
         <canvas id="canvas" width="750" height="1624" aria-label="幸运礼物预览"></canvas>
         <div class="fade-guide top" id="top-guide"><button type="button" id="top-handle" aria-label="顶部淡入边界" role="slider" aria-orientation="vertical"></button></div>
         <div class="fade-guide bottom" id="bottom-guide"><button type="button" id="bottom-handle" aria-label="底部淡出边界" role="slider" aria-orientation="vertical"></button></div>
@@ -1348,6 +1368,57 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     event.target.value = "";
   });
   $("upload").addEventListener("click", () => $("file").click());
+  var backgroundPicker = $("background-picker");
+  var backgroundImage = $("stage-background");
+  var backgroundInput = $("background-file");
+  var backgroundAdd = $("background-add");
+  var backgroundRemove = $("background-remove");
+  var backgroundName = $("background-name");
+  var backgroundError = $("background-error");
+  var backgroundRevision = 0;
+  function showBackground(url, name = "") {
+    const previous = backgroundImage.getAttribute("src");
+    if (url) backgroundImage.src = url;
+    else backgroundImage.removeAttribute("src");
+    if (previous) URL.revokeObjectURL(previous);
+    backgroundImage.hidden = !url;
+    backgroundRemove.hidden = !url;
+    backgroundAdd.textContent = url ? "\u66FF\u6362\u80CC\u666F" : "\uFF0B \u6DFB\u52A0\u80CC\u666F";
+    backgroundName.textContent = name;
+    backgroundName.hidden = !url;
+    backgroundError.hidden = true;
+  }
+  async function selectBackground(file) {
+    if (!file) return;
+    const revision = ++backgroundRevision;
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.src = url;
+    backgroundError.hidden = true;
+    try {
+      await image.decode();
+      if (revision === backgroundRevision) {
+        showBackground(url, file.name);
+        return;
+      }
+    } catch {
+      if (revision === backgroundRevision) {
+        backgroundError.textContent = "\u65E0\u6CD5\u6253\u5F00\u80CC\u666F\u56FE\u7247\uFF0C\u8BF7\u68C0\u67E5\u6587\u4EF6\u683C\u5F0F\u3002";
+        backgroundError.hidden = false;
+      }
+    }
+    URL.revokeObjectURL(url);
+  }
+  backgroundAdd.addEventListener("click", () => backgroundInput.click());
+  backgroundInput.addEventListener("change", () => {
+    void selectBackground(backgroundInput.files[0]);
+    backgroundInput.value = "";
+  });
+  backgroundRemove.addEventListener("click", () => {
+    backgroundRevision++;
+    showBackground(null);
+    backgroundAdd.focus();
+  });
   var media = document.querySelector(".media");
   for (const type of ["dragover", "drop"]) {
     document.addEventListener(type, (event) => {
@@ -1356,15 +1427,21 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   }
   media.addEventListener("dragover", (event) => {
     if (!event.dataTransfer.types.includes("Files")) return;
-    event.dataTransfer.dropEffect = exporting ? "none" : "copy";
-    media.classList.add("dragging");
+    const isBackground = backgroundPicker.contains(event.target);
+    event.dataTransfer.dropEffect = !isBackground && exporting ? "none" : "copy";
+    media.classList.toggle("dragging", !isBackground);
+    backgroundPicker.classList.toggle("dragging", isBackground);
   });
   media.addEventListener("dragleave", (event) => {
     if (!media.contains(event.relatedTarget)) media.classList.remove("dragging");
+    if (!backgroundPicker.contains(event.relatedTarget)) backgroundPicker.classList.remove("dragging");
   });
   document.addEventListener("drop", (event) => {
     media.classList.remove("dragging");
-    if (event.dataTransfer.files.length) void selectFile(event.dataTransfer.files[0]);
+    backgroundPicker.classList.remove("dragging");
+    const file = event.dataTransfer.files[0];
+    if (backgroundPicker.contains(event.target)) void selectBackground(file);
+    else void selectFile(file);
   });
   $("play").addEventListener("click", (event) => {
     const now = performance.now();
