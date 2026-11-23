@@ -118,16 +118,17 @@ h3 { font-size: 13px; margin-bottom: 9px; }
   border: solid var(--accent); border-width: 0 2px 2px 0; transform: rotate(45deg) translateY(-1px);
 }
 .controls { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+.control-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 9px; }
+.control-heading h3 { margin-bottom: 0; }
+.control-heading button { min-height: 28px; padding: 3px 8px; font-size: 12px; white-space: nowrap; }
 .timeline-fade { padding-top: 7px; }
 .timeline-fade h4 { margin: 0 0 4px; font-size: 12px; font-weight: 650; }
 .field { display: grid; gap: 1px; margin-bottom: 4px; }
 .field input { width: 100%; margin: 0; height: 18px; }
 .timing { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
 .timing select { padding: 6px 7px; }
-.random-options { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin: 8px 0 3px; font-size: 12px; }
-.random-options label { display: flex; align-items: center; gap: 4px; color: var(--muted); cursor: pointer; }
-.random-options input { margin: 0; accent-color: var(--accent); }
-.random-options button { min-height: 29px; }
+.mix-effects { display: flex; align-items: center; gap: 4px; margin: 9px 0 3px; color: var(--muted); font-size: 12px; cursor: pointer; }
+.mix-effects input { margin: 0; accent-color: var(--accent); }
 #status {
   position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 10;
   max-width: min(90vw,620px); padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line); background: #24232e;
@@ -277,7 +278,10 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
       <div id="appearance"></div>
     </section>
     <section class="controls">
-      <h3>单个粒子怎么动</h3>
+      <div class="control-heading">
+        <h3>单个粒子怎么动</h3>
+        <button type="button" id="reroll">重新随机</button>
+      </div>
       <div id="movement"></div>
       <div id="timeline-fade" class="timeline-fade" hidden>
         <h4>首尾渐隐</h4>
@@ -294,10 +298,7 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
           <option value="waves">分四批</option>
         </select>
       </label>
-      <div class="random-options">
-        <label><input type="checkbox" id="mix-effects"> 混合本类动效</label>
-        <button type="button" id="reroll">重新随机</button>
-      </div>
+      <label class="mix-effects"><input type="checkbox" id="mix-effects"> 混合本类动效</label>
     </section>
   </aside>
 </main>
@@ -897,8 +898,8 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     amplitude: 100,
     spin: 0,
     pulse: 0,
-    appearanceRandom: 0,
-    motionRandom: 0,
+    appearanceRandom: 45,
+    motionRandom: 48,
     mixEffects: false,
     seed: 0,
     fadeIn: 0.35,
