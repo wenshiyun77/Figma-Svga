@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>幸运礼物 · SVGA Editor</title>
+<style>
+:root {
+  color-scheme: dark;
+  font: 14px/1.45 system-ui, -apple-system, sans-serif;
+  color: #f1effa;
+  background: #121217;
+  --line: #33323d;
+  --muted: #a6a3b5;
+  --accent: #b2aaff;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+button, select, .duration {
+  border: 1px solid var(--line); border-radius: 8px; background: #24232e;
+}
+button { min-height: 34px; padding: 5px 11px; cursor: pointer; }
+button:disabled { cursor: default; opacity: .5; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+:is(button,select,input):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: 21px; line-height: 1.2; }
+h2 { font-size: 14px; font-weight: 650; }
+h3 { font-size: 13px; margin-bottom: 9px; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 22px; border-bottom: 1px solid var(--line); background: #1b1a22;
+}
+.brand { display: grid; gap: 2px; }
+.brand span, .spec { font-size: 12px; color: var(--muted); white-space: nowrap; }
+#export-form { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.duration { display: flex; align-items: center; padding: 4px 8px; gap: 2px; }
+.duration input { width: 65px; min-width: 0; background: transparent; border: 0; padding: 1px 3px; }
+.primary { color: #1a132f; background: var(--accent); font-weight: 700; white-space: nowrap; }
+.workspace {
+  display: grid; grid-template-columns: clamp(190px, 19vw, 260px) minmax(270px,1fr) clamp(258px, 28vw, 340px);
+  height: calc(100dvh - 70px);
+}
+.panel { background: #1b1a22; padding: 17px; overflow: auto; }
+.panel h2 { margin-bottom: 13px; }
+.media { border-right: 1px solid var(--line); }
+.settings { border-left: 1px solid var(--line); }
+.upload {
+  width: 100%; min-height: 148px; display: grid; align-content: center; justify-items: center;
+  gap: 6px; padding: 12px; border-style: dashed; color: var(--accent); overflow-wrap: anywhere;
+}
+.upload img { width: 100%; height: 128px; object-fit: contain; }
+.upload small,.note,.file-info p,.preview-bar span,.playback span { color: var(--muted); font-size: 12px; }
+.media.dragging .upload { border-color: var(--accent); background: #30274a; }
+.file-info { padding: 12px 0 4px; overflow-wrap: anywhere; }
+.note { margin-top: 10px; line-height: 1.55; }
+.preview { display: flex; flex-direction: column; min-height: 0; }
+.preview-bar,.playback {
+  display: flex; align-items: center; gap: 8px; padding: 10px 15px; background: #1b1a22;
+}
+.preview-bar { justify-content: space-between; border-bottom: 1px solid var(--line); }
+.playback { border-top: 1px solid var(--line); flex-wrap: wrap; }
+.playback span { margin-left: auto; }
+.preview-space {
+  flex: 1; min-height: 0; display: grid; place-items: center;
+  padding: 20px 25px; container-type: size;
+}
+.stage {
+  position: relative; width: min(100cqw, calc(100cqh * 750 / 1624));
+  aspect-ratio: 750 / 1624; outline: 1px solid #666379; background: #252430;
+  background-image: conic-gradient(#2a2935 25%, #24232d 0 50%, #2a2935 0 75%, #24232d 0);
+  background-size: 18px 18px;
+}
+.stage canvas { display: block; width: 100%; height: 100%; }
+.fade-guide {
+  position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed #b2aaff92;
+  pointer-events: none;
+}
+.fade-guide button {
+  position: absolute; right: 0; transform: translate(50%, -50%); width: 24px; height: 24px;
+  min-height: 0; border: 0; padding: 0; background: transparent; cursor: ns-resize;
+  touch-action: none; pointer-events: auto; display: grid; place-items: center;
+}
+.fade-guide button::after {
+  content: ''; display: block; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px #302952;
+}
+.categories, .effects { display: grid; gap: 6px; }
+.categories { grid-template-columns: repeat(3,minmax(0,1fr)); margin-bottom: 9px; }
+.effects { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.categories button, .effects button { font-size: 12px; min-height: 31px; padding: 4px; }
+.categories button[aria-pressed="true"],.effects button[aria-pressed="true"] {
+  color: #e4dfff; border-color: #a296ff; background: #393056;
+}
+.controls { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+.field { display: grid; gap: 1px; margin-bottom: 4px; }
+.field input { width: 100%; margin: 0; height: 18px; }
+.timing { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.timing select { padding: 6px 7px; }
+#status {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 10;
+  max-width: min(90vw,620px); padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line); background: #24232e;
+}
+#status[data-error="true"] { border-color: #f399a6; color: #ffb7c3; }
+@media(max-width: 780px) {
+  .workspace { grid-template-columns: minmax(198px,1fr) minmax(214px,1fr); height: auto; }
+  .preview { grid-column: 1 / -1; grid-row: 1; height: min(74dvh,650px); min-height: 340px; }
+  .panel { border-top: 1px solid var(--line); padding: 12px; }
+  .topbar { padding: 10px; }
+}
+@media(max-width: 425px) {
+  .workspace { grid-template-columns: 1fr; }
+  .spec { display: none; }
+  .duration input { width: 50px; }
+  #export-form > label { font-size: 11px; }
+}
+.bottom button { right: auto; left: 0; transform: translate(-50%, -50%); }
+
+/* Default skin for every configuration range, including dynamically inserted controls.
+   Keep each panel's width, height, grid and flex geometry intact. */
+input[type="range"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(to right, #9b92ff var(--config-slider-fill, 50%), #3c3c46 var(--config-slider-fill, 50%)) !important;
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 10px !important;
+  height: 10px !important;
+  margin-top: -3.5px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #b2aaff !important;
+  box-shadow: 0 0 0 2px #18181f !important;
+}
+input[type="range"]::-moz-range-track {
+  height: 3px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(to right, #9b92ff var(--config-slider-fill, 50%), #3c3c46 var(--config-slider-fill, 50%)) !important;
+}
+input[type="range"]::-moz-range-progress { background: transparent !important; }
+input[type="range"]::-moz-range-thumb {
+  width: 10px !important;
+  height: 10px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #b2aaff !important;
+  box-shadow: 0 0 0 2px #18181f !important;
+}
+input[type="range"]:focus-visible { outline: 1px solid #9b92ff !important; outline-offset: 3px; }
+input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
+.field:has(input[type="range"]) > label {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between !important;
+  font-size: 11px !important;
+  font-weight: 450 !important;
+  line-height: 18px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: rgba(255,255,255,.58) !important;
+}
+.field:has(input[type="range"]) > label span {
+  font-weight: 500 !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0 !important;
+  white-space: nowrap;
+  color: #d9d7e9 !important;
+}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span>SVGA Editor</span><h1>幸运礼物</h1></div>
+  <form id="export-form">
+    <label for="duration">导出时长</label>
+    <div class="duration"><input id="duration" type="number" min="3.01" step="any" value="5" required><span>秒</span></div>
+    <span class="spec">24 帧/秒</span>
+    <button type="submit" class="primary" id="export" disabled>导出 SVGA</button>
+  </form>
+</header>
+<main class="workspace">
+  <aside class="media panel" aria-labelledby="media-title">
+    <h2 id="media-title">主体素材</h2>
+    <input id="file" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/avif,image/svg+xml,.png,.jpg,.jpeg,.gif,.webp,.bmp,.avif,.svg" hidden>
+    <button id="upload" class="upload" type="button">
+      <img id="thumbnail" alt="主体素材预览" hidden>
+      <span id="upload-label">＋ 添加主体</span>
+      <small id="upload-hint">点击添加或拖入图片</small>
+    </button>
+    <div id="file-info" class="file-info" hidden>
+      <strong id="filename"></strong>
+      <p id="metadata"></p>
+    </div>
+    <p id="material-note" class="note" hidden></p>
+    <p class="note">支持 PNG、JPG、SVG 等静态图片，以及 GIF、WebP 动图。</p>
+  </aside>
+  <section class="preview" aria-labelledby="preview-title">
+    <div class="preview-bar"><h2 id="preview-title">画布预览</h2><span>750 × 1624</span></div>
+    <div class="preview-space">
+      <div class="stage" id="stage">
+        <canvas id="canvas" width="750" height="1624" aria-label="幸运礼物预览"></canvas>
+        <div class="fade-guide top" id="top-guide"><button type="button" id="top-handle" aria-label="顶部淡入边界" role="slider" aria-orientation="vertical"></button></div>
+        <div class="fade-guide bottom" id="bottom-guide"><button type="button" id="bottom-handle" aria-label="底部淡出边界" role="slider" aria-orientation="vertical"></button></div>
+      </div>
+    </div>
+    <div class="playback">
+      <button id="play" type="button">暂停</button>
+      <button id="restart" type="button">从头播放</button>
+      <span id="fade-label">顶部 0 px · 底部 0 px</span>
+    </div>
+  </section>
+  <aside class="settings panel" aria-labelledby="settings-title">
+    <h2 id="settings-title">动效配置</h2>
+    <div class="categories" id="categories" role="group" aria-label="动效类别"></div>
+    <div class="effects" id="effects" role="group" aria-label="选择动效"></div>
+    <section class="controls">
+      <h3>主体粒子</h3>
+      <div id="appearance"></div>
+    </section>
+    <section class="controls">
+      <h3>单个粒子怎么动</h3>
+      <div id="movement"></div>
+    </section>
+    <section class="controls">
+      <h3>粒子之间的关系</h3>
+      <div id="group"></div>
+      <label class="timing">出场节奏
+        <select id="timing">
+          <option value="staggered">错峰连续</option>
+          <option value="together">同时出场</option>
+          <option value="waves">分四批</option>
+        </select>
+      </label>
+    </section>
+  </aside>
+</main>
+<div id="status" role="status" aria-live="polite" hidden></div>
+<script>
+/* Presentation only: no synthetic input/change events, application state or timers per frame. */
+(() => {
+  if (window.__configSlidersInstalled) return;
+  window.__configSlidersInstalled = true;
+  const selector = 'input[type="range"]';
+  function update(input) {
+    if (!(input instanceof HTMLInputElement) || input.type !== 'range') return;
+    const bound = (text, fallback) => text.trim() !== '' && Number.isFinite(Number(text)) ? Number(text) : fallback;
+    const min = bound(input.min, 0), max = bound(input.max, 100);
+    const fraction = max > min ? Math.max(0, Math.min(1, (input.valueAsNumber - min) / (max - min))) : 0;
+    const fill = `${Number((fraction * 100).toFixed(6))}%`;
+    if (input.style.getPropertyValue('--config-slider-fill') !== fill) input.style.setProperty('--config-slider-fill', fill);
+  }
+  // The browser does not emit input/change when application sync code assigns value.
+  // Delegate to native setters first; preserve their validation and event semantics.
+  for (const property of ['value', 'valueAsNumber']) {
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, property);
+    if (!descriptor?.set || !descriptor.configurable) continue;
+    Object.defineProperty(HTMLInputElement.prototype, property, {
+      ...descriptor,
+      set(value) { descriptor.set.call(this, value); update(this); }
+    });
+  }
+  // Native step methods also change the value without dispatching input/change.
+  for (const method of ['stepUp', 'stepDown']) {
+    const native = HTMLInputElement.prototype[method];
+    HTMLInputElement.prototype[method] = function(...args) { const result = native.apply(this, args); update(this); return result; };
+  }
+  function scan(root) {
+    if (root.nodeType !== 1 && root.nodeType !== 9) return;
+    if (root.matches?.(selector)) update(root);
+    root.querySelectorAll(selector).forEach(update);
+  }
+  document.addEventListener('input', event => update(event.target), true);
+  document.addEventListener('change', event => update(event.target), true);
+  document.addEventListener('reset', event => {
+    const form = event.target;
+    // Reset's default action occurs after the event dispatch.
+    queueMicrotask(() => scan(form));
+  }, true);
+  const observer = new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') update(record.target);
+      else record.addedNodes.forEach(scan);
+    }
+  });
+  observer.observe(document, {subtree: true, childList: true, attributes: true, attributeFilter: ['type', 'value', 'min', 'max', 'step']});
+  scan(document);
+})();
+
+/* SVGA native import core. No network, dependencies, or canvas side effects. */
+(function installSVGAImportCore(root) {
+  'use strict';
+  const LIMITS = Object.freeze({ inputBytes: 64 * 1024 * 1024, expandedBytes: 128 * 1024 * 1024, zipEntries: 20000, sprites: 20000, frames: 100000, frameRecords: 1000000, fields: 2000000 });
+  const utf8 = new TextDecoder('utf-8', { fatal: true }), encoder = new TextEncoder();
+  const fail = (s) => { throw new Error('SVGA import: ' + s); };
+  const bytes = (b) => { if (!(b instanceof Uint8Array)) fail('expected Uint8Array'); return b; };
+  const join = (parts) => { const n = parts.reduce((v,b)=>v+b.length,0); if(n>LIMITS.expandedBytes) fail('message exceeds size limit'); const out=new Uint8Array(n);let p=0;for(const b of parts){out.set(b,p);p+=b.length;}return out; };
+  const varint = (n) => { if (!Number.isSafeInteger(n) || n<0) fail('invalid integer'); const b=[]; do{const v=n%128;n=Math.floor(n/128);b.push(v|(n?128:0));}while(n);return Uint8Array.from(b); };
+  const wire = (n,type,value) => join([varint(n*8+type),type===2?join([varint(value.length),value]):value]);
+  const floatField = (n,value) => {if(!Number.isFinite(value))fail('non-finite number');const b=new Uint8Array(4);new DataView(b.buffer).setFloat32(0,value,true);return wire(n,5,b);};
+  const strField = (n,value) => wire(n,2,encoder.encode(value));
+  const intField = (n,value) => wire(n,0,varint(value));
+  const fields = (b) => {
+    const out=[];let p=0;
+    const read = () => {let v=0n,s=0n;for(let i=0;i<10;i++){if(p>=b.length)fail('truncated protobuf varint');const c=b[p++];if(i===9 && c>1)fail('protobuf varint overflow');v|=BigInt(c&127)<<s;if(!(c&128))return v;s+=7n;}fail('invalid protobuf varint');};
+    while(p<b.length){if(out.length>=LIMITS.fields)fail('too many protobuf fields');const start=p,t=read();if(t>0xffffffffn)fail('invalid protobuf tag');const tag=Number(t),n=tag>>>3,w=tag&7;if(!n)fail('invalid protobuf field zero');let value;
+      if(w===0)value=read();else if(w===2){const count=read();if(count>BigInt(b.length-p))fail('truncated protobuf message');value=b.subarray(p,p+Number(count));p+=Number(count);}else if(w===1||w===5){const count=w===1?8:4;if(p+count>b.length)fail('truncated protobuf scalar');value=b.subarray(p,p+count);p+=count;}else fail('unsupported protobuf wire type '+w);
+      out.push({number:n,wire:w,value,raw:b.subarray(start,p)});
+    }return out;
+  };
+  const number = (f,type) => {if(type==='i'){if(f.wire!==0)fail('integer wire mismatch');return Number(BigInt.asIntN(32,f.value));}if(f.wire!==5)fail('float wire mismatch');const v=new DataView(f.value.buffer,f.value.byteOffset,4).getFloat32(0,true);if(!Number.isFinite(v))fail('non-finite protobuf float');return v;};
+  const blob = (f) => {if(f.wire!==2)fail('message wire mismatch');return f.value;};
+  const defs = {
+    layout: {1:['x','f'],2:['y','f'],3:['width','f'],4:['height','f']},
+    transform:{1:['a','f'],2:['b','f'],3:['c','f'],4:['d','f'],5:['tx','f'],6:['ty','f']},
+    color:{1:['r','f'],2:['g','f'],3:['b','f'],4:['a','f']},
+    path:{1:['d','s']},rect:{1:['x','f'],2:['y','f'],3:['width','f'],4:['height','f'],5:['cornerRadius','f']},
+    ellipse:{1:['x','f'],2:['y','f'],3:['radiusX','f'],4:['radiusY','f']},
+    styles:{1:['fill','color'],2:['stroke','color'],3:['strokeWidth','f'],4:['lineCap','i'],5:['lineJoin','i'],6:['miterLimit','f'],7:['lineDashI','f'],8:['lineDashII','f'],9:['lineDashIII','f']},
+    shape:{1:['type','i'],2:['path','path'],3:['rect','rect'],4:['ellipse','ellipse'],10:['styles','styles'],11:['transform','transform']},
+    frame:{1:['alpha','f'],2:['layout','layout'],3:['transform','transform'],4:['clipPath','s'],5:['shapes','shape',true]},
+    sprite:{1:['imageKey','s'],2:['frames','frame',true],3:['matteKey','s']},
+    audio:{1:['audioKey','s'],2:['startFrame','i'],3:['endFrame','i'],4:['startTime','i'],5:['totalTime','i']},
+    params:{1:['viewBoxWidth','f'],2:['viewBoxHeight','f'],3:['fps','i'],4:['frames','i']}
+  };
+  const decode = (b,type) => {
+    const def=defs[type],out={raw:b,unknownFields:[]};
+    for(const [key,kind,repeated] of Object.values(def))if(repeated)out[key]=[];else if(kind==='s')out[key]='';else if(kind==='f'||kind==='i')out[key]=0;
+    for(const f of fields(b)){const d=def[f.number];if(!d){out.unknownFields.push(f.raw);continue;}const [key,kind,repeated]=d;const v=kind==='s'?utf8.decode(blob(f)):(kind==='f'||kind==='i')?number(f,kind):decode(blob(f),kind);if(repeated)out[key].push(v);else {if(type==='shape'&&['path','rect','ellipse'].includes(key)){delete out.path;delete out.rect;delete out.ellipse;}out[key]=v;}}
+    return out;
+  };
+  const encode = (obj,type,raw=true) => {
+    if(raw && obj.raw)return obj.raw;
+    const parts=[];for(const [n,[key,kind,repeated]] of Object.entries(defs[type])){if(obj[key]==null)continue;for(const v of repeated?obj[key]:[obj[key]])parts.push(kind==='s'?strField(+n,v):kind==='f'?floatField(+n,v):kind==='i'?intField(+n,v):wire(+n,2,encode(v,kind)));}return join(parts.concat(obj.unknownFields||[]));
+  };
+  const validate = (m) => {
+    const p=m.params;if(!p||!(p.viewBoxWidth>0)||!(p.viewBoxHeight>0)||p.viewBoxWidth>32768||p.viewBoxHeight>32768)fail('invalid or oversized canvas');
+    if(!Number.isInteger(p.fps)||p.fps<1||p.fps>240||!Number.isInteger(p.frames)||p.frames<1||p.frames>LIMITS.frames)fail('invalid or oversized timeline');
+    if(m.sprites.length>LIMITS.sprites||m.sprites.reduce((s,x)=>s+x.frames.length,0)>LIMITS.frameRecords)fail('too many sprite frame records');
+    return m;
+  };
+  function decodeMovie(input, onProgress) {
+    bytes(input);if(input.length>LIMITS.expandedBytes)fail('movie exceeds size limit');const b=input.slice();
+    const m={version:'',params:null,images:new Map(),imageEntries:new Map(),sprites:[],audios:[],unknownFields:[],raw:b};
+    const movieFields=fields(b);let decodedFields=0;
+    for(const f of movieFields){
+      if(onProgress && decodedFields++%32===0)onProgress(decodedFields/movieFields.length);
+      if(f.number===1)m.version=utf8.decode(blob(f));else if(f.number===2)m.params=decode(blob(f),'params');
+      else if(f.number===3){let key='',value=new Uint8Array();const extras=[];for(const e of fields(blob(f))){if(e.number===1)key=utf8.decode(blob(e));else if(e.number===2)value=blob(e);else extras.push(e.raw);}m.images.set(key,value);m.imageEntries.set(key,{raw:blob(f),value,unknownFields:extras});}
+      else if(f.number===4)m.sprites.push(decode(blob(f),'sprite'));else if(f.number===5)m.audios.push(decode(blob(f),'audio'));else m.unknownFields.push(f.raw);
+    }
+    return validate(m);
+  }
+  function patchFrame(frame,patch={}) {
+    const updates={1:'alpha',2:'layout',3:'transform'},present=new Set(Object.keys(updates).filter(n=>Object.prototype.hasOwnProperty.call(patch,updates[n])).map(Number));
+    const original=frame.raw||encode(frame,'frame',false),parts=fields(original).filter(f=>!present.has(f.number)).map(f=>f.raw);
+    for(const n of present){const key=updates[n],v=patch[key];if(v==null)continue;parts.push(n===1?floatField(n,v):wire(n,2,encode(v,key,false)));}return join(parts);
+  }
+  function encodeMovie(m) {
+    validate(m);const parts=[strField(1,m.version||'2.0'),wire(2,2,encode(m.params,'params'))];
+    for(const [key,value] of m.images){const entry=m.imageEntries?.get(key);const unchanged=entry&&entry.value.length===value.length&&entry.value.every((v,i)=>v===value[i]);parts.push(wire(3,2,unchanged?entry.raw:join([strField(1,key),wire(2,2,value),...(entry?.unknownFields||[])])));}
+    for(const s of m.sprites)parts.push(wire(4,2,encode(s,'sprite')));
+    for(const a of m.audios||[])parts.push(wire(5,2,encode(a,'audio')));
+    return join(parts.concat(m.unknownFields||[]));
+  }
+  const crc32=(b)=>{let c=0xffffffff;for(const v of b){c^=v;for(let i=0;i<8;i++)c=(c>>>1)^((c&1)?0xedb88320:0);}return(c^0xffffffff)>>>0;};
+  const adler32=(b)=>{let a=1,c=0;for(let i=0;i<b.length;i++){a=(a+b[i])%65521;c=(c+a)%65521;}return((c<<16)|a)>>>0;};
+  // RFC1951 fallback: bounded output, stored/fixed/dynamic Huffman blocks.
+  function inflateRaw(input,max=LIMITS.expandedBytes){
+    let at=0,bit=0,count=0,output=new Uint8Array(Math.min(65536,max));
+    const read=(n)=>{let v=0;for(let i=0;i<n;i++){if(at>=input.length)fail('truncated deflate');v|=((input[at]>>>bit)&1)<<i;if(++bit===8){bit=0;at++;}}return v;};
+    const put=(v)=>{if(count>=max)fail('expanded data exceeds size limit');if(count===output.length){const next=new Uint8Array(Math.min(max,Math.max(1,output.length*2)));next.set(output);output=next;}output[count++]=v;};
+    const table=(lengths)=>{const totals=new Array(16).fill(0),next=new Array(16).fill(0),map=new Map();for(const l of lengths){if(l<0||l>15)fail('invalid Huffman length');if(l)totals[l]++;}let code=0;for(let l=1;l<=15;l++){code=(code+totals[l-1])*2;if(code+totals[l]>(1<<l))fail('oversubscribed Huffman tree');next[l]=code;}lengths.forEach((l,s)=>{if(!l)return;let c=next[l]++,r=0;for(let j=0;j<l;j++){r=(r<<1)|(c&1);c>>>=1;}map.set(l*65536+r,s);});return map;};
+    const symbol=(t)=>{let c=0;for(let l=1;l<=15;l++){c|=read(1)<<(l-1);const s=t.get(l*65536+c);if(s!==undefined)return s;}fail('invalid Huffman symbol');};
+    const lb=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258],le=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+    const db=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],de=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+    let final=false;while(!final){final=!!read(1);const kind=read(2);if(kind===0){if(bit){bit=0;at++;}const n=read(16),inverse=read(16);if((n^65535)!==inverse)fail('bad stored deflate block');for(let i=0;i<n;i++)put(read(8));continue;}if(kind===3)fail('reserved deflate block');
+      let lit,dist;if(kind===1){const lengths=Array.from({length:288},(_,i)=>i<144?8:i<256?9:i<280?7:8);lit=table(lengths);dist=table(new Array(32).fill(5));}
+      else{const nl=read(5)+257,nd=read(5)+1,nc=read(4)+4;if(nl>286||nd>32)fail('invalid dynamic deflate header');const codeLengths=new Array(19).fill(0);
+        const canonical=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];for(let i=0;i<nc;i++)codeLengths[canonical[i]]=read(3);const ct=table(codeLengths),lens=[];while(lens.length<nl+nd){const s=symbol(ct);if(s<16)lens.push(s);else{let repeats,value;if(s===16){if(!lens.length)fail('invalid Huffman repeat');repeats=read(2)+3;value=lens[lens.length-1];}else if(s===17){repeats=read(3)+3;value=0;}else if(s===18){repeats=read(7)+11;value=0;}else fail('invalid Huffman code');if(lens.length+repeats>nl+nd)fail('Huffman repeat overflow');while(repeats--)lens.push(value);}}if(!lens[256])fail('missing deflate end code');lit=table(lens.slice(0,nl));dist=table(lens.slice(nl));}
+      while(true){const s=symbol(lit);if(s<256){put(s);continue;}if(s===256)break;if(s<257||s>285)fail('invalid deflate length');const length=lb[s-257]+read(le[s-257]),ds=symbol(dist);if(ds>29)fail('invalid deflate distance');const distance=db[ds]+read(de[ds]);if(distance>count)fail('deflate distance before output');for(let i=0;i<length;i++)put(output[count-distance]);}
+    }
+    if(at+(bit?1:0)!==input.length)fail('trailing deflate bytes');return output.slice(0,count);
+  }
+  async function decompress(input,zlib,max=LIMITS.expandedBytes){
+    let compressed=input,expected;
+    if(zlib){if(input.length<6||(input[0]&15)!==8||(input[0]>>>4)>7||((input[0]<<8)+input[1])%31||(input[1]&32))fail('invalid or dictionary zlib stream');compressed=input.subarray(2,input.length-4);expected=new DataView(input.buffer,input.byteOffset+input.length-4,4).getUint32(0,false);}
+    let out;
+    if(typeof root.DecompressionStream==='function'){
+      let stream;try{stream=new root.DecompressionStream(zlib?'deflate':'deflate-raw');}catch(_unsupported){stream=null;}
+      if(stream){const reader=new Blob([input]).stream().pipeThrough(stream).getReader(),parts=[];let n=0;try{while(true){const chunk=await reader.read();if(chunk.done)break;n+=chunk.value.length;if(n>max){await reader.cancel();fail('expanded data exceeds size limit');}parts.push(chunk.value);}out=join(parts);}catch(e){fail('decompression failed: '+e.message);}}
+    }
+    if(!out)out=inflateRaw(compressed,max);
+    if(zlib&&adler32(out)!==expected)fail('zlib checksum mismatch');return out;
+  }
+  async function unzip(input){
+    const view=new DataView(input.buffer,input.byteOffset,input.length),size=input.length,check=(p,n)=>{if(p<0||p+n>size)fail('truncated ZIP archive');};
+    const u16=p=>{check(p,2);return view.getUint16(p,true);},u32=p=>{check(p,4);return view.getUint32(p,true);};let end=-1;
+    for(let p=size-22;p>=Math.max(0,size-65557);p--)if(u32(p)===0x06054b50&&p+22+u16(p+20)===size){end=p;break;}if(end<0)fail('missing ZIP central directory');
+    if(u16(end+4)||u16(end+6)||u16(end+8)!==u16(end+10))fail('multipart ZIP unsupported');const entries=u16(end+10),cdSize=u32(end+12),cdOffset=u32(end+16);if(entries>LIMITS.zipEntries||cdOffset+cdSize!==end)fail('invalid or oversized ZIP directory');
+    const result=new Map();let p=cdOffset,total=0;
+    for(let i=0;i<entries;i++){check(p,46);if(u32(p)!==0x02014b50)fail('invalid ZIP directory entry');const flags=u16(p+8),method=u16(p+10),crc=u32(p+16),packed=u32(p+20),expanded=u32(p+24),nl=u16(p+28),el=u16(p+30),cl=u16(p+32),disk=u16(p+34),offset=u32(p+42);check(p,46+nl+el+cl);const name=utf8.decode(input.subarray(p+46,p+46+nl));p+=46+nl+el+cl;
+      if(flags&1||disk||expanded===0xffffffff||packed===0xffffffff)fail('encrypted/ZIP64 archive unsupported');if(method!==0&&method!==8)fail('unsupported ZIP compression '+method);if(name.includes('..')||name.includes('\\')||name.startsWith('/')||result.has(name))fail('invalid or duplicate ZIP filename');total+=expanded;if(total>LIMITS.expandedBytes)fail('expanded ZIP exceeds size limit');
+      check(offset,30);if(u32(offset)!==0x04034b50||u16(offset+8)!==method||(u16(offset+6)&1))fail('invalid ZIP local header');const localNameLength=u16(offset+26),start=offset+30+localNameLength+u16(offset+28);check(offset+30,localNameLength);if(utf8.decode(input.subarray(offset+30,offset+30+localNameLength))!==name)fail('ZIP filename mismatch');check(start,packed);if(start+packed>cdOffset)fail('ZIP payload overlaps directory');const data=input.subarray(start,start+packed),raw=method===0?data.slice():await decompress(data,false,Math.min(LIMITS.expandedBytes,expanded));if(raw.length!==expanded||crc32(raw)!==crc)fail('ZIP CRC/length checksum mismatch');result.set(name,raw);
+    }if(p!==end)fail('invalid ZIP directory length');return result;
+  }
+  const legacyNumber=(value,fallback=0)=>{if(value==null)return fallback;const n=Number(value);if(!Number.isFinite(n))fail('invalid legacy numeric value');return n;};
+  function legacyObject(obj,type){
+    const out={};for(const [key,kind,repeated] of Object.values(defs[type])){if(repeated){out[key]=(obj[key]||[]).map(x=>legacyObject(x,kind));continue;}if(kind==='f'||kind==='i')out[key]=legacyNumber(typeof obj[key]==='string'&&((type==='shape'&&key==='type')||(type==='styles'&&['lineCap','lineJoin'].includes(key)))?0:obj[key]);else if(kind==='s')out[key]=String(obj[key]||'');else if(obj[key]!=null)out[key]=legacyObject(obj[key],kind);}
+    if(type==='shape'){out.type=typeof obj.type==='string'?({shape:0,rect:1,ellipse:2,keep:3}[obj.type.toLowerCase()]):legacyNumber(obj.type);if(out.type==null)fail('unknown legacy shape type');const argsType=['path','rect','ellipse'][out.type];if(argsType&&obj.args)out[argsType]=legacyObject(obj.args,argsType);}
+    if(type==='styles'){for(const key of ['fill','stroke'])if(Array.isArray(obj[key]))out[key]={r:legacyNumber(obj[key][0]),g:legacyNumber(obj[key][1]),b:legacyNumber(obj[key][2]),a:legacyNumber(obj[key][3])};if(Array.isArray(obj.lineDash))[out.lineDashI,out.lineDashII,out.lineDashIII]=obj.lineDash.map(x=>legacyNumber(x));for(const [key,types] of [['lineCap',{butt:0,round:1,square:2}],['lineJoin',{miter:0,round:1,bevel:2}]])if(typeof obj[key]==='string'){out[key]=types[obj[key].toLowerCase()];if(out[key]==null)fail('unknown legacy '+key);}}
+    // Legacy JSON defaults are player identity transforms and fully visible frames.
+    if(type==='transform'){out.a=legacyNumber(obj.a,1);out.d=legacyNumber(obj.d,1);}if(type==='frame')out.alpha=legacyNumber(obj.alpha,0);
+    return out;
+  }
+  function legacyMovie(spec,files){
+    const movie=spec.movie||{},box=movie.viewBox||{};
+    const m={version:String(spec.ver||'1.0.0'),params:{viewBoxWidth:legacyNumber(box.width),viewBoxHeight:legacyNumber(box.height),fps:legacyNumber(movie.fps),frames:legacyNumber(movie.frames)},images:new Map(),sprites:(spec.sprites||[]).map(s=>legacyObject(s,'sprite')),audios:(spec.audios||[]).map(s=>legacyObject(s,'audio')),unknownFields:[]};
+    for(const [key,name] of Object.entries(spec.images||{})){const data=files.get(String(name))||files.get(String(name)+'.png');if(!data)fail('missing image resource '+name);m.images.set(key,data);}
+    validate(m);return decodeMovie(encodeMovie(m));
+  }
+  async function parse(input,onProgress){
+    input=bytes(input);if(!input.length||input.length>LIMITS.inputBytes)fail('empty or oversized input');let m;
+    if(input.length>=4&&input[0]===80&&input[1]===75&&input[2]===3&&input[3]===4){const files=await unzip(input);if(files.has('movie.binary')){let binary=files.get('movie.binary');try{m=decodeMovie(binary,onProgress);}catch(first){if(binary.length>2&&(binary[0]&15)===8)m=decodeMovie(await decompress(binary,true),onProgress);else throw first;}
+        // Protobuf images may contain ZIP filenames rather than material bytes.
+        for(const [key,value] of m.images){let name;try{name=utf8.decode(value);}catch(_binary){continue;}if(files.has(name))m.images.set(key,files.get(name));else if(name.endsWith('.png')||name.endsWith('.mp3'))fail('missing resource '+name);}
+      }else if(files.has('movie.spec')){let spec;try{spec=JSON.parse(utf8.decode(files.get('movie.spec')));}catch(e){fail('invalid movie.spec JSON: '+e.message);}m=legacyMovie(spec,files);}else fail('ZIP has no movie.spec or movie.binary');m.container='zip';
+    }else{m=decodeMovie(await decompress(input,true),onProgress);m.container='zlib';}return m;
+  }
+  root.SVGAImportCore=Object.freeze({parse,decodeMovie,patchFrame,encodeMovie,LIMITS,workerSource:'('+installSVGAImportCore.toString()+')(globalThis);'});
+})(typeof window!=='undefined'?window:globalThis);
+
+(() => {
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const indexedPngDataUrlForCanvas = async (ctx, width, height, options = {}) => {
+        const imageData = options.imageData || ctx.getImageData(0, 0, width, height).data;
+        const requestedMaxColors = Math.round(Number(options.maxColors));
+        const maxColors = Number.isFinite(requestedMaxColors)
+          ? clamp(requestedMaxColors, 2, SVGA_INDEXED_PNG_MAX_COLORS)
+          : SVGA_INDEXED_PNG_MAX_COLORS;
+        const colorByKey = new Map();
+        let transparentPixels = 0;
+        for (let pixel = 0; pixel < width * height; pixel += 1) {
+          const offset = pixel * 4;
+          const red = imageData[offset];
+          const green = imageData[offset + 1];
+          const blue = imageData[offset + 2];
+          const alpha = imageData[offset + 3];
+          if (alpha === 0) {
+            transparentPixels += 1;
+            if (
+              options.adaptive !== true &&
+              colorByKey.size + 1 > maxColors
+            ) {
+              return "";
+            }
+            continue;
+          }
+          const key = indexedPngColorKey(red, green, blue, alpha);
+          const existing = colorByKey.get(key);
+          if (existing) {
+            existing.count += 1;
+          } else {
+            colorByKey.set(key, { key, red, green, blue, alpha, count: 1 });
+            if (
+              options.adaptive !== true &&
+              colorByKey.size + (transparentPixels > 0 ? 1 : 0) > maxColors
+            ) {
+              // Exact-index attempts only need to know that the palette cannot
+              // fit. Stop before a photographic image creates a huge color map.
+              return "";
+            }
+          }
+        }
+
+        const colors = Array.from(colorByKey.values());
+        const palette = transparentPixels > 0 ? [[0, 0, 0, 0]] : [];
+        const indexBySourceColor = new Map();
+        const availableColors = maxColors - palette.length;
+        if (colors.length <= availableColors) {
+          for (const color of colors) {
+            indexBySourceColor.set(color.key, palette.length);
+            palette.push([color.red, color.green, color.blue, color.alpha]);
+          }
+        } else {
+          if (options.adaptive !== true) return "";
+          const adaptive = adaptiveIndexedPngPalette(colors, availableColors);
+          const paletteOffset = palette.length;
+          for (const color of adaptive.palette) palette.push(color);
+          for (const [key, index] of adaptive.indexBySourceColor) {
+            indexBySourceColor.set(key, index + paletteOffset);
+          }
+        }
+        if (!palette.length || palette.length > maxColors) return "";
+
+        const indices = new Uint8Array(width * height);
+        for (let pixel = 0; pixel < width * height; pixel += 1) {
+          const offset = pixel * 4;
+          const red = imageData[offset];
+          const green = imageData[offset + 1];
+          const blue = imageData[offset + 2];
+          const alpha = imageData[offset + 3];
+          indices[pixel] = alpha === 0
+            ? 0
+            : indexBySourceColor.get(indexedPngColorKey(red, green, blue, alpha)) || 0;
+        }
+
+        const header = new Uint8Array(13);
+        const headerView = new DataView(header.buffer);
+        headerView.setUint32(0, width, false);
+        headerView.setUint32(4, height, false);
+        header[8] = 8;
+        header[9] = 3;
+        const paletteBytes = new Uint8Array(palette.length * 3);
+        let lastTransparentIndex = -1;
+        palette.forEach(([red, green, blue, alpha], index) => {
+          paletteBytes[index * 3] = red;
+          paletteBytes[index * 3 + 1] = green;
+          paletteBytes[index * 3 + 2] = blue;
+          if (alpha < 255) lastTransparentIndex = index;
+        });
+        const transparencyBytes = lastTransparentIndex >= 0
+          ? new Uint8Array(palette.slice(0, lastTransparentIndex + 1).map((entry) => entry[3]))
+          : null;
+        const compressedPixels = await publicPngDeflate(indexedPngScanlines(indices, width, height));
+        const parts = [
+          new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
+          pngChunk("IHDR", header),
+          pngChunk("PLTE", paletteBytes),
+        ];
+        if (transparencyBytes) parts.push(pngChunk("tRNS", transparencyBytes));
+        parts.push(pngChunk("IDAT", compressedPixels), pngChunk("IEND"));
+        const totalLength = parts.reduce((total, part) => total + part.length, 0);
+        const output = new Uint8Array(totalLength);
+        let outputOffset = 0;
+        for (const part of parts) {
+          output.set(part, outputOffset);
+          outputOffset += part.length;
+        }
+        return `data:image/png;base64,${bytesToBase64(output)}`;
+      };
+const SVGA_INDEXED_PNG_MAX_COLORS = 256;
+const bytesToBase64 = (bytes) => {
+        let binary = "";
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+        }
+        return btoa(binary);
+      };
+const pngChunk = (type, data = new Uint8Array()) => {
+        const typeBytes = new TextEncoder().encode(type);
+        const crcInput = new Uint8Array(typeBytes.length + data.length);
+        crcInput.set(typeBytes, 0);
+        crcInput.set(data, typeBytes.length);
+        const output = new Uint8Array(12 + data.length);
+        const view = new DataView(output.buffer);
+        view.setUint32(0, data.length, false);
+        output.set(typeBytes, 4);
+        output.set(data, 8);
+        view.setUint32(8 + data.length, pngCrc32(crcInput), false);
+        return output;
+      };
+const pngCrc32 = (bytes) => {
+        let crc = 0xffffffff;
+        for (const byte of bytes) {
+          crc ^= byte;
+          for (let bit = 0; bit < 8; bit += 1) {
+            crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+          }
+        }
+        return (crc ^ 0xffffffff) >>> 0;
+      };
+const indexedPngScanlines = (indices, width, height) => {
+        const output = new Uint8Array((width + 1) * height);
+        const candidates = Array.from({ length: 5 }, () => new Uint8Array(width));
+        for (let y = 0; y < height; y += 1) {
+          const rowOffset = y * width;
+          const previousOffset = (y - 1) * width;
+          let bestFilter = 0;
+          let bestScore = Number.POSITIVE_INFINITY;
+          for (let filter = 0; filter <= 4; filter += 1) {
+            const candidate = candidates[filter];
+            let score = 0;
+            for (let x = 0; x < width; x += 1) {
+              const value = indices[rowOffset + x];
+              const left = x > 0 ? indices[rowOffset + x - 1] : 0;
+              const up = y > 0 ? indices[previousOffset + x] : 0;
+              const upLeft = x > 0 && y > 0 ? indices[previousOffset + x - 1] : 0;
+              const predictor = filter === 1
+                ? left
+                : filter === 2
+                  ? up
+                  : filter === 3
+                    ? Math.floor((left + up) / 2)
+                    : filter === 4
+                      ? pngPaethPredictor(left, up, upLeft)
+                      : 0;
+              const filtered = (value - predictor + 256) & 255;
+              candidate[x] = filtered;
+              score += Math.abs(filtered < 128 ? filtered : filtered - 256);
+            }
+            if (score < bestScore) {
+              bestScore = score;
+              bestFilter = filter;
+            }
+          }
+          const outputOffset = y * (width + 1);
+          output[outputOffset] = bestFilter;
+          output.set(candidates[bestFilter], outputOffset + 1);
+        }
+        return output;
+      };
+const pngPaethPredictor = (left, up, upLeft) => {
+        const estimate = left + up - upLeft;
+        const leftDistance = Math.abs(estimate - left);
+        const upDistance = Math.abs(estimate - up);
+        const cornerDistance = Math.abs(estimate - upLeft);
+        if (leftDistance <= upDistance && leftDistance <= cornerDistance) return left;
+        return upDistance <= cornerDistance ? up : upLeft;
+      };
+const indexedPngColorKey = (red, green, blue, alpha) =>
+        (((red << 24) | (green << 16) | (blue << 8) | alpha) >>> 0);
+const adaptiveIndexedPngPalette = (colors, maxColors) => {
+        const boxes = [indexedPngPaletteBox(colors)];
+        while (boxes.length < maxColors) {
+          let boxIndex = -1;
+          for (let index = 0; index < boxes.length; index += 1) {
+            if (boxes[index].score < 0) continue;
+            if (boxIndex < 0 || boxes[index].score > boxes[boxIndex].score) boxIndex = index;
+          }
+          if (boxIndex < 0) break;
+          const box = boxes[boxIndex];
+          const sorted = box.colors.slice().sort(
+            (left, right) =>
+              indexedPngColorChannel(left, box.splitChannel) -
+              indexedPngColorChannel(right, box.splitChannel),
+          );
+          const middleWeight = box.total / 2;
+          let accumulated = 0;
+          let splitAt = 1;
+          for (let index = 0; index < sorted.length - 1; index += 1) {
+            accumulated += sorted[index].count;
+            splitAt = index + 1;
+            if (accumulated >= middleWeight) break;
+          }
+          if (splitAt <= 0 || splitAt >= sorted.length) {
+            box.score = -1;
+            continue;
+          }
+          boxes.splice(
+            boxIndex,
+            1,
+            indexedPngPaletteBox(sorted.slice(0, splitAt)),
+            indexedPngPaletteBox(sorted.slice(splitAt)),
+          );
+        }
+
+        const palette = [];
+        const paletteByColor = new Map();
+        const indexBySourceColor = new Map();
+        for (const box of boxes) {
+          let alphaWeight = 0;
+          let redTotal = 0;
+          let greenTotal = 0;
+          let blueTotal = 0;
+          let total = 0;
+          for (const color of box.colors) {
+            const normalizedAlpha = color.alpha / 255;
+            const weight = color.count;
+            const visibleWeight = normalizedAlpha * weight;
+            total += weight;
+            alphaWeight += visibleWeight;
+            redTotal += color.red * visibleWeight;
+            greenTotal += color.green * visibleWeight;
+            blueTotal += color.blue * visibleWeight;
+          }
+          const alpha = clamp(Math.round((alphaWeight / Math.max(1, total)) * 255), 0, 255);
+          const red = alphaWeight > 0 ? clamp(Math.round(redTotal / alphaWeight), 0, 255) : 0;
+          const green = alphaWeight > 0 ? clamp(Math.round(greenTotal / alphaWeight), 0, 255) : 0;
+          const blue = alphaWeight > 0 ? clamp(Math.round(blueTotal / alphaWeight), 0, 255) : 0;
+          const paletteKey = indexedPngColorKey(red, green, blue, alpha);
+          let paletteIndex = paletteByColor.get(paletteKey);
+          if (paletteIndex == null) {
+            paletteIndex = palette.length;
+            paletteByColor.set(paletteKey, paletteIndex);
+            palette.push([red, green, blue, alpha]);
+          }
+          for (const color of box.colors) indexBySourceColor.set(color.key, paletteIndex);
+        }
+        return { palette, indexBySourceColor };
+      };
+const indexedPngColorChannel = (color, channel) => {
+        if (channel === 3) return color.alpha;
+        const alpha = color.alpha / 255;
+        if (channel === 0) return color.red * alpha;
+        if (channel === 1) return color.green * alpha;
+        return color.blue * alpha;
+      };
+const indexedPngPaletteBox = (colors) => {
+        const minimums = [255, 255, 255, 255];
+        const maximums = [0, 0, 0, 0];
+        let total = 0;
+        for (const color of colors) {
+          total += color.count;
+          for (let channel = 0; channel < 4; channel += 1) {
+            const value = indexedPngColorChannel(color, channel);
+            minimums[channel] = Math.min(minimums[channel], value);
+            maximums[channel] = Math.max(maximums[channel], value);
+          }
+        }
+        const ranges = maximums.map((maximum, channel) =>
+          (maximum - minimums[channel]) * (channel === 3 ? 1.2 : 1),
+        );
+        let splitChannel = 0;
+        for (let channel = 1; channel < ranges.length; channel += 1) {
+          if (ranges[channel] > ranges[splitChannel]) splitChannel = channel;
+        }
+        const range = ranges[splitChannel];
+        return {
+          colors,
+          total,
+          splitChannel,
+          score: colors.length > 1 ? range * range * Math.sqrt(Math.max(1, total)) : -1,
+        };
+      };
+async function publicPngDeflate(bytes){const stream=new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate'));return new Uint8Array(await new Response(stream).arrayBuffer());}
+window.optimizeLuckyGiftAtlas = async canvas => {
+  const {width,height} = canvas;
+  const data = await indexedPngDataUrlForCanvas(canvas.getContext('2d'),width,height,{adaptive:true,maxColors:256});
+  return data ? Uint8Array.from(atob(data.split(',')[1]),value => value.charCodeAt(0)) : null;
+};
+})();
+(() => {
+  // lucky-gift/motion.js
+  var WIDTH = 750;
+  var HEIGHT = 1624;
+  var FPS = 24;
+  var TAU = 2 * Math.PI;
+  var { sin, cos, abs, sqrt, pow } = Math;
+  var clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+  var wrap = (value) => value - Math.floor(value);
+  var polar = (angle, radius, ratio = 1) => [cos(angle) * radius, sin(angle) * radius * ratio];
+  var wave = (phase, turns = 1) => sin(TAU * phase * turns);
+  var triangle = (phase) => 1 - abs(2 * wrap(phase) - 1);
+  var ring = (angle, phase, radius, ratio) => polar(angle + TAU * phase, radius, ratio);
+  var categories = [
+    { name: "\u98D8\u843D", tuning: "\u6A2A\u5411\u5E45\u5EA6", effects: [
+      ["\u7EC6\u96E8", ({ u, x, j, k }) => [x + 7 * k * wave(u), 1820 * (u - 0.5) + (j - 0.5) * 75]],
+      ["\u659C\u98CE", ({ u, x, k }) => [x + 440 * k * (u - 0.5), 1820 * (u - 0.5), 0.26 * k]],
+      ["\u843D\u53F6", ({ u, x, a, k }) => [x + 115 * k * sin(3 * TAU * u + a), 1820 * (u - 0.5), 0.65 * cos(3 * TAU * u + a)]],
+      ["\u4E4B\u5B57\u5F62", ({ u, x, j, k }) => [x + 190 * k * (triangle(u * 4 + j) - 0.5), 1820 * (u - 0.5)]],
+      ["\u964D\u843D\u4F1E", ({ u, x, k }) => [x + 95 * k * wave(u), 1820 * (pow(u, 0.55) - 0.5), 0.35 * wave(u)]],
+      ["\u4EA4\u53C9\u96E8\u5E55", ({ u, x, s, k }) => [x + s * 620 * k * (u - 0.5), 1820 * (u - 0.5), s * 0.48]],
+      ["\u53F0\u9636\u96E8", ({ u, x, k }) => [x + 85 * k * (triangle(u * 5) - 0.5), 1820 * (0.76 * u + 0.24 * (Math.floor(u * 6) / 6) - 0.5)]],
+      ["\u7011\u5E03", ({ u, x, k }) => [x * (0.15 + u * k), 1820 * (u * u - 0.5), 0, 0.55 + 0.65 * u]]
+    ] },
+    { name: "\u6269\u6563", tuning: "\u6269\u6563\u8DDD\u79BB", effects: [
+      ["\u5706\u5F62\u7EFD\u653E", ({ a, u, k }) => polar(a, 440 * k * sqrt(u))],
+      ["\u692D\u5706\u51B2\u51FB", ({ a, u, k }) => polar(a, 360 * k * u, 2.1)],
+      ["\u56DB\u89D2\u653E\u5C04", ({ i, u, j, k }) => polar((i % 4 + 0.5) * TAU / 4 + (j - 0.5) * 0.26, 810 * k * u)],
+      ["\u5355\u4FA7\u6247\u55B7", ({ v, u, k }) => polar(-TAU / 4 + (v - 0.5) * 2.4, 810 * k * sqrt(u))],
+      ["\u53CC\u7FFC\u5410\u606F", ({ a, u, s, k }) => [s * 390 * k * u, 620 * k * u * sin(a), s * 0.7]],
+      ["\u87BA\u65CB\u5F00\u82B1", ({ a, u, k }) => polar(a + 2 * TAU * u, 460 * k * u, 1.55)],
+      ["\u77E9\u5F62\u51B2\u51FB\u6CE2", ({ v, u, k }) => {
+        const edge = Math.floor(v * 4);
+        const along = 2 * wrap(v * 4) - 1;
+        const sides = [[1, along], [along, 1], [-1, along], [along, -1]];
+        return [320 * k * u * sides[edge][0], 760 * k * u * sides[edge][1]];
+      }],
+      ["\u8FDE\u73AF\u7206\u70B9", ({ i, a, u, k }) => [(i % 3 - 1) * 165 + 310 * k * u * cos(a), (i % 4 - 1.5) * 290 + 350 * k * u * sin(a)]]
+    ] },
+    { name: "\u4E0A\u5347", tuning: "\u6A2A\u5411\u5E45\u5EA6", effects: [
+      ["\u6C14\u6CE1", ({ u, x, a, k }) => [x + 56 * k * sin(2 * TAU * u + a), 1820 * (0.5 - u), 0, 0.6 + 0.45 * u]],
+      ["\u55B7\u6CC9", ({ u, v, k }) => [690 * k * (v - 0.5) * u, 590 - 1250 * 4 * u * (1 - u), (v - 0.5) * u]],
+      ["\u706B\u7BAD", ({ u, x, k }) => [x * k, 1820 * (0.5 - u * u), 0, 0.45 + u]],
+      ["\u7A7F\u4E91\u659C\u5347", ({ u, x, s, k }) => [x + s * 410 * k * (u - 0.5), 1820 * (0.5 - u), s * 0.34]],
+      ["\u53CC\u87BA\u65CB", ({ u, x, s, k }) => [x * 0.28 + s * 275 * k * wave(u, 2), 1820 * (0.5 - u), 0, 1 + s * 0.33 * cos(u * TAU * 2)]],
+      ["\u5DE6\u53F3\u63A5\u529B", ({ u, x, s, k }) => [s * 295 * k + x * 0.22 * wave(u, 3), 1820 * (0.5 - u)]],
+      ["\u84B2\u516C\u82F1", ({ u, a, k }) => [380 * k * u * cos(a + u), 1820 * (0.5 - sqrt(u)), 0.6 * wave(u)]],
+      ["S \u5F62\u6276\u6447", ({ u, x, k }) => [x * 0.36 + 310 * k * wave(u), 1820 * (0.5 - u)]]
+    ] },
+    { name: "\u73AF\u7ED5", tuning: "\u8F68\u9053\u534A\u5F84", effects: [
+      ["\u5355\u5C42\u5149\u73AF", ({ a, u, k }) => ring(a, u, 300 * k, 1.7)],
+      ["\u591A\u5C42\u540C\u5FC3\u73AF", ({ a, u, i, k }) => ring(a, u * (i % 3 + 1), (120 + i % 3 * 90) * k, 1.75)],
+      ["\u503E\u659C\u8F68\u9053", ({ a, u, j, k }) => {
+        const [x, y] = ring(a, u, 310 * k, 1.95);
+        return [x + y * 0.31, y + (j - 0.5) * 130];
+      }],
+      ["\u516B\u5B57\u4EA4\u6C47", ({ a, u, k }) => [300 * k * sin(a + TAU * u), 595 * k * sin(2 * (a + TAU * u))]],
+      ["\u53CC\u6838\u73AF\u6D41", ({ a, u, s, k }) => [s * 105 + 220 * k * cos(a + s * TAU * u), s * 345 + 340 * k * sin(a + s * TAU * u)]],
+      ["\u82B1\u74E3\u8F68\u9053", ({ a, u, k }) => {
+        const angle = a + TAU * u;
+        return polar(angle, (165 + 155 * cos(angle * 5)) * k, 1.8);
+      }],
+      ["\u7ACB\u4F53\u6469\u5929\u8F6E", ({ a, u, k }) => [270 * k * cos(a + TAU * u), 680 * k * sin(a + TAU * u), 0, 1 + 0.42 * cos(a + TAU * u)]],
+      ["\u53CC\u5411\u7F16\u7EC7", ({ a, u, s, k }) => [310 * k * sin(a + s * TAU * u), 700 * k * sin(a - s * 2 * TAU * u)]]
+    ] },
+    { name: "\u805A\u5408", tuning: "\u6C47\u805A\u8DDD\u79BB", effects: [
+      ["\u5411\u5FC3\u6536\u62E2", ({ a, u, k }) => polar(a, 820 * k * (1 - u), 1.05)],
+      ["\u6F0F\u6597\u5438\u5165", ({ u, x, k }) => [x * k * (1 - u), 730 * (u - 1)]],
+      ["\u5BF9\u649E\u5149\u675F", ({ u, x, s, k }) => [s * 550 * k * (1 - u), x * 0.5 * (1 - u)]],
+      ["\u65CB\u6DA1\u5438\u9644", ({ u, a, k }) => polar(a + 2 * TAU * u, 625 * k * pow(1 - u, 1.5), 1.35)],
+      ["\u56DB\u89D2\u96C6\u5408", ({ u, i, j, k }) => [(i % 2 ? 1 : -1) * 440 * k * (1 - u), (i % 4 < 2 ? 1 : -1) * (880 + j * 150) * (1 - u)]],
+      ["\u659C\u7EBF\u5217\u961F", ({ u, x, s, k }) => [x * 0.85 * k + s * 350 * (1 - u), x * 1.45 - s * 830 * (1 - u)]],
+      ["\u5F52\u5DE2\u5206\u6D41", ({ u, x, s, a, k }) => [s * 165 + x * k * (1 - u), s * 335 + 635 * (1 - u) * sin(a)]],
+      ["\u6536\u653E\u547C\u5438", ({ u, a, i, k }) => polar(a, (80 + (260 + i % 3 * 70) * (0.5 + 0.5 * cos(TAU * u))) * k, 1.65)]
+    ] },
+    { name: "\u6D6E\u52A8", tuning: "\u79FB\u52A8\u5E45\u5EA6", effects: [
+      ["\u5FAE\u98CE\u60AC\u6D6E", ({ u, x, y, a, k }) => [x + 48 * k * sin(TAU * u + a), y + 68 * k * cos(TAU * u + a)]],
+      ["\u5168\u5C4F\u6F6E\u6C50", ({ u, x, y, k }) => [x, y + 180 * k * sin(TAU * u + x / 130)]],
+      ["\u68CB\u76D8\u8DF3\u8DC3", ({ u, i, k }) => [(i % 5 - 2) * 135, (Math.floor(i / 5) % 8 - 3.5) * 185 - 116 * k * abs(wave(u, 2))]],
+      ["\u4EA4\u9519\u6447\u6446", ({ u, x, y, s, k }) => [x + s * 186 * k * wave(u), y + 194 * k * cos(TAU * u)]],
+      ["\u5DE6\u53F3\u5DE1\u6E38", ({ u, y, j, k }) => [650 * k * (triangle(u) - 0.5), y + 85 * k * sin(TAU * u + j)]],
+      ["\u8109\u51B2\u661F\u7FA4", ({ u, x, y, j, k }) => [x * (1 + 0.15 * k * wave(u, 2)), y * (1 + 0.12 * k * wave(u, 2)), 0, 0.45 + 0.75 * pow(abs(wave(u + j)), 2)]],
+      ["\u56DE\u5F39\u8DF3\u8DC3", ({ u, x, y, k }) => [x + 58 * k * wave(u), y - 210 * k * pow(abs(wave(u)), 0.55)]],
+      ["\u5C42\u53E0\u6D6A\u6D8C", ({ u, x, y, j, k }) => [x + 130 * k * wave(u + j, 2), y + 130 * k * wave(u + j, 3), 0.2 * wave(u, 3)]]
+    ] }
+  ];
+  var defaults = {
+    size: 112,
+    variance: 25,
+    opacity: 100,
+    rotation: 0,
+    count: 18,
+    spread: 100,
+    timing: "staggered",
+    cycles: 1,
+    amplitude: 100,
+    spin: 0,
+    pulse: 0,
+    top: 0,
+    bottom: HEIGHT
+  };
+  function fadeAt(y, top, bottom) {
+    const fadeIn = top > 0 ? clamp(y / top) : 1;
+    const fadeOut = bottom < HEIGHT ? clamp((HEIGHT - y) / (HEIGHT - bottom)) : 1;
+    return fadeIn * fadeOut;
+  }
+  var random = (index, seed) => wrap(sin((index + 1) * 127.1 + seed * 311.7) * 43758.5453);
+  function makeParticles(settings2, category2, effect) {
+    const path = categories[category2].effects[effect][1];
+    const traversesStage = category2 === 0 || category2 === 2 && effect !== 1;
+    const oneShot = !traversesStage && (category2 === 1 || category2 === 2 || category2 === 4 && effect !== 7);
+    const spread = settings2.spread / 100;
+    const particles = Array.from({ length: settings2.count }, (_, i) => {
+      const j = random(i, 1);
+      const v = settings2.count === 1 ? 0.5 : (i + 0.5) / settings2.count;
+      const offset = { together: 0, staggered: wrap(v + 0.18 * (j - 0.5)), waves: i % 4 / 4 }[settings2.timing];
+      const size = settings2.size * (1 + (2 * random(i, 4) - 1) * settings2.variance / 100);
+      return {
+        offset,
+        size,
+        vars: {
+          i,
+          j,
+          v,
+          s: i % 2 ? 1 : -1,
+          a: TAU * wrap(v + 0.23 * (random(i, 2) - 0.5)),
+          x: (random(i, 3) - 0.5) * 680,
+          y: (random(i, 5) - 0.5) * 1430,
+          k: settings2.amplitude / 100
+        }
+      };
+    });
+    return (progress) => particles.map(({ offset, size, vars }) => {
+      const u = wrap(wrap(progress) * settings2.cycles + offset);
+      const [dx, dy, rotation = 0, scale = 1] = path({ ...vars, u });
+      const x = WIDTH / 2 + dx * spread;
+      const displaySize = size * scale * (1 + settings2.pulse / 100 * wave(u));
+      const verticalSpread = traversesStage ? 1 + Math.SQRT2 * displaySize / HEIGHT : spread;
+      const y = HEIGHT / 2 + dy * verticalSpread;
+      const life = oneShot ? Math.min(clamp(u / 0.14), clamp((1 - u) / 0.16)) : 1;
+      return {
+        x,
+        y,
+        angle: rotation + settings2.rotation * TAU / 360 + settings2.spin * TAU * u,
+        size: displaySize,
+        alpha: settings2.opacity / 100 * life * fadeAt(y, settings2.top, settings2.bottom)
+      };
+    });
+  }
+
+  // lucky-gift/media.js
+  var MAX_ATLAS_EDGE = 1600;
+  var MAX_POSES = 80;
+  var MAX_STATIC_EDGE = 450;
+  function canvas(width, height) {
+    return Object.assign(document.createElement("canvas"), { width, height });
+  }
+  function drawScaled(target, source) {
+    const context2 = target.getContext("2d");
+    context2.imageSmoothingQuality = "high";
+    context2.drawImage(source, 0, 0, target.width, target.height);
+  }
+  function bounds(width, height, edge) {
+    const scale = Math.min(1, edge / Math.max(width, height));
+    return [Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))];
+  }
+  async function animatedType(file) {
+    const header = new Uint8Array(await file.slice(0, 32).arrayBuffer());
+    const text = String.fromCharCode(...header);
+    if (text.startsWith("GIF87a") || text.startsWith("GIF89a")) return "image/gif";
+    if (text.startsWith("RIFF") && text.slice(8, 16) === "WEBPVP8X" && header[20] & 2) return "image/webp";
+    return null;
+  }
+  function pack(parts, width, height) {
+    const count = parts.length;
+    if (count === 1) {
+      return { atlas: parts[0].bitmap, width, height, cells: [{ x: 0, y: 0, start: 0 }], duration: 0 };
+    }
+    const strideX = width + 2;
+    const strideY = height + 2;
+    const minColumns = Math.ceil(count / Math.floor(MAX_ATLAS_EDGE / strideY));
+    const maxColumns = Math.min(count, Math.floor(MAX_ATLAS_EDGE / strideX));
+    const columns = Math.max(minColumns, Math.min(maxColumns, Math.ceil(Math.sqrt(count * strideY / strideX))));
+    const atlas = canvas(columns * strideX, Math.ceil(count / columns) * strideY);
+    const ctx = atlas.getContext("2d");
+    const cells = parts.map(({ bitmap, start }, i) => {
+      const x = i % columns * strideX + 1;
+      const y = Math.floor(i / columns) * strideY + 1;
+      ctx.drawImage(bitmap, x, y);
+      return { x, y, start };
+    });
+    return { atlas, width, height, cells };
+  }
+  async function loadMaterial(file, image, signal) {
+    const type = await animatedType(file);
+    if (!type) {
+      const [width, height] = bounds(image.naturalWidth, image.naturalHeight, MAX_STATIC_EDGE);
+      const bitmap = canvas(width, height);
+      drawScaled(bitmap, image);
+      return pack([{ bitmap }], width, height);
+    }
+    if (!window.ImageDecoder || !await ImageDecoder.isTypeSupported(type)) {
+      throw new Error("\u5F53\u524D\u6D4F\u89C8\u5668\u65E0\u6CD5\u89E3\u7801\u6B64\u52A8\u56FE\u3002\u8BF7\u4F7F\u7528\u6700\u65B0\u7248 Chrome \u6216 Edge\u3002");
+    }
+    const decoder = new ImageDecoder({ data: file.stream(), type });
+    const abort = () => decoder.close();
+    signal.addEventListener("abort", abort, { once: true });
+    try {
+      signal.throwIfAborted();
+      await decoder.completed;
+      const count = decoder.tracks.selectedTrack.frameCount;
+      if (!count) throw new Error("\u52A8\u56FE\u6CA1\u6709\u53EF\u7528\u5E27\u3002");
+      if (count > 1200) throw new Error("\u52A8\u56FE\u6700\u591A\u652F\u6301 1200 \u5E27\uFF0C\u8BF7\u5148\u7F29\u77ED\u7D20\u6750\u3002");
+      const keep = Math.min(count, MAX_POSES);
+      const retained = new Set(Array.from({ length: keep }, (_, i) => Math.round(i * (count - 1) / Math.max(keep - 1, 1))));
+      const edge = count === 1 ? MAX_STATIC_EDGE : Math.floor(MAX_ATLAS_EDGE / Math.ceil(Math.sqrt(keep))) - 2;
+      let width, height;
+      let duration2 = 0;
+      const parts = [];
+      for (let index = 0; index < count; index++) {
+        signal.throwIfAborted();
+        const { image: frame } = await decoder.decode({ frameIndex: index });
+        try {
+          if (retained.has(index)) {
+            [width, height] = bounds(frame.displayWidth, frame.displayHeight, edge);
+            const bitmap = canvas(width, height);
+            drawScaled(bitmap, frame);
+            parts.push({ bitmap, start: duration2 });
+          }
+          duration2 += Math.max(1, frame.duration == null ? 100 : frame.duration / 1e3);
+        } finally {
+          frame.close();
+        }
+      }
+      const material2 = pack(parts, width, height);
+      if (count > 1) material2.duration = duration2;
+      material2.sampled = count > keep;
+      return material2;
+    } finally {
+      signal.removeEventListener("abort", abort);
+      decoder.close();
+    }
+  }
+  function cellAt(material2, progress, frameCount) {
+    const { cells, duration: duration2 } = material2;
+    if (!duration2) return cells[0];
+    const loops = Math.max(1, Math.round(frameCount / FPS * 1e3 / duration2));
+    const phase = progress * loops;
+    const time = (phase - Math.floor(phase)) * duration2;
+    let first = 0;
+    let last = cells.length;
+    while (last - first > 1) {
+      const middle = first + last >> 1;
+      if (cells[middle].start <= time) first = middle;
+      else last = middle;
+    }
+    return cells[first];
+  }
+  function frameFor(particle, material2, cell) {
+    const { width, height } = material2;
+    const scale = particle.size / Math.max(width, height);
+    const a = scale * Math.cos(particle.angle);
+    const b = scale * Math.sin(particle.angle);
+    const cx = cell.x + width / 2;
+    const cy = cell.y + height / 2;
+    const frame = { alpha: particle.alpha, transform: {
+      a,
+      b,
+      c: -b,
+      d: a,
+      tx: particle.x - a * cx + b * cy,
+      ty: particle.y - b * cx - a * cy
+    }, layout: { x: 0, y: 0, width: material2.atlas.width, height: material2.atlas.height } };
+    if (material2.cells.length > 1) {
+      frame.clipPath = `M ${cell.x} ${cell.y} L ${cell.x + width} ${cell.y} L ${cell.x + width} ${cell.y + height} L ${cell.x} ${cell.y + height} Z`;
+    }
+    return frame;
+  }
+  async function pngBytes(atlas, optimize) {
+    const blob = await new Promise((resolve) => atlas.toBlob(resolve, "image/png"));
+    if (!blob) throw new Error("\u65E0\u6CD5\u7F16\u7801\u4E3B\u4F53\u7D20\u6750\u3002");
+    const original = new Uint8Array(await blob.arrayBuffer());
+    const indexed = await optimize(atlas);
+    return indexed && indexed.length < original.length ? indexed : original;
+  }
+  async function exportMovie(material2, sample, frameCount, count, optimize) {
+    const key = "gift";
+    const sprites = Array.from({ length: count }, () => ({ imageKey: key, frames: [] }));
+    for (let i = 0; i < frameCount; i++) {
+      const progress = i / frameCount;
+      const cell = cellAt(material2, progress, frameCount);
+      sample(progress).forEach((particle, index) => sprites[index].frames.push(
+        particle.alpha > 0 ? frameFor(particle, material2, cell) : { alpha: 0 }
+      ));
+    }
+    const images = /* @__PURE__ */ new Map([[key, await pngBytes(material2.atlas, optimize)]]);
+    const bytes = window.SVGAImportCore.encodeMovie({
+      version: "2.0",
+      params: { viewBoxWidth: WIDTH, viewBoxHeight: HEIGHT, fps: FPS, frames: frameCount },
+      images,
+      sprites
+    });
+    return new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate"))).blob();
+  }
+
+  // lucky-gift/app.js
+  var $ = (id) => document.getElementById(id);
+  var canvas2 = $("canvas");
+  var context = canvas2.getContext("2d");
+  var stage = $("stage");
+  var duration = $("duration");
+  var settings = { ...defaults };
+  var selectedEffects = categories.map(() => 0);
+  var paths = /* @__PURE__ */ new Map();
+  var category = 0;
+  var material;
+  var materialURL;
+  var pending;
+  var exporting = false;
+  var playing = true;
+  var started = performance.now();
+  var pausedAt = 0;
+  var lastFrame = -1;
+  var lastStatus;
+  function currentFrameCount() {
+    const seconds = duration.valueAsNumber;
+    return duration.validity.valid && seconds > 3 ? Math.max(73, Math.ceil(seconds * FPS - 1e-7)) : 5 * FPS;
+  }
+  function notify(message, error = false, autoClear = false) {
+    clearTimeout(lastStatus);
+    const status = $("status");
+    status.textContent = message;
+    status.hidden = !message;
+    status.dataset.error = error;
+    if (autoClear) lastStatus = setTimeout(() => notify(""), 5e3);
+  }
+  function updateExport() {
+    $("export").disabled = !material || !!pending || exporting;
+    $("upload").disabled = exporting;
+  }
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  }
+  function sampler() {
+    const effect = selectedEffects[category];
+    const key = category + ":" + effect;
+    if (!paths.has(key)) paths.set(key, makeParticles({ ...settings }, category, effect));
+    return paths.get(key);
+  }
+  function refresh() {
+    paths.clear();
+    lastFrame = -1;
+  }
+  function draw(now) {
+    const frames = currentFrameCount();
+    const elapsed = playing ? now - started : pausedAt;
+    const frame = Math.floor(Math.max(elapsed, 0) * FPS / 1e3) % frames;
+    if (frame !== lastFrame) {
+      lastFrame = frame;
+      context.clearRect(0, 0, WIDTH, HEIGHT);
+      if (material) {
+        const progress = frame / frames;
+        const { width, height, atlas } = material;
+        const { x, y } = cellAt(material, progress, frames);
+        for (const particle of sampler()(progress)) {
+          if (particle.alpha <= 0) continue;
+          const scale = particle.size / Math.max(width, height);
+          context.save();
+          context.translate(particle.x, particle.y);
+          context.rotate(particle.angle);
+          context.globalAlpha = particle.alpha;
+          context.drawImage(atlas, x, y, width, height, -width * scale / 2, -height * scale / 2, width * scale, height * scale);
+          context.restore();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  function restart() {
+    started = performance.now();
+    pausedAt = 0;
+    lastFrame = -1;
+  }
+  function renderEffects() {
+    for (const [index, button] of [...$("categories").children].entries()) {
+      button.setAttribute("aria-pressed", index === category);
+    }
+    const selected = selectedEffects[category];
+    const current = categories[category];
+    $("motion-amplitude").firstChild.textContent = current.tuning;
+    $("effects").replaceChildren(...current.effects.map(([name], index) => choice(name, index === selected, () => {
+      selectedEffects[category] = index;
+      for (const [position, button] of [...$("effects").children].entries()) {
+        button.setAttribute("aria-pressed", position === index);
+      }
+      restart();
+    })));
+    restart();
+  }
+  function choice(name, active, action) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = name;
+    button.setAttribute("aria-pressed", active);
+    button.addEventListener("click", action);
+    return button;
+  }
+  var sliderSpecs = {
+    appearance: [
+      ["size", "\u5927\u5C0F", 24, 320, 1, " px"],
+      ["variance", "\u5927\u5C0F\u5DEE\u5F02", 0, 70, 1, "%"],
+      ["opacity", "\u4E0D\u900F\u660E\u5EA6", 10, 100, 1, "%"],
+      ["rotation", "\u521D\u59CB\u89D2\u5EA6", -180, 180, 1, "\xB0"]
+    ],
+    movement: [
+      ["cycles", "\u5FAA\u73AF\u901F\u5EA6", 1, 5, 1, " \u5708"],
+      ["amplitude", "\u79FB\u52A8\u5E45\u5EA6", 25, 160, 1, "%"],
+      ["spin", "\u81EA\u8F6C", -3, 3, 1, " \u5708"],
+      ["pulse", "\u7F29\u653E\u5E45\u5EA6", 0, 60, 1, "%"]
+    ],
+    group: [
+      ["count", "\u7C92\u5B50\u6570\u91CF", 1, 48, 1, " \u4E2A"],
+      ["spread", "\u6574\u4F53\u5206\u5E03", 30, 130, 1, "%"]
+    ]
+  };
+  function slider([key, label, min, max, step, unit]) {
+    const field = document.createElement("div");
+    field.className = "field";
+    const input = Object.assign(document.createElement("input"), {
+      type: "range",
+      id: key,
+      min,
+      max,
+      step,
+      value: settings[key]
+    });
+    const caption = Object.assign(document.createElement("label"), { htmlFor: key, id: "motion-" + key });
+    const value = document.createElement("span");
+    caption.append(label, value);
+    value.textContent = input.value + unit;
+    input.addEventListener("input", () => {
+      settings[key] = input.valueAsNumber;
+      value.textContent = input.value + unit;
+      refresh();
+    });
+    field.append(caption, input);
+    return field;
+  }
+  function bindGuide(key) {
+    const guide = $(key + "-guide");
+    const handle = $(key + "-handle");
+    const top = key === "top";
+    const lower = () => top ? 0 : settings.top;
+    const upper = () => top ? settings.bottom : HEIGHT;
+    function render() {
+      const y = settings[key];
+      guide.style.top = y / HEIGHT * 100 + "%";
+      handle.setAttribute("aria-valuemin", lower());
+      handle.setAttribute("aria-valuemax", upper());
+      handle.setAttribute("aria-valuenow", y);
+      handle.setAttribute("aria-valuetext", y + " px");
+    }
+    function set(y) {
+      settings[key] = clamp(Math.round(y), lower(), upper());
+      refresh();
+      render();
+      $(top ? "bottom-handle" : "top-handle").setAttribute(top ? "aria-valuemin" : "aria-valuemax", settings[key]);
+      $("fade-label").textContent = `\u9876\u90E8 ${settings.top} px \xB7 \u5E95\u90E8 ${HEIGHT - settings.bottom} px`;
+    }
+    render();
+    let pointer, grab;
+    function yAt(event) {
+      const rect = stage.getBoundingClientRect();
+      return (event.clientY - rect.top) / rect.height * HEIGHT;
+    }
+    handle.addEventListener("pointerdown", (event) => {
+      if (!event.isPrimary || event.button !== 0) return;
+      pointer = event.pointerId;
+      grab = yAt(event) - settings[key];
+      handle.setPointerCapture(pointer);
+    });
+    handle.addEventListener("pointermove", (event) => {
+      if (event.pointerId === pointer) set(yAt(event) - grab);
+    });
+    handle.addEventListener("lostpointercapture", () => {
+      pointer = void 0;
+    });
+    handle.addEventListener("keydown", (event) => {
+      const step = event.shiftKey ? 10 : 1;
+      const change = { ArrowUp: settings[key] - step, ArrowDown: settings[key] + step, Home: lower(), End: upper() };
+      if (event.key in change) {
+        event.preventDefault();
+        set(change[event.key]);
+      }
+    });
+  }
+  async function selectFile(file) {
+    if (!file || exporting) return;
+    pending?.abort();
+    const controller = new AbortController();
+    pending = controller;
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.src = url;
+    updateExport();
+    notify("\u6B63\u5728\u8BFB\u53D6\u4E3B\u4F53\u7D20\u6750\u2026");
+    try {
+      await image.decode();
+      const next = await loadMaterial(file, image, controller.signal);
+      controller.signal.throwIfAborted();
+      if (materialURL) URL.revokeObjectURL(materialURL);
+      material = next;
+      materialURL = url;
+      $("thumbnail").src = url;
+      $("thumbnail").hidden = false;
+      $("upload-label").textContent = "\u66FF\u6362\u4E3B\u4F53";
+      $("upload-hint").textContent = "\u70B9\u51FB\u9009\u62E9\u6216\u62D6\u5165\u65B0\u7D20\u6750";
+      $("filename").textContent = file.name;
+      $("metadata").textContent = `${image.naturalWidth} \xD7 ${image.naturalHeight} px \xB7 ${formatSize(file.size)}`;
+      $("file-info").hidden = false;
+      $("material-note").hidden = !next.sampled;
+      $("material-note").textContent = next.sampled ? "\u957F\u52A8\u56FE\u6309\u5B8C\u6574\u5E8F\u5217\u62BD\u6837\u4E3A 80 \u5E27\u3002" : "";
+      restart();
+      notify("");
+    } catch (error) {
+      URL.revokeObjectURL(url);
+      if (!controller.signal.aborted) {
+        notify(error instanceof DOMException ? "\u65E0\u6CD5\u6253\u5F00\u8FD9\u5F20\u56FE\u7247\uFF0C\u8BF7\u68C0\u67E5\u683C\u5F0F\u6216\u6587\u4EF6\u662F\u5426\u635F\u574F\u3002" : error.message, true);
+      }
+    } finally {
+      if (pending === controller) {
+        pending = null;
+        updateExport();
+      }
+    }
+  }
+  function download(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const anchor = Object.assign(document.createElement("a"), { href: url, download: name });
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 3e4);
+  }
+  $("export-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!material || pending || exporting || !duration.reportValidity()) return;
+    const frames = currentFrameCount();
+    if (frames > 1e5 || frames * settings.count > 1e6) {
+      notify("\u5F53\u524D\u65F6\u957F\u4E0E\u7C92\u5B50\u6570\u91CF\u8D85\u51FA\u5BFC\u51FA\u8303\u56F4\u3002\u8BF7\u7F29\u77ED\u65F6\u957F\u6216\u51CF\u5C11\u7C92\u5B50\u3002", true);
+      return;
+    }
+    const sample = sampler();
+    const count = settings.count;
+    exporting = true;
+    updateExport();
+    notify("\u6B63\u5728\u751F\u6210\u5E76\u538B\u7F29 SVGA\u2026");
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      const blob = await exportMovie(material, sample, frames, count, window.optimizeLuckyGiftAtlas);
+      const sourceName = $("filename").textContent.replace(/\.[^.]+$/, "");
+      download(blob, sourceName + "-\u5E78\u8FD0\u793C\u7269.svga");
+      notify("");
+    } catch (error) {
+      console.error(error);
+      notify("SVGA \u5BFC\u51FA\u5931\u8D25\u3002\u8BF7\u51CF\u5C11\u7C92\u5B50\u6570\u91CF\u6216\u7F29\u77ED\u65F6\u957F\u540E\u91CD\u8BD5\u3002", true);
+    } finally {
+      exporting = false;
+      updateExport();
+    }
+  });
+  $("file").addEventListener("change", (event) => {
+    void selectFile(event.target.files[0]);
+    event.target.value = "";
+  });
+  $("upload").addEventListener("click", () => $("file").click());
+  var media = document.querySelector(".media");
+  for (const type of ["dragover", "drop"]) {
+    document.addEventListener(type, (event) => {
+      if (event.dataTransfer.types.includes("Files")) event.preventDefault();
+    });
+  }
+  media.addEventListener("dragover", (event) => {
+    if (!event.dataTransfer.types.includes("Files")) return;
+    event.dataTransfer.dropEffect = exporting ? "none" : "copy";
+    media.classList.add("dragging");
+  });
+  media.addEventListener("dragleave", (event) => {
+    if (!media.contains(event.relatedTarget)) media.classList.remove("dragging");
+  });
+  document.addEventListener("drop", (event) => {
+    media.classList.remove("dragging");
+    if (event.dataTransfer.files.length) void selectFile(event.dataTransfer.files[0]);
+  });
+  $("play").addEventListener("click", (event) => {
+    const now = performance.now();
+    if (playing) pausedAt = now - started;
+    else started = now - pausedAt;
+    playing = !playing;
+    event.currentTarget.textContent = playing ? "\u6682\u505C" : "\u64AD\u653E";
+  });
+  $("restart").addEventListener("click", () => {
+    playing = true;
+    $("play").textContent = "\u6682\u505C";
+    restart();
+  });
+  $("timing").addEventListener("change", (event) => {
+    settings.timing = event.target.value;
+    refresh();
+  });
+  duration.addEventListener("input", restart);
+  for (const [id, specs] of Object.entries(sliderSpecs)) $(id).append(...specs.map(slider));
+  $("categories").append(...categories.map(({ name }, index) => choice(name, index === 0, () => {
+    category = index;
+    renderEffects();
+  })));
+  bindGuide("top");
+  bindGuide("bottom");
+  renderEffects();
+  requestAnimationFrame(draw);
+})();
+
+</script>
+</body>
+</html>
