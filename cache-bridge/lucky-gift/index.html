@@ -95,6 +95,22 @@ h3 { font-size: 13px; margin-bottom: 9px; }
   content: ''; display: block; width: 10px; height: 10px;
   border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px #302952;
 }
+#diffusion-handle {
+  position: absolute; width: 28px; height: 28px; min-height: 0; padding: 0;
+  transform: translate(-50%,-50%); border: 0; border-radius: 50%; cursor: grab; touch-action: none;
+  background: radial-gradient(circle, var(--accent) 0 3px, #171223 3.5px 6.5px, #eeeaff 7px 8px, transparent 8.5px);
+}
+#diffusion-handle:active { cursor: grabbing; }
+.diffusion-center { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+.diffusion-center label { display: flex; align-items: center; gap: 4px; }
+.diffusion-center input {
+  width: 53px; padding: 3px 4px; border: 1px solid var(--line); border-radius: 6px;
+  background: #24232e; color: #f1effa; text-align: center; appearance: textfield;
+}
+.diffusion-center input::-webkit-inner-spin-button,
+.diffusion-center input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.gravity-toggle { display: flex; align-items: center; gap: 5px; margin: 8px 0 4px; color: var(--muted); font-size: 12px; cursor: pointer; }
+.gravity-toggle input { margin: 0; accent-color: var(--accent); }
 .choice-label { margin-bottom: 6px; color: var(--muted); font-size: 12px; }
 .categories {
   display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 3px;
@@ -257,6 +273,7 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
       <div class="stage" id="stage">
         <img id="stage-background" alt="" hidden>
         <canvas id="canvas" width="750" height="1624" aria-label="幸运礼物预览"></canvas>
+        <button type="button" id="diffusion-handle" aria-label="拖动扩散中心" title="拖动扩散中心" hidden></button>
         <div class="fade-guide top" id="top-guide"><button type="button" id="top-handle" aria-label="顶部淡入边界" role="slider" aria-orientation="vertical"></button></div>
         <div class="fade-guide bottom" id="bottom-guide"><button type="button" id="bottom-handle" aria-label="底部淡出边界" role="slider" aria-orientation="vertical"></button></div>
       </div>
@@ -273,6 +290,16 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
     <div class="categories" id="categories" role="group" aria-labelledby="category-label"></div>
     <h3 id="effect-label" class="choice-label">动效</h3>
     <div class="effects" id="effects" role="group" aria-labelledby="effect-label"></div>
+    <section id="diffusion-controls" class="controls" hidden>
+      <h3>扩散设置</h3>
+      <div class="diffusion-center" role="group" aria-label="扩散中心">
+        <span>中心点</span>
+        <label>X <input type="number" id="diffusionX" min="0" max="750" step="1" aria-label="中心点 X（px）"></label>
+        <label>Y <input type="number" id="diffusionY" min="0" max="1624" step="1" aria-label="中心点 Y（px）"></label>
+      </div>
+      <label class="gravity-toggle"><input type="checkbox" id="gravity-enabled"> 重力</label>
+      <div id="gravity-controls" hidden></div>
+    </section>
     <section class="controls">
       <h3>主体粒子</h3>
       <div id="appearance"></div>
@@ -805,6 +832,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   var HEIGHT = 1624;
   var FPS = 24;
   var MAX_PARTICLE_EDGE = 300;
+  var DIFFUSION_CATEGORY = 1;
   var TAU = 2 * Math.PI;
   var { sin, cos, abs, sqrt, pow } = Math;
   var clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -905,7 +933,11 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     fadeIn: 0.35,
     fadeOut: 0.65,
     top: 0,
-    bottom: HEIGHT
+    bottom: HEIGHT,
+    diffusionX: WIDTH / 2,
+    diffusionY: HEIGHT / 2,
+    gravityEnabled: false,
+    gravityStrength: 100
   };
   function fadeAt(y, top, bottom) {
     const fadeIn = top > 0 ? clamp(y / top) : 1;
@@ -922,6 +954,10 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   };
   function makeParticles(settings2, category2, effect, frameCount = FPS * 5) {
     const effects = categories[category2].effects;
+    const diffusion = category2 === DIFFUSION_CATEGORY;
+    const originX = diffusion ? settings2.diffusionX ?? defaults.diffusionX : WIDTH / 2;
+    const originY = diffusion ? settings2.diffusionY ?? defaults.diffusionY : HEIGHT / 2;
+    const gravity = diffusion && settings2.gravityEnabled ? HEIGHT * 0.55 * (settings2.gravityStrength ?? 100) / 100 : 0;
     const seconds = frameCount / FPS;
     const lastFrame2 = (frameCount - 1) / frameCount;
     const fadeIn = settings2.fadeIn ?? defaults.fadeIn;
@@ -980,10 +1016,10 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         const delay = particle.fadeDelay;
         const timelineAlpha = particle.timelineFade ? smoothOpacity((opening - delay) / (1 - delay)) * smoothOpacity((closing - delay) / (1 - delay)) : 1;
         const [dx, dy, rotation = 0, scale = 1] = particle.path({ ...particle.vars, u });
-        const x = WIDTH / 2 + dx * spread;
+        const x = originX + dx * spread;
         const displaySize = Math.min(MAX_PARTICLE_EDGE, particle.size * scale * (1 + settings2.pulse / 100 * wave(u)));
         const verticalSpread = particle.traversesStage ? 1 + Math.SQRT2 * displaySize / HEIGHT : spread;
-        const y = HEIGHT / 2 + dy * verticalSpread;
+        const y = originY + dy * verticalSpread + gravity * u * u;
         const life = particle.oneShot ? Math.min(clamp(u / 0.14), clamp((1 - u) / 0.16)) : 1;
         return {
           x,
@@ -1247,6 +1283,9 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       button.setAttribute("aria-pressed", index === category);
     }
     const selected = selectedEffects[category];
+    const showDiffusion = category === DIFFUSION_CATEGORY;
+    $("diffusion-controls").hidden = !showDiffusion;
+    $("diffusion-handle").hidden = !showDiffusion;
     updateTimelineFade();
     const current = categories[category];
     $("motion-amplitude").firstChild.textContent = current.tuning;
@@ -1282,6 +1321,9 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       ["spin", "\u81EA\u8F6C", -3, 3, 1, " \u5708"],
       ["pulse", "\u7F29\u653E\u5E45\u5EA6", 0, 60, 1, "%"],
       ["motionRandom", "\u8FD0\u52A8\u968F\u673A", 0, 100, 1, "%"]
+    ],
+    "gravity-controls": [
+      ["gravityStrength", "\u91CD\u529B\u5F3A\u5EA6", 25, 200, 1, "%"]
     ],
     "fade-controls": [
       ["fadeIn", "\u5F00\u5934\u6DE1\u5165", 0.15, 1.5, 0.05, " \u79D2"],
@@ -1361,6 +1403,66 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         event.preventDefault();
         set(change[event.key]);
       }
+    });
+  }
+  function bindDiffusion() {
+    const handle = $("diffusion-handle");
+    const xInput = $("diffusionX");
+    const yInput = $("diffusionY");
+    const gravityToggle = $("gravity-enabled");
+    function moveCenter(x, y) {
+      settings.diffusionX = clamp(Math.round(x), 0, WIDTH);
+      settings.diffusionY = clamp(Math.round(y), 0, HEIGHT);
+      xInput.value = settings.diffusionX;
+      yInput.value = settings.diffusionY;
+      handle.style.left = settings.diffusionX / WIDTH * 100 + "%";
+      handle.style.top = settings.diffusionY / HEIGHT * 100 + "%";
+      refresh();
+    }
+    function updateFromInputs() {
+      moveCenter(
+        Number.isFinite(xInput.valueAsNumber) ? xInput.valueAsNumber : settings.diffusionX,
+        Number.isFinite(yInput.valueAsNumber) ? yInput.valueAsNumber : settings.diffusionY
+      );
+    }
+    for (const input of [xInput, yInput]) {
+      input.addEventListener("input", () => {
+        if (input.value && input.validity.valid) updateFromInputs();
+      });
+      input.addEventListener("change", updateFromInputs);
+    }
+    gravityToggle.checked = settings.gravityEnabled;
+    gravityToggle.addEventListener("change", () => {
+      settings.gravityEnabled = gravityToggle.checked;
+      $("gravity-controls").hidden = !settings.gravityEnabled;
+      refresh();
+    });
+    moveCenter(settings.diffusionX, settings.diffusionY);
+    function canvasPoint(event) {
+      const rect = stage.getBoundingClientRect();
+      return [(event.clientX - rect.left) / rect.width * WIDTH, (event.clientY - rect.top) / rect.height * HEIGHT];
+    }
+    let drag;
+    handle.addEventListener("pointerdown", (event) => {
+      if (!event.isPrimary || event.button !== 0) return;
+      const [x, y] = canvasPoint(event);
+      drag = { pointer: event.pointerId, dx: x - settings.diffusionX, dy: y - settings.diffusionY };
+      handle.setPointerCapture(event.pointerId);
+    });
+    handle.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== drag?.pointer) return;
+      const [x, y] = canvasPoint(event);
+      moveCenter(x - drag.dx, y - drag.dy);
+    });
+    handle.addEventListener("lostpointercapture", () => {
+      drag = null;
+    });
+    handle.addEventListener("keydown", (event) => {
+      const delta = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+      if (!delta) return;
+      const step = event.shiftKey ? 10 : 1;
+      event.preventDefault();
+      moveCenter(settings.diffusionX + delta[0] * step, settings.diffusionY + delta[1] * step);
     });
   }
   async function selectFile(file) {
@@ -1560,6 +1662,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   })));
   bindGuide("top");
   bindGuide("bottom");
+  bindDiffusion();
   renderEffects();
   requestAnimationFrame(draw);
   var crown = Uint8Array.from(atob($("default-material").textContent.trim()), (value) => value.charCodeAt(0));
