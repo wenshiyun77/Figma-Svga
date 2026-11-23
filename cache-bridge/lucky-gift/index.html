@@ -803,6 +803,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   var WIDTH = 750;
   var HEIGHT = 1624;
   var FPS = 24;
+  var MAX_PARTICLE_EDGE = 300;
   var TAU = 2 * Math.PI;
   var { sin, cos, abs, sqrt, pow } = Math;
   var clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -967,7 +968,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         const u = wrap(phase * particle.cycles + particle.offset);
         const [dx, dy, rotation = 0, scale = 1] = particle.path({ ...particle.vars, u });
         const x = WIDTH / 2 + dx * spread;
-        const displaySize = particle.size * scale * (1 + settings2.pulse / 100 * wave(u));
+        const displaySize = Math.min(MAX_PARTICLE_EDGE, particle.size * scale * (1 + settings2.pulse / 100 * wave(u)));
         const verticalSpread = particle.traversesStage ? 1 + Math.SQRT2 * displaySize / HEIGHT : spread;
         const y = HEIGHT / 2 + dy * verticalSpread;
         const life = particle.oneShot ? Math.min(clamp(u / 0.14), clamp((1 - u) / 0.16)) : 1;
@@ -985,7 +986,6 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   // lucky-gift/media.js
   var MAX_ATLAS_EDGE = 1600;
   var MAX_POSES = 8;
-  var MAX_STATIC_EDGE = 450;
   function canvas(width, height) {
     return Object.assign(document.createElement("canvas"), { width, height });
   }
@@ -994,8 +994,8 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     context2.imageSmoothingQuality = "high";
     context2.drawImage(source, 0, 0, target.width, target.height);
   }
-  function bounds(width, height, edge) {
-    const scale = Math.min(1, edge / Math.max(width, height));
+  function particleBounds(width, height) {
+    const scale = Math.min(1, MAX_PARTICLE_EDGE / Math.max(width, height));
     return [Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))];
   }
   async function animatedType(file) {
@@ -1028,7 +1028,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   async function loadMaterial(file, image, signal) {
     const type = await animatedType(file);
     if (!type) {
-      const [width, height] = bounds(image.naturalWidth, image.naturalHeight, MAX_STATIC_EDGE);
+      const [width, height] = particleBounds(image.naturalWidth, image.naturalHeight);
       const bitmap = canvas(width, height);
       drawScaled(bitmap, image);
       return pack([{ bitmap }], width, height);
@@ -1047,7 +1047,6 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       if (count > 1200) throw new Error("\u52A8\u56FE\u6700\u591A\u652F\u6301 1200 \u5E27\uFF0C\u8BF7\u5148\u7F29\u77ED\u7D20\u6750\u3002");
       const keep = Math.min(count, MAX_POSES);
       const retained = new Set(Array.from({ length: keep }, (_, i) => Math.round(i * (count - 1) / Math.max(keep - 1, 1))));
-      const edge = count === 1 ? MAX_STATIC_EDGE : Math.floor(MAX_ATLAS_EDGE / Math.ceil(Math.sqrt(keep))) - 2;
       let width, height;
       let duration2 = 0;
       const parts = [];
@@ -1056,7 +1055,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         const { image: frame } = await decoder.decode({ frameIndex: index });
         try {
           if (retained.has(index)) {
-            [width, height] = bounds(frame.displayWidth, frame.displayHeight, edge);
+            [width, height] = particleBounds(frame.displayWidth, frame.displayHeight);
             const bitmap = canvas(width, height);
             drawScaled(bitmap, frame);
             parts.push({ bitmap, start: duration2 });
@@ -1256,7 +1255,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   }
   var sliderSpecs = {
     appearance: [
-      ["size", "\u5927\u5C0F", 24, 320, 1, " px"],
+      ["size", "\u5927\u5C0F", 24, MAX_PARTICLE_EDGE, 1, " px"],
       ["variance", "\u5927\u5C0F\u5DEE\u5F02", 0, 70, 1, "%"],
       ["opacity", "\u4E0D\u900F\u660E\u5EA6", 10, 100, 1, "%"],
       ["rotation", "\u521D\u59CB\u89D2\u5EA6", -180, 180, 1, "\xB0"],
@@ -1372,8 +1371,13 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       $("filename").textContent = file.name;
       $("metadata").textContent = `${image.naturalWidth} \xD7 ${image.naturalHeight} px \xB7 ${formatSize(file.size)}`;
       $("file-info").hidden = false;
-      $("material-note").hidden = !next.sampled;
-      $("material-note").textContent = next.sampled ? `\u52A8\u56FE\u5DF2\u5408\u6210\u4E3A ${next.cells.length} \u5E27\u3002` : "";
+      const notes = [];
+      if (next.width < image.naturalWidth || next.height < image.naturalHeight) {
+        notes.push(`\u9884\u89C8\u4E0E\u5BFC\u51FA\u7D20\u6750\u5DF2\u7B49\u6BD4\u7F29\u4E3A ${next.width} \xD7 ${next.height} px\u3002`);
+      }
+      if (next.sampled) notes.push(`\u52A8\u56FE\u5DF2\u5408\u6210\u4E3A ${next.cells.length} \u5E27\u3002`);
+      $("material-note").hidden = !notes.length;
+      $("material-note").textContent = notes.join(" ");
       restart();
       notify("");
     } catch (error) {
