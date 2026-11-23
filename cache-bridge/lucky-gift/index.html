@@ -51,7 +51,7 @@ h3 { font-size: 13px; margin-bottom: 9px; }
   width: 100%; min-height: 148px; display: grid; align-content: center; justify-items: center;
   gap: 6px; padding: 12px; border-style: dashed; color: var(--accent); overflow-wrap: anywhere;
 }
-.upload img { width: 100%; height: 128px; object-fit: contain; }
+.upload canvas { width: 100%; height: 128px; object-fit: contain; }
 .upload small,.note,.file-info p,.preview-bar span,.playback span { color: var(--muted); font-size: 12px; }
 .media.dragging .upload { border-color: var(--accent); background: #30274a; }
 .file-info { padding: 12px 0 4px; overflow-wrap: anywhere; }
@@ -199,7 +199,7 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
     <h2 id="media-title">主体素材</h2>
     <input id="file" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/avif,image/svg+xml,.png,.jpg,.jpeg,.gif,.webp,.bmp,.avif,.svg" hidden>
     <button id="upload" class="upload" type="button">
-      <img id="thumbnail" alt="主体素材预览" hidden>
+      <canvas id="thumbnail" role="img" aria-label="主体素材预览" hidden></canvas>
       <span id="upload-label">＋ 添加主体</span>
       <small id="upload-hint">点击添加或拖入图片</small>
     </button>
@@ -898,7 +898,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
 
   // lucky-gift/media.js
   var MAX_ATLAS_EDGE = 1600;
-  var MAX_POSES = 80;
+  var MAX_POSES = 8;
   var MAX_STATIC_EDGE = 450;
   function canvas(width, height) {
     return Object.assign(document.createElement("canvas"), { width, height });
@@ -1055,6 +1055,8 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   var $ = (id) => document.getElementById(id);
   var canvas2 = $("canvas");
   var context = canvas2.getContext("2d");
+  var thumbnail = $("thumbnail");
+  var thumbnailContext = thumbnail.getContext("2d");
   var stage = $("stage");
   var duration = $("duration");
   var settings = { ...defaults };
@@ -1062,13 +1064,13 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   var paths = /* @__PURE__ */ new Map();
   var category = 0;
   var material;
-  var materialURL;
   var pending;
   var exporting = false;
   var playing = true;
   var started = performance.now();
   var pausedAt = 0;
   var lastFrame = -1;
+  var lastThumbnailCell;
   var lastStatus;
   function currentFrameCount() {
     const seconds = duration.valueAsNumber;
@@ -1111,7 +1113,13 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       if (material) {
         const progress = frame / frames;
         const { width, height, atlas } = material;
-        const { x, y } = cellAt(material, progress, frames);
+        const cell = cellAt(material, progress, frames);
+        const { x, y } = cell;
+        if (cell !== lastThumbnailCell) {
+          thumbnailContext.clearRect(0, 0, width, height);
+          thumbnailContext.drawImage(atlas, x, y, width, height, 0, 0, width, height);
+          lastThumbnailCell = cell;
+        }
         for (const particle of sampler()(progress)) {
           if (particle.alpha <= 0) continue;
           const scale = particle.size / Math.max(width, height);
@@ -1258,26 +1266,25 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       await image.decode();
       const next = await loadMaterial(file, image, controller.signal);
       controller.signal.throwIfAborted();
-      if (materialURL) URL.revokeObjectURL(materialURL);
       material = next;
-      materialURL = url;
-      $("thumbnail").src = url;
-      $("thumbnail").hidden = false;
+      thumbnail.width = next.width;
+      thumbnail.height = next.height;
+      thumbnail.hidden = false;
       $("upload-label").textContent = "\u66FF\u6362\u4E3B\u4F53";
       $("upload-hint").textContent = "\u70B9\u51FB\u9009\u62E9\u6216\u62D6\u5165\u65B0\u7D20\u6750";
       $("filename").textContent = file.name;
       $("metadata").textContent = `${image.naturalWidth} \xD7 ${image.naturalHeight} px \xB7 ${formatSize(file.size)}`;
       $("file-info").hidden = false;
       $("material-note").hidden = !next.sampled;
-      $("material-note").textContent = next.sampled ? "\u957F\u52A8\u56FE\u6309\u5B8C\u6574\u5E8F\u5217\u62BD\u6837\u4E3A 80 \u5E27\u3002" : "";
+      $("material-note").textContent = next.sampled ? `\u52A8\u56FE\u5DF2\u5408\u6210\u4E3A ${next.cells.length} \u5E27\u3002` : "";
       restart();
       notify("");
     } catch (error) {
-      URL.revokeObjectURL(url);
       if (!controller.signal.aborted) {
         notify(error instanceof DOMException ? "\u65E0\u6CD5\u6253\u5F00\u8FD9\u5F20\u56FE\u7247\uFF0C\u8BF7\u68C0\u67E5\u683C\u5F0F\u6216\u6587\u4EF6\u662F\u5426\u635F\u574F\u3002" : error.message, true);
       }
     } finally {
+      URL.revokeObjectURL(url);
       if (pending === controller) {
         pending = null;
         updateExport();
