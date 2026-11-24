@@ -95,12 +95,23 @@ h3 { font-size: 13px; margin-bottom: 9px; }
   content: ''; display: block; width: 10px; height: 10px;
   border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px #302952;
 }
-#diffusion-handle {
+.point-handle {
   position: absolute; width: 28px; height: 28px; min-height: 0; padding: 0;
   transform: translate(-50%,-50%); border: 0; border-radius: 50%; cursor: grab; touch-action: none;
+}
+#diffusion-handle {
   background: radial-gradient(circle, var(--accent) 0 3px, #171223 3.5px 6.5px, #eeeaff 7px 8px, transparent 8.5px);
 }
-#diffusion-handle:active { cursor: grabbing; }
+.point-handle:active { cursor: grabbing; }
+#throw-start-handle,#throw-end-handle {
+  border: 1px solid #e7e2ff; color: #211a34; font-size: 11px; font-weight: 750;
+}
+#throw-start-handle { background: #bdb4ff; }
+#throw-end-handle { background: #ffd29c; }
+#throw-controls .diffusion-center { margin-bottom: 7px; }
+.sparkle-toggle { display: flex; align-items: center; gap: 6px; width: fit-content; font-size: 13px; font-weight: 650; cursor: pointer; }
+.sparkle-toggle input { margin: 0; accent-color: var(--accent); }
+#sparkle-controls { margin-top: 8px; }
 .diffusion-center { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
 .diffusion-center label { display: flex; align-items: center; gap: 4px; }
 .diffusion-center input {
@@ -113,7 +124,7 @@ h3 { font-size: 13px; margin-bottom: 9px; }
 .gravity-toggle input { margin: 0; accent-color: var(--accent); }
 .choice-label { margin-bottom: 6px; color: var(--muted); font-size: 12px; }
 .categories {
-  display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 3px;
+  display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 3px;
   margin-bottom: 14px; padding: 4px; border: 1px solid var(--line); border-radius: 9px;
   background: #15141b;
 }
@@ -273,7 +284,9 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
       <div class="stage" id="stage">
         <img id="stage-background" alt="" hidden>
         <canvas id="canvas" width="750" height="1624" aria-label="幸运礼物预览"></canvas>
-        <button type="button" id="diffusion-handle" aria-label="拖动扩散中心" title="拖动扩散中心" hidden></button>
+        <button type="button" class="point-handle" id="diffusion-handle" aria-label="拖动扩散中心" title="拖动扩散中心" hidden></button>
+        <button type="button" class="point-handle" id="throw-start-handle" aria-label="拖动投掷起点" title="拖动投掷起点" hidden>起</button>
+        <button type="button" class="point-handle" id="throw-end-handle" aria-label="拖动投掷落点" title="拖动投掷落点" hidden>落</button>
         <div class="fade-guide top" id="top-guide"><button type="button" id="top-handle" aria-label="顶部淡入边界" role="slider" aria-orientation="vertical"></button></div>
         <div class="fade-guide bottom" id="bottom-guide"><button type="button" id="bottom-handle" aria-label="底部淡出边界" role="slider" aria-orientation="vertical"></button></div>
       </div>
@@ -300,6 +313,20 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
       <label class="gravity-toggle"><input type="checkbox" id="gravity-enabled"> 重力</label>
       <div id="gravity-controls" hidden></div>
     </section>
+    <section id="throw-controls" class="controls" hidden>
+      <h3>投掷设置</h3>
+      <div class="diffusion-center" role="group" aria-label="投掷起点">
+        <span>起点</span>
+        <label>X <input type="number" id="throwStartX" min="0" max="750" step="1" aria-label="起点 X（px）"></label>
+        <label>Y <input type="number" id="throwStartY" min="0" max="1624" step="1" aria-label="起点 Y（px）"></label>
+      </div>
+      <div class="diffusion-center" role="group" aria-label="投掷落点">
+        <span>落点</span>
+        <label>X <input type="number" id="throwEndX" min="0" max="750" step="1" aria-label="落点 X（px）"></label>
+        <label>Y <input type="number" id="throwEndY" min="0" max="1624" step="1" aria-label="落点 Y（px）"></label>
+      </div>
+      <div id="throw-sliders"></div>
+    </section>
     <section class="controls">
       <h3>主体粒子</h3>
       <div id="appearance"></div>
@@ -314,6 +341,10 @@ input[type="range"]:disabled { opacity: .35 !important; cursor: default; }
         <h4>首尾渐隐</h4>
         <div id="fade-controls"></div>
       </div>
+    </section>
+    <section class="controls">
+      <label class="sparkle-toggle"><input type="checkbox" id="sparkle-enabled"> 四角星光</label>
+      <div id="sparkle-controls" hidden></div>
     </section>
     <section class="controls">
       <h3>粒子之间的关系</h3>
@@ -827,54 +858,102 @@ window.optimizeLuckyGiftAtlas = async canvas => {
 };
 })();
 (() => {
+  // lucky-gift/throw-paths.js
+  var TAU = 2 * Math.PI;
+  var { sin, cos, sqrt, abs, pow } = Math;
+  var throws = [
+    ["\u96EA\u7403\u98DE\u6563", 0.85, 0.53, ({ t, a, r }) => {
+      const spread = 245 * r * (1 - (1 - t) ** 3);
+      return [cos(a) * spread, sin(a) * spread + 195 * t * t, 0.85];
+    }],
+    ["\u70B8\u5F39\u7206\u5F00", 1.08, 0.55, ({ t, a, r }) => {
+      const spread = 490 * r * pow(t, 0.56);
+      return [cos(a) * spread, sin(a) * spread + 80 * t * t, 1 - 0.56 * t];
+    }],
+    ["\u9E21\u86CB\u6ED1\u843D", 0.58, 0.47, ({ t, a, r, part }) => {
+      const main = part === 0;
+      return [
+        cos(a) * (main ? 36 : 145) * r * (1 - (1 - t) ** 3),
+        (main ? 350 : 240) * r * t * t + (main ? 0 : sin(a) * 52 * sin(Math.PI * t)),
+        main ? 1.68 - 0.3 * t : 0.74,
+        main ? 0.28 + 0.25 * t : 0.66 + 0.3 * t
+      ];
+    }],
+    ["\u659C\u5411\u55B7\u5C04", 0.92, 0.51, ({ t, v, r, direction }) => [
+      direction * 425 * r * t,
+      -310 * r * sqrt(t) + (v - 0.5) * 290 * t,
+      0.64 + 0.34 * t
+    ]],
+    ["\u6CE1\u6CE1\u98D8\u8D70", 1.26, 0.56, ({ t, a, r }) => [
+      cos(a) * 165 * r * t + 38 * (sin(TAU * t + a) - sin(a)) * sin(Math.PI * t),
+      -560 * r * t,
+      0.72 + 0.85 * t
+    ]],
+    ["\u5F39\u8DF3\u56DB\u6563", 0.4, 0.48, ({ t, a, r }) => [
+      cos(a) * 390 * r * t,
+      -abs(sin(TAU * t)) * 250 * r * (1 - t) + sin(a) * 120 * t,
+      0.84 + 0.2 * sin(TAU * t * 2)
+    ]],
+    ["\u793C\u82B1\u51B2\u9876", 1.45, 0.5, ({ t, v, r }) => [
+      (v - 0.5) * 570 * t,
+      -665 * r * (1 - (1 - t) ** 2) + 255 * t * t,
+      0.64 + 0.2 * (1 - t)
+    ]],
+    ["\u65CB\u6DA1\u6563\u5F00", 0.76, 0.54, ({ t, a, r }) => {
+      const angle = a + TAU * t * (1 + 0.35 * r);
+      return [cos(angle) * 360 * r * t, sin(angle) * 490 * r * t, 0.75 + 0.22 * sin(TAU * t)];
+    }]
+  ];
+
   // lucky-gift/motion.js
   var WIDTH = 750;
   var HEIGHT = 1624;
   var FPS = 24;
   var MAX_PARTICLE_EDGE = 300;
   var DIFFUSION_CATEGORY = 1;
-  var TAU = 2 * Math.PI;
-  var { sin, cos, abs, sqrt, pow } = Math;
+  var THROW_CATEGORY = 6;
+  var TAU2 = 2 * Math.PI;
+  var { sin: sin2, cos: cos2, abs: abs2, sqrt: sqrt2, pow: pow2 } = Math;
   var clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
   var wrap = (value) => value - Math.floor(value);
-  var polar = (angle, radius, ratio = 1) => [cos(angle) * radius, sin(angle) * radius * ratio];
-  var wave = (phase, turns = 1) => sin(TAU * phase * turns);
-  var triangle = (phase) => 1 - abs(2 * wrap(phase) - 1);
-  var ring = (angle, phase, radius, ratio) => polar(angle + TAU * phase, radius, ratio);
+  var polar = (angle, radius, ratio = 1) => [cos2(angle) * radius, sin2(angle) * radius * ratio];
+  var wave = (phase, turns = 1) => sin2(TAU2 * phase * turns);
+  var triangle = (phase) => 1 - abs2(2 * wrap(phase) - 1);
+  var ring = (angle, phase, radius, ratio) => polar(angle + TAU2 * phase, radius, ratio);
   var categories = [
     { name: "\u98D8\u843D", tuning: "\u6A2A\u5411\u5E45\u5EA6", effects: [
       ["\u7EC6\u96E8", ({ u, x, j, k }) => [x + 7 * k * wave(u), 1820 * (u - 0.5) + (j - 0.5) * 75]],
       ["\u659C\u98CE", ({ u, x, k }) => [x + 440 * k * (u - 0.5), 1820 * (u - 0.5), 0.26 * k]],
-      ["\u843D\u53F6", ({ u, x, a, k }) => [x + 115 * k * sin(3 * TAU * u + a), 1820 * (u - 0.5), 0.65 * cos(3 * TAU * u + a)]],
+      ["\u843D\u53F6", ({ u, x, a, k }) => [x + 115 * k * sin2(3 * TAU2 * u + a), 1820 * (u - 0.5), 0.65 * cos2(3 * TAU2 * u + a)]],
       ["\u4E4B\u5B57\u5F62", ({ u, x, j, k }) => [x + 190 * k * (triangle(u * 4 + j) - 0.5), 1820 * (u - 0.5)]],
-      ["\u964D\u843D\u4F1E", ({ u, x, k }) => [x + 95 * k * wave(u), 1820 * (pow(u, 0.55) - 0.5), 0.35 * wave(u)]],
+      ["\u964D\u843D\u4F1E", ({ u, x, k }) => [x + 95 * k * wave(u), 1820 * (pow2(u, 0.55) - 0.5), 0.35 * wave(u)]],
       ["\u4EA4\u53C9\u96E8\u5E55", ({ u, x, s, k }) => [x + s * 620 * k * (u - 0.5), 1820 * (u - 0.5), s * 0.48]],
       ["\u53F0\u9636\u96E8", ({ u, x, k }) => [x + 85 * k * (triangle(u * 5) - 0.5), 1820 * (0.76 * u + 0.24 * (Math.floor(u * 6) / 6) - 0.5)]],
       ["\u7011\u5E03", ({ u, x, k }) => [x * (0.15 + u * k), 1820 * (u * u - 0.5), 0, 0.55 + 0.65 * u]]
     ] },
     { name: "\u6269\u6563", tuning: "\u6269\u6563\u8DDD\u79BB", effects: [
-      ["\u5706\u5F62\u7EFD\u653E", ({ a, u, k }) => polar(a, 440 * k * sqrt(u))],
+      ["\u5706\u5F62\u7EFD\u653E", ({ a, u, k }) => polar(a, 440 * k * sqrt2(u))],
       ["\u692D\u5706\u51B2\u51FB", ({ a, u, k }) => polar(a, 360 * k * u, 2.1)],
-      ["\u56DB\u89D2\u653E\u5C04", ({ i, u, j, k }) => polar((i % 4 + 0.5) * TAU / 4 + (j - 0.5) * 0.26, 810 * k * u)],
-      ["\u5355\u4FA7\u6247\u55B7", ({ v, u, k }) => polar(-TAU / 4 + (v - 0.5) * 2.4, 810 * k * sqrt(u))],
-      ["\u53CC\u7FFC\u5410\u606F", ({ a, u, s, k }) => [s * 390 * k * u, 620 * k * u * sin(a), s * 0.7]],
-      ["\u87BA\u65CB\u5F00\u82B1", ({ a, u, k }) => polar(a + 2 * TAU * u, 460 * k * u, 1.55)],
+      ["\u56DB\u89D2\u653E\u5C04", ({ i, u, j, k }) => polar((i % 4 + 0.5) * TAU2 / 4 + (j - 0.5) * 0.26, 810 * k * u)],
+      ["\u5355\u4FA7\u6247\u55B7", ({ v, u, k }) => polar(-TAU2 / 4 + (v - 0.5) * 2.4, 810 * k * sqrt2(u))],
+      ["\u53CC\u7FFC\u5410\u606F", ({ a, u, s, k }) => [s * 390 * k * u, 620 * k * u * sin2(a), s * 0.7]],
+      ["\u87BA\u65CB\u5F00\u82B1", ({ a, u, k }) => polar(a + 2 * TAU2 * u, 460 * k * u, 1.55)],
       ["\u77E9\u5F62\u51B2\u51FB\u6CE2", ({ v, u, k }) => {
         const edge = Math.floor(v * 4);
         const along = 2 * wrap(v * 4) - 1;
         const sides = [[1, along], [along, 1], [-1, along], [along, -1]];
         return [320 * k * u * sides[edge][0], 760 * k * u * sides[edge][1]];
       }],
-      ["\u8FDE\u73AF\u7206\u70B9", ({ i, a, u, k }) => [(i % 3 - 1) * 165 + 310 * k * u * cos(a), (i % 4 - 1.5) * 290 + 350 * k * u * sin(a)]]
+      ["\u8FDE\u73AF\u7206\u70B9", ({ i, a, u, k }) => [(i % 3 - 1) * 165 + 310 * k * u * cos2(a), (i % 4 - 1.5) * 290 + 350 * k * u * sin2(a)]]
     ] },
     { name: "\u4E0A\u5347", tuning: "\u6A2A\u5411\u5E45\u5EA6", effects: [
-      ["\u6C14\u6CE1", ({ u, x, a, k }) => [x + 56 * k * sin(2 * TAU * u + a), 1820 * (0.5 - u), 0, 0.6 + 0.45 * u]],
+      ["\u6C14\u6CE1", ({ u, x, a, k }) => [x + 56 * k * sin2(2 * TAU2 * u + a), 1820 * (0.5 - u), 0, 0.6 + 0.45 * u]],
       ["\u55B7\u6CC9", ({ u, v, k }) => [690 * k * (v - 0.5) * u, 590 - 1250 * 4 * u * (1 - u), (v - 0.5) * u]],
       ["\u706B\u7BAD", ({ u, x, k }) => [x * k, 1820 * (0.5 - u * u), 0, 0.45 + u]],
       ["\u7A7F\u4E91\u659C\u5347", ({ u, x, s, k }) => [x + s * 410 * k * (u - 0.5), 1820 * (0.5 - u), s * 0.34]],
-      ["\u53CC\u87BA\u65CB", ({ u, x, s, k }) => [x * 0.28 + s * 275 * k * wave(u, 2), 1820 * (0.5 - u), 0, 1 + s * 0.33 * cos(u * TAU * 2)]],
+      ["\u53CC\u87BA\u65CB", ({ u, x, s, k }) => [x * 0.28 + s * 275 * k * wave(u, 2), 1820 * (0.5 - u), 0, 1 + s * 0.33 * cos2(u * TAU2 * 2)]],
       ["\u5DE6\u53F3\u63A5\u529B", ({ u, x, s, k }) => [s * 295 * k + x * 0.22 * wave(u, 3), 1820 * (0.5 - u)]],
-      ["\u84B2\u516C\u82F1", ({ u, a, k }) => [380 * k * u * cos(a + u), 1820 * (0.5 - sqrt(u)), 0.6 * wave(u)]],
+      ["\u84B2\u516C\u82F1", ({ u, a, k }) => [380 * k * u * cos2(a + u), 1820 * (0.5 - sqrt2(u)), 0.6 * wave(u)]],
       ["S \u5F62\u6276\u6447", ({ u, x, k }) => [x * 0.36 + 310 * k * wave(u), 1820 * (0.5 - u)]]
     ] },
     { name: "\u73AF\u7ED5", tuning: "\u8F68\u9053\u534A\u5F84", effects: [
@@ -884,35 +963,36 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         const [x, y] = ring(a, u, 310 * k, 1.95);
         return [x + y * 0.31, y + (j - 0.5) * 130];
       }],
-      ["\u516B\u5B57\u4EA4\u6C47", ({ a, u, k }) => [300 * k * sin(a + TAU * u), 595 * k * sin(2 * (a + TAU * u))]],
-      ["\u53CC\u6838\u73AF\u6D41", ({ a, u, s, k }) => [s * 105 + 220 * k * cos(a + s * TAU * u), s * 345 + 340 * k * sin(a + s * TAU * u)]],
+      ["\u516B\u5B57\u4EA4\u6C47", ({ a, u, k }) => [300 * k * sin2(a + TAU2 * u), 595 * k * sin2(2 * (a + TAU2 * u))]],
+      ["\u53CC\u6838\u73AF\u6D41", ({ a, u, s, k }) => [s * 105 + 220 * k * cos2(a + s * TAU2 * u), s * 345 + 340 * k * sin2(a + s * TAU2 * u)]],
       ["\u82B1\u74E3\u8F68\u9053", ({ a, u, k }) => {
-        const angle = a + TAU * u;
-        return polar(angle, (165 + 155 * cos(angle * 5)) * k, 1.8);
+        const angle = a + TAU2 * u;
+        return polar(angle, (165 + 155 * cos2(angle * 5)) * k, 1.8);
       }],
-      ["\u7ACB\u4F53\u6469\u5929\u8F6E", ({ a, u, k }) => [270 * k * cos(a + TAU * u), 680 * k * sin(a + TAU * u), 0, 1 + 0.42 * cos(a + TAU * u)]],
-      ["\u53CC\u5411\u7F16\u7EC7", ({ a, u, s, k }) => [310 * k * sin(a + s * TAU * u), 700 * k * sin(a - s * 2 * TAU * u)]]
+      ["\u7ACB\u4F53\u6469\u5929\u8F6E", ({ a, u, k }) => [270 * k * cos2(a + TAU2 * u), 680 * k * sin2(a + TAU2 * u), 0, 1 + 0.42 * cos2(a + TAU2 * u)]],
+      ["\u53CC\u5411\u7F16\u7EC7", ({ a, u, s, k }) => [310 * k * sin2(a + s * TAU2 * u), 700 * k * sin2(a - s * 2 * TAU2 * u)]]
     ] },
     { name: "\u805A\u5408", tuning: "\u6C47\u805A\u8DDD\u79BB", effects: [
       ["\u5411\u5FC3\u6536\u62E2", ({ a, u, k }) => polar(a, 820 * k * (1 - u), 1.05)],
       ["\u6F0F\u6597\u5438\u5165", ({ u, x, k }) => [x * k * (1 - u), 730 * (u - 1)]],
       ["\u5BF9\u649E\u5149\u675F", ({ u, x, s, k }) => [s * 550 * k * (1 - u), x * 0.5 * (1 - u)]],
-      ["\u65CB\u6DA1\u5438\u9644", ({ u, a, k }) => polar(a + 2 * TAU * u, 625 * k * pow(1 - u, 1.5), 1.35)],
+      ["\u65CB\u6DA1\u5438\u9644", ({ u, a, k }) => polar(a + 2 * TAU2 * u, 625 * k * pow2(1 - u, 1.5), 1.35)],
       ["\u56DB\u89D2\u96C6\u5408", ({ u, i, j, k }) => [(i % 2 ? 1 : -1) * 440 * k * (1 - u), (i % 4 < 2 ? 1 : -1) * (880 + j * 150) * (1 - u)]],
       ["\u659C\u7EBF\u5217\u961F", ({ u, x, s, k }) => [x * 0.85 * k + s * 350 * (1 - u), x * 1.45 - s * 830 * (1 - u)]],
-      ["\u5F52\u5DE2\u5206\u6D41", ({ u, x, s, a, k }) => [s * 165 + x * k * (1 - u), s * 335 + 635 * (1 - u) * sin(a)]],
-      ["\u6536\u653E\u547C\u5438", ({ u, a, i, k }) => polar(a, (80 + (260 + i % 3 * 70) * (0.5 + 0.5 * cos(TAU * u))) * k, 1.65)]
+      ["\u5F52\u5DE2\u5206\u6D41", ({ u, x, s, a, k }) => [s * 165 + x * k * (1 - u), s * 335 + 635 * (1 - u) * sin2(a)]],
+      ["\u6536\u653E\u547C\u5438", ({ u, a, i, k }) => polar(a, (80 + (260 + i % 3 * 70) * (0.5 + 0.5 * cos2(TAU2 * u))) * k, 1.65)]
     ] },
     { name: "\u6D6E\u52A8", tuning: "\u79FB\u52A8\u5E45\u5EA6", effects: [
-      ["\u5FAE\u98CE\u60AC\u6D6E", ({ u, x, y, a, k }) => [x + 48 * k * sin(TAU * u + a), y + 68 * k * cos(TAU * u + a)]],
-      ["\u5168\u5C4F\u6F6E\u6C50", ({ u, x, y, k }) => [x, y + 180 * k * sin(TAU * u + x / 130)]],
-      ["\u68CB\u76D8\u8DF3\u8DC3", ({ u, i, k }) => [(i % 5 - 2) * 135, (Math.floor(i / 5) % 8 - 3.5) * 185 - 116 * k * abs(wave(u, 2))]],
-      ["\u4EA4\u9519\u6447\u6446", ({ u, x, y, s, k }) => [x + s * 186 * k * wave(u), y + 194 * k * cos(TAU * u)]],
-      ["\u5DE6\u53F3\u5DE1\u6E38", ({ u, y, j, k }) => [650 * k * (triangle(u) - 0.5), y + 85 * k * sin(TAU * u + j)]],
-      ["\u8109\u51B2\u661F\u7FA4", ({ u, x, y, j, k }) => [x * (1 + 0.15 * k * wave(u, 2)), y * (1 + 0.12 * k * wave(u, 2)), 0, 0.45 + 0.75 * pow(abs(wave(u + j)), 2)]],
-      ["\u56DE\u5F39\u8DF3\u8DC3", ({ u, x, y, k }) => [x + 58 * k * wave(u), y - 210 * k * pow(abs(wave(u)), 0.55)]],
+      ["\u5FAE\u98CE\u60AC\u6D6E", ({ u, x, y, a, k }) => [x + 48 * k * sin2(TAU2 * u + a), y + 68 * k * cos2(TAU2 * u + a)]],
+      ["\u5168\u5C4F\u6F6E\u6C50", ({ u, x, y, k }) => [x, y + 180 * k * sin2(TAU2 * u + x / 130)]],
+      ["\u68CB\u76D8\u8DF3\u8DC3", ({ u, i, k }) => [(i % 5 - 2) * 135, (Math.floor(i / 5) % 8 - 3.5) * 185 - 116 * k * abs2(wave(u, 2))]],
+      ["\u4EA4\u9519\u6447\u6446", ({ u, x, y, s, k }) => [x + s * 186 * k * wave(u), y + 194 * k * cos2(TAU2 * u)]],
+      ["\u5DE6\u53F3\u5DE1\u6E38", ({ u, y, j, k }) => [650 * k * (triangle(u) - 0.5), y + 85 * k * sin2(TAU2 * u + j)]],
+      ["\u8109\u51B2\u661F\u7FA4", ({ u, x, y, j, k }) => [x * (1 + 0.15 * k * wave(u, 2)), y * (1 + 0.12 * k * wave(u, 2)), 0, 0.45 + 0.75 * pow2(abs2(wave(u + j)), 2)]],
+      ["\u56DE\u5F39\u8DF3\u8DC3", ({ u, x, y, k }) => [x + 58 * k * wave(u), y - 210 * k * pow2(abs2(wave(u)), 0.55)]],
       ["\u5C42\u53E0\u6D6A\u6D8C", ({ u, x, y, j, k }) => [x + 130 * k * wave(u + j, 2), y + 130 * k * wave(u + j, 3), 0.2 * wave(u, 3)]]
-    ] }
+    ] },
+    { name: "\u6295\u63B7", tuning: "\u7206\u5F00\u5E45\u5EA6", effects: throws }
   ];
   var defaults = {
     size: 112,
@@ -937,14 +1017,24 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     diffusionX: WIDTH / 2,
     diffusionY: HEIGHT / 2,
     gravityEnabled: false,
-    gravityStrength: 100
+    gravityStrength: 100,
+    throwStartX: 125,
+    throwStartY: 1210,
+    throwEndX: 505,
+    throwEndY: 890,
+    throwHeight: 375,
+    sparkleEnabled: false,
+    sparkleSize: 31,
+    sparkleBrightness: 90,
+    sparkleRate: 3,
+    sparkleRandom: 65
   };
   function fadeAt(y, top, bottom) {
     const fadeIn = top > 0 ? clamp(y / top) : 1;
     const fadeOut = bottom < HEIGHT ? clamp((HEIGHT - y) / (HEIGHT - bottom)) : 1;
     return fadeIn * fadeOut;
   }
-  var random = (index, lane, seed) => wrap(sin((index + 1) * 127.1 + lane * 311.7 + seed * 0.61803398875) * 43758.5453);
+  var random = (index, lane, seed) => wrap(sin2((index + 1) * 127.1 + lane * 311.7 + seed * 0.61803398875) * 43758.5453);
   function usesTimelineFade(category2, effect, mixEffects = false) {
     return category2 === 3 || category2 === 5 || category2 === 4 && (effect === 7 || mixEffects);
   }
@@ -952,7 +1042,98 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     const t = clamp(value);
     return t * t * (3 - 2 * t);
   };
+  function particleTiming(index, count, timing, jitter, randomness) {
+    const slot = (index + 0.12 + 0.76 * jitter) / count;
+    const batch = index % 4;
+    const batchSize = Math.ceil((count - batch) / 4);
+    const batchSlot = (Math.floor(index / 4) + 0.12 + 0.76 * jitter) / batchSize;
+    const offset = { together: -0.14 * slot, staggered: slot, waves: -(batch + 0.58 * batchSlot) / 4 }[timing];
+    const origin = TAU2 * slot;
+    const originSin = sin2(origin);
+    const strength = (0.22 + 0.28 * randomness) * (0.5 + 0.5 * slot) / TAU2;
+    return { slot, offset, clock: (phase) => phase + (sin2(TAU2 * phase + origin) - originSin) * strength };
+  }
+  function particleVariant(effect, amount, mix, roll) {
+    const alternate = 1 + Math.floor(roll(10) * (amount - 1));
+    return mix && roll(11) < 0.5 ? (effect + alternate) % amount : effect;
+  }
+  function throwParticles(settings2, effect) {
+    const total = Math.max(5, settings2.count);
+    const groupCount = Math.max(1, Math.round(total / 7));
+    const randomness = settings2.motionRandom / 100;
+    const appearance = settings2.appearanceRandom / 100;
+    const direction = settings2.throwEndX < settings2.throwStartX ? -1 : 1;
+    const baseAngle = settings2.rotation * TAU2 / 360;
+    const burst = settings2.amplitude * settings2.spread / 1e4;
+    const groups = Array.from({ length: groupCount }, (_, index) => {
+      const roll = (lane) => random(index, lane, settings2.seed);
+      const timing = particleTiming(index, groupCount, settings2.timing, roll(1), randomness);
+      const [, arc, flight, impactPath] = throws[particleVariant(effect, throws.length, settings2.mixEffects, roll)];
+      const count = Math.floor(total / groupCount) + (index < total % groupCount ? 1 : 0);
+      const first = index * Math.floor(total / groupCount) + Math.min(index, total % groupCount);
+      const members = Array.from({ length: count }, (_2, j) => {
+        const memberRoll = (lane) => random(first + j, lane, settings2.seed);
+        const v = j === 0 ? 0.5 : (j - 0.5) / (count - 1);
+        return {
+          a: TAU2 * wrap(v + (memberRoll(2) - 0.5) * 0.16),
+          v,
+          r: 0.72 + memberRoll(4) * 0.5,
+          materialOffset: (first + j + 0.12 + 0.76 * memberRoll(1)) / total,
+          size: settings2.size * (1 + (2 * memberRoll(5) - 1) * settings2.variance / 100),
+          angleOffset: (2 * memberRoll(6) - 1) * appearance * TAU2 / 4,
+          opacity: settings2.opacity / 100 * (1 - memberRoll(7) * appearance * 0.45)
+        };
+      });
+      return {
+        timing,
+        flight,
+        impactPath,
+        members,
+        height: settings2.throwHeight * arc * (1 + (2 * roll(8) - 1) * randomness * 0.25),
+        cycles: Math.max(1, settings2.cycles + Math.round((2 * roll(9) - 1) * randomness * 2))
+      };
+    });
+    return (progress) => {
+      const phase = wrap(progress);
+      return groups.flatMap((group) => {
+        const clock = group.timing.clock(phase);
+        const u = wrap(clock * group.cycles + group.timing.offset);
+        const flying = u < group.flight;
+        const flight = clamp(u / group.flight);
+        const impact = clamp((u - group.flight) / (1 - group.flight));
+        return group.members.map((member, index) => {
+          let x, y, size, alpha, stretchY = 1;
+          if (index === 0) {
+            x = settings2.throwStartX + (settings2.throwEndX - settings2.throwStartX) * flight;
+            y = settings2.throwStartY + (settings2.throwEndY - settings2.throwStartY) * flight - 4 * flight * (1 - flight) * group.height;
+            size = member.size * (0.92 + 0.15 * sin2(Math.PI * flight));
+            alpha = flying ? smoothOpacity(flight / 0.16) : 0;
+          } else {
+            const [dx, dy, scale = 1, flatten = 1] = group.impactPath({ ...member, t: impact, part: index - 1, direction });
+            x = settings2.throwEndX + dx * burst;
+            y = settings2.throwEndY + dy * burst;
+            size = member.size * 0.48 * scale;
+            stretchY = flatten;
+            alpha = flying ? 0 : smoothOpacity((1 - impact) / 0.28);
+          }
+          size = Math.min(MAX_PARTICLE_EDGE, size * (1 + settings2.pulse / 100 * wave(u)));
+          const tumble = direction * (index === 0 ? 0.8 * flight : 1.3 * impact * (member.v - 0.5));
+          return {
+            x,
+            y,
+            size,
+            stretchY,
+            clock,
+            materialOffset: member.materialOffset,
+            angle: baseAngle + member.angleOffset + tumble + settings2.spin * TAU2 * u,
+            alpha: alpha * member.opacity * fadeAt(y, settings2.top, settings2.bottom)
+          };
+        });
+      });
+    };
+  }
   function makeParticles(settings2, category2, effect, frameCount = FPS * 5) {
+    if (category2 === THROW_CATEGORY) return throwParticles(settings2, effect);
     const effects = categories[category2].effects;
     const diffusion = category2 === DIFFUSION_CATEGORY;
     const originX = diffusion ? settings2.diffusionX ?? defaults.diffusionX : WIDTH / 2;
@@ -969,37 +1150,29 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       const roll = (lane) => random(i, lane, settings2.seed ?? 0);
       const j = roll(1);
       const v = (i + 0.5) / settings2.count;
-      const slot = (i + 0.12 + 0.76 * j) / settings2.count;
-      const batch = i % 4;
-      const batchSize = Math.ceil((settings2.count - batch) / 4);
-      const batchSlot = (Math.floor(i / 4) + 0.12 + 0.76 * j) / batchSize;
-      const offset = { together: -0.14 * slot, staggered: slot, waves: -(batch + 0.58 * batchSlot) / 4 }[settings2.timing];
+      const timing = particleTiming(i, settings2.count, settings2.timing, j, motionRandom);
       const size = settings2.size * (1 + (2 * roll(4) - 1) * settings2.variance / 100);
-      const alternate = 1 + Math.floor(roll(10) * (effects.length - 1));
-      const variant = settings2.mixEffects && roll(11) < 0.5 ? (effect + alternate) % effects.length : effect;
+      const variant = particleVariant(effect, effects.length, settings2.mixEffects, roll);
       const traversesStage = category2 === 0 || category2 === 2 && variant !== 1;
       const timelineFade = usesTimelineFade(category2, variant);
       return {
-        offset,
+        timing,
         size,
         timelineFade,
         traversesStage,
         oneShot: !traversesStage && !timelineFade,
-        materialOffset: slot,
-        clockOrigin: TAU * slot,
-        clockOriginSin: wave(slot),
-        clockStrength: (0.22 + 0.28 * motionRandom) * (0.5 + 0.5 * slot) / TAU,
-        fadeDelay: 0.22 * slot,
+        materialOffset: timing.slot,
+        fadeDelay: 0.22 * timing.slot,
         path: effects[variant][1],
         cycles: Math.max(1, settings2.cycles + Math.round((2 * roll(9) - 1) * motionRandom * 3)),
-        angleOffset: (2 * roll(6) - 1) * appearanceRandom * TAU / 4,
+        angleOffset: (2 * roll(6) - 1) * appearanceRandom * TAU2 / 4,
         opacity: settings2.opacity / 100 * (1 - roll(7) * appearanceRandom * 0.45),
         vars: {
           i,
           j,
           v,
           s: i % 2 ? 1 : -1,
-          a: TAU * wrap(v + 0.23 * (roll(2) - 0.5)),
+          a: TAU2 * wrap(v + 0.23 * (roll(2) - 0.5)),
           x: (roll(3) - 0.5) * 680,
           y: (roll(5) - 0.5) * 1430,
           k: settings2.amplitude / 100 * (1 + (2 * roll(8) - 1) * motionRandom * 0.65)
@@ -1011,8 +1184,8 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       const opening = phase * seconds / fadeIn;
       const closing = (lastFrame2 - phase) * seconds / fadeOut;
       return particles.map((particle) => {
-        const clock = phase + (sin(TAU * phase + particle.clockOrigin) - particle.clockOriginSin) * particle.clockStrength;
-        const u = wrap(clock * particle.cycles + particle.offset);
+        const clock = particle.timing.clock(phase);
+        const u = wrap(clock * particle.cycles + particle.timing.offset);
         const delay = particle.fadeDelay;
         const timelineAlpha = particle.timelineFade ? smoothOpacity((opening - delay) / (1 - delay)) * smoothOpacity((closing - delay) / (1 - delay)) : 1;
         const [dx, dy, rotation = 0, scale = 1] = particle.path({ ...particle.vars, u });
@@ -1026,7 +1199,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
           y,
           clock,
           materialOffset: particle.materialOffset,
-          angle: rotation + settings2.rotation * TAU / 360 + settings2.spin * TAU * u + particle.angleOffset,
+          angle: rotation + settings2.rotation * TAU2 / 360 + settings2.spin * TAU2 * u + particle.angleOffset,
           size: displaySize,
           alpha: particle.opacity * life * fadeAt(y, settings2.top, settings2.bottom) * timelineAlpha
         };
@@ -1145,15 +1318,18 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     const scale = particle.size / Math.max(width, height);
     const a = scale * Math.cos(particle.angle);
     const b = scale * Math.sin(particle.angle);
+    const stretchY = particle.stretchY ?? 1;
+    const c = -b * stretchY;
+    const d = a * stretchY;
     const cx = cell.x + width / 2;
     const cy = cell.y + height / 2;
     const frame = { alpha: particle.alpha, transform: {
       a,
       b,
-      c: -b,
-      d: a,
-      tx: particle.x - a * cx + b * cy,
-      ty: particle.y - b * cx - a * cy
+      c,
+      d,
+      tx: particle.x - a * cx - c * cy,
+      ty: particle.y - b * cx - d * cy
     }, layout: { x: 0, y: 0, width: material2.atlas.width, height: material2.atlas.height } };
     if (material2.cells.length > 1) {
       frame.clipPath = `M ${cell.x} ${cell.y} L ${cell.x + width} ${cell.y} L ${cell.x + width} ${cell.y + height} L ${cell.x} ${cell.y + height} Z`;
@@ -1167,17 +1343,20 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     const indexed = await optimize(atlas);
     return indexed && indexed.length < original.length ? indexed : original;
   }
-  async function exportMovie(material2, sample, frameCount, count, optimize) {
-    const key = "gift";
-    const sprites = Array.from({ length: count }, () => ({ imageKey: key, frames: [] }));
+  async function exportMovie(material2, sparkle2, sample, frameCount, optimize) {
+    const assets = { gift: material2, sparkle: sparkle2 };
+    const sprites = sample(0).map((particle) => ({ imageKey: particle.kind ?? "gift", frames: [] }));
     for (let i = 0; i < frameCount; i++) {
       const progress = i / frameCount;
       sample(progress).forEach((particle, index) => {
-        const frame = particle.alpha > 0 ? frameFor(particle, material2, cellAt(material2, particle.clock, frameCount, particle.materialOffset)) : { alpha: 0 };
-        sprites[index].frames.push(frame);
+        const sprite = sprites[index];
+        const source = assets[sprite.imageKey];
+        const frame = particle.alpha > 0 ? frameFor(particle, source, cellAt(source, particle.clock, frameCount, particle.materialOffset)) : { alpha: 0 };
+        sprite.frames.push(frame);
       });
     }
-    const images = /* @__PURE__ */ new Map([[key, await pngBytes(material2.atlas, optimize)]]);
+    const images = /* @__PURE__ */ new Map([["gift", await pngBytes(material2.atlas, optimize)]]);
+    if (sparkle2) images.set("sparkle", await pngBytes(sparkle2.atlas, optimize));
     const bytes = window.SVGAImportCore.encodeMovie({
       version: "2.0",
       params: { viewBoxWidth: WIDTH, viewBoxHeight: HEIGHT, fps: FPS, frames: frameCount },
@@ -1185,6 +1364,69 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       sprites
     });
     return new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate"))).blob();
+  }
+
+  // lucky-gift/sparkles.js
+  var TAU3 = 2 * Math.PI;
+  var { sin: sin3, cos: cos3, sqrt: sqrt3 } = Math;
+  function withSparkles(sample, settings2) {
+    if (!settings2.sparkleEnabled) return sample;
+    const variation = settings2.sparkleRandom / 100;
+    const intensity = settings2.sparkleBrightness / 100;
+    const tracks = sample(0).map(({ materialOffset }, index) => {
+      const angle = -Math.PI / 3 + (materialOffset - 0.5) * Math.PI * 1.4 * variation;
+      const offset = 0.27 + 0.11 * variation * cos3(TAU3 * materialOffset * 2);
+      return {
+        x: cos3(angle) * offset,
+        y: sin3(angle) * offset,
+        phase: materialOffset * variation,
+        rate: Math.max(1, settings2.sparkleRate + Math.round((2 * materialOffset - 1) * variation * 2)),
+        size: settings2.sparkleSize * (1 + 0.24 * variation * sin3(index * 2.7 + materialOffset))
+      };
+    });
+    return (progress) => sample(progress).flatMap((particle, index) => {
+      const track = tracks[index];
+      const phase = TAU3 * (particle.clock * track.rate + track.phase);
+      const peak = (0.5 + 0.5 * cos3(phase)) ** 3;
+      const offsetX = track.x * particle.size;
+      const offsetY = track.y * particle.size * (particle.stretchY ?? 1);
+      const c = cos3(particle.angle), s = sin3(particle.angle);
+      return [particle, {
+        kind: "sparkle",
+        x: particle.x + c * offsetX - s * offsetY,
+        y: particle.y + s * offsetX + c * offsetY,
+        size: track.size * sqrt3(particle.size / 112) * (0.35 + 0.65 * sqrt3(peak)),
+        angle: particle.angle + 0.18 * sin3(phase),
+        alpha: particle.alpha * intensity * peak
+      }];
+    });
+  }
+  function createSparkleMaterial() {
+    const size = 96;
+    const atlas = Object.assign(document.createElement("canvas"), { width: size, height: size });
+    const context2 = atlas.getContext("2d");
+    const center = size / 2;
+    const halo = context2.createRadialGradient(center, center, 0, center, center, center);
+    halo.addColorStop(0, "rgba(255,221,143,.82)");
+    halo.addColorStop(0.22, "rgba(255,219,158,.43)");
+    halo.addColorStop(0.6, "rgba(255,201,134,.10)");
+    halo.addColorStop(1, "rgba(255,201,134,0)");
+    context2.fillStyle = halo;
+    context2.fillRect(0, 0, size, size);
+    const core = context2.createRadialGradient(center, center, 1, center, center, center - 3);
+    core.addColorStop(0, "#ffffff");
+    core.addColorStop(0.25, "#fff9df");
+    core.addColorStop(0.7, "#ffe7a8");
+    core.addColorStop(1, "rgba(255,210,130,0)");
+    context2.fillStyle = core;
+    context2.beginPath();
+    context2.moveTo(center, 2);
+    context2.quadraticCurveTo(center + 3, center - 6, size - 2, center);
+    context2.quadraticCurveTo(center + 6, center + 3, center, size - 2);
+    context2.quadraticCurveTo(center - 3, center + 6, 2, center);
+    context2.quadraticCurveTo(center - 6, center - 3, center, 2);
+    context2.fill();
+    return { atlas, width: size, height: size, cells: [{ x: 0, y: 0, start: 0 }], duration: 0 };
   }
 
   // lucky-gift/app.js
@@ -1201,6 +1443,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   var category = 0;
   var material;
   var pending;
+  var sparkle;
   var exporting = false;
   var playing = true;
   var started = performance.now();
@@ -1232,7 +1475,10 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   function sampler(frameCount) {
     const effect = selectedEffects[category];
     const key = category + ":" + effect + ":" + frameCount;
-    if (!paths.has(key)) paths.set(key, makeParticles({ ...settings }, category, effect, frameCount));
+    if (!paths.has(key)) {
+      const snapshot = { ...settings };
+      paths.set(key, withSparkles(makeParticles(snapshot, category, effect, frameCount), snapshot));
+    }
     return paths.get(key);
   }
   function refresh() {
@@ -1257,13 +1503,16 @@ window.optimizeLuckyGiftAtlas = async canvas => {
         }
         for (const particle of sampler(frames)(progress)) {
           if (particle.alpha <= 0) continue;
-          const { x, y } = cellAt(material, particle.clock, frames, particle.materialOffset);
-          const scale = particle.size / Math.max(width, height);
+          const source = particle.kind === "sparkle" ? sparkle : material;
+          const { x, y } = cellAt(source, particle.clock, frames, particle.materialOffset);
+          const scale = particle.size / Math.max(source.width, source.height);
+          const drawWidth = source.width * scale;
+          const drawHeight = source.height * scale * (particle.stretchY ?? 1);
           context.save();
           context.translate(particle.x, particle.y);
           context.rotate(particle.angle);
           context.globalAlpha = particle.alpha;
-          context.drawImage(atlas, x, y, width, height, -width * scale / 2, -height * scale / 2, width * scale, height * scale);
+          context.drawImage(source.atlas, x, y, source.width, source.height, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
           context.restore();
         }
       }
@@ -1286,6 +1535,16 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     const showDiffusion = category === DIFFUSION_CATEGORY;
     $("diffusion-controls").hidden = !showDiffusion;
     $("diffusion-handle").hidden = !showDiffusion;
+    const showThrow = category === THROW_CATEGORY;
+    $("throw-controls").hidden = !showThrow;
+    $("throw-start-handle").hidden = !showThrow;
+    $("throw-end-handle").hidden = !showThrow;
+    const count = $("count");
+    count.min = showThrow ? "5" : "1";
+    if (settings.count < Number(count.min)) {
+      count.value = count.min;
+      count.dispatchEvent(new Event("input"));
+    }
     updateTimelineFade();
     const current = categories[category];
     $("motion-amplitude").firstChild.textContent = current.tuning;
@@ -1321,6 +1580,15 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       ["spin", "\u81EA\u8F6C", -3, 3, 1, " \u5708"],
       ["pulse", "\u7F29\u653E\u5E45\u5EA6", 0, 60, 1, "%"],
       ["motionRandom", "\u8FD0\u52A8\u968F\u673A", 0, 100, 1, "%"]
+    ],
+    "throw-sliders": [
+      ["throwHeight", "\u629B\u7269\u9AD8\u5EA6", 0, 700, 5, " px"]
+    ],
+    "sparkle-controls": [
+      ["sparkleSize", "\u661F\u5149\u5927\u5C0F", 8, 75, 1, " px"],
+      ["sparkleBrightness", "\u661F\u5149\u4EAE\u5EA6", 10, 100, 1, "%"],
+      ["sparkleRate", "\u95EA\u70C1\u9891\u7387", 1, 8, 1, " \u6B21/\u5FAA\u73AF"],
+      ["sparkleRandom", "\u661F\u5149\u968F\u673A", 0, 100, 1, "%"]
     ],
     "gravity-controls": [
       ["gravityStrength", "\u91CD\u529B\u5F3A\u5EA6", 25, 200, 1, "%"]
@@ -1405,24 +1673,25 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       }
     });
   }
-  function bindDiffusion() {
-    const handle = $("diffusion-handle");
-    const xInput = $("diffusionX");
-    const yInput = $("diffusionY");
-    const gravityToggle = $("gravity-enabled");
+  function bindCanvasPoint(handleId, key) {
+    const handle = $(handleId);
+    const xKey = key + "X";
+    const yKey = key + "Y";
+    const xInput = $(xKey);
+    const yInput = $(yKey);
     function moveCenter(x, y) {
-      settings.diffusionX = clamp(Math.round(x), 0, WIDTH);
-      settings.diffusionY = clamp(Math.round(y), 0, HEIGHT);
-      xInput.value = settings.diffusionX;
-      yInput.value = settings.diffusionY;
-      handle.style.left = settings.diffusionX / WIDTH * 100 + "%";
-      handle.style.top = settings.diffusionY / HEIGHT * 100 + "%";
+      settings[xKey] = clamp(Math.round(x), 0, WIDTH);
+      settings[yKey] = clamp(Math.round(y), 0, HEIGHT);
+      xInput.value = settings[xKey];
+      yInput.value = settings[yKey];
+      handle.style.left = settings[xKey] / WIDTH * 100 + "%";
+      handle.style.top = settings[yKey] / HEIGHT * 100 + "%";
       refresh();
     }
     function updateFromInputs() {
       moveCenter(
-        Number.isFinite(xInput.valueAsNumber) ? xInput.valueAsNumber : settings.diffusionX,
-        Number.isFinite(yInput.valueAsNumber) ? yInput.valueAsNumber : settings.diffusionY
+        Number.isFinite(xInput.valueAsNumber) ? xInput.valueAsNumber : settings[xKey],
+        Number.isFinite(yInput.valueAsNumber) ? yInput.valueAsNumber : settings[yKey]
       );
     }
     for (const input of [xInput, yInput]) {
@@ -1431,13 +1700,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       });
       input.addEventListener("change", updateFromInputs);
     }
-    gravityToggle.checked = settings.gravityEnabled;
-    gravityToggle.addEventListener("change", () => {
-      settings.gravityEnabled = gravityToggle.checked;
-      $("gravity-controls").hidden = !settings.gravityEnabled;
-      refresh();
-    });
-    moveCenter(settings.diffusionX, settings.diffusionY);
+    moveCenter(settings[xKey], settings[yKey]);
     function canvasPoint(event) {
       const rect = stage.getBoundingClientRect();
       return [(event.clientX - rect.left) / rect.width * WIDTH, (event.clientY - rect.top) / rect.height * HEIGHT];
@@ -1446,7 +1709,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     handle.addEventListener("pointerdown", (event) => {
       if (!event.isPrimary || event.button !== 0) return;
       const [x, y] = canvasPoint(event);
-      drag = { pointer: event.pointerId, dx: x - settings.diffusionX, dy: y - settings.diffusionY };
+      drag = { pointer: event.pointerId, dx: x - settings[xKey], dy: y - settings[yKey] };
       handle.setPointerCapture(event.pointerId);
     });
     handle.addEventListener("pointermove", (event) => {
@@ -1462,7 +1725,7 @@ window.optimizeLuckyGiftAtlas = async canvas => {
       if (!delta) return;
       const step = event.shiftKey ? 10 : 1;
       event.preventDefault();
-      moveCenter(settings.diffusionX + delta[0] * step, settings.diffusionY + delta[1] * step);
+      moveCenter(settings[xKey] + delta[0] * step, settings[yKey] + delta[1] * step);
     });
   }
   async function selectFile(file) {
@@ -1521,18 +1784,19 @@ window.optimizeLuckyGiftAtlas = async canvas => {
     event.preventDefault();
     if (!material || pending || exporting || !duration.reportValidity()) return;
     const frames = currentFrameCount();
-    if (frames > 1e5 || frames * settings.count > 1e6) {
+    const sample = sampler(frames);
+    const trackCount = sample(0).length;
+    if (frames > 1e5 || frames * trackCount > 1e6) {
       notify("\u5F53\u524D\u65F6\u957F\u4E0E\u7C92\u5B50\u6570\u91CF\u8D85\u51FA\u5BFC\u51FA\u8303\u56F4\u3002\u8BF7\u7F29\u77ED\u65F6\u957F\u6216\u51CF\u5C11\u7C92\u5B50\u3002", true);
       return;
     }
-    const sample = sampler(frames);
-    const count = settings.count;
+    const starMaterial = settings.sparkleEnabled ? sparkle : null;
     exporting = true;
     updateExport();
     notify("\u6B63\u5728\u751F\u6210\u5E76\u538B\u7F29 SVGA\u2026");
     try {
       await new Promise((resolve) => setTimeout(resolve, 20));
-      const blob = await exportMovie(material, sample, frames, count, window.optimizeLuckyGiftAtlas);
+      const blob = await exportMovie(material, starMaterial, sample, frames, window.optimizeLuckyGiftAtlas);
       const sourceName = $("filename").textContent.replace(/\.[^.]+$/, "");
       download(blob, sourceName + "-\u5E78\u8FD0\u793C\u7269.svga");
       notify("");
@@ -1662,7 +1926,20 @@ window.optimizeLuckyGiftAtlas = async canvas => {
   })));
   bindGuide("top");
   bindGuide("bottom");
-  bindDiffusion();
+  bindCanvasPoint("diffusion-handle", "diffusion");
+  bindCanvasPoint("throw-start-handle", "throwStart");
+  bindCanvasPoint("throw-end-handle", "throwEnd");
+  $("gravity-enabled").addEventListener("change", (event) => {
+    settings.gravityEnabled = event.target.checked;
+    $("gravity-controls").hidden = !settings.gravityEnabled;
+    refresh();
+  });
+  $("sparkle-enabled").addEventListener("change", (event) => {
+    settings.sparkleEnabled = event.target.checked;
+    if (settings.sparkleEnabled) sparkle ??= createSparkleMaterial();
+    $("sparkle-controls").hidden = !settings.sparkleEnabled;
+    refresh();
+  });
   renderEffects();
   requestAnimationFrame(draw);
   var crown = Uint8Array.from(atob($("default-material").textContent.trim()), (value) => value.charCodeAt(0));
